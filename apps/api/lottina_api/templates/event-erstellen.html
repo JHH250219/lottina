@@ -1,0 +1,619 @@
+{% extends "base.html" %}
+{% block title %}Event erstellen – lottina{% endblock %}
+
+{% block content %}
+<div class="min-h-[75vh] mx-auto px-4 sm:px-8 md:p-20 py-8 sm:py-12 bg-gradient-to-b from-[#fffafa] to-[#fb5c4f]">
+  <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-lottina-primary font-lottina mb-6 sm:mb-8 text-center">
+    Event erstellen
+  </h1>
+
+  <!-- Auswahl: Manuell vs. Upload -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6" id="choiceBox">
+    <button id="startManual" type="button"
+      class="h-48 sm:h-64 rounded-2xl bg-lottina-accent text-lottina-primary p-6 sm:p-8 flex flex-col items-center justify-center shadow-md hover:bg-lottina-accent transition w-full">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-16 sm:w-16 mb-3 sm:mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-base sm:text-lg font-semibold">Manuell anlegen</span>
+    </button>
+
+    <label for="ocrUpload"
+      class="cursor-pointer h-48 sm:h-64 rounded-2xl bg-lottina-primary text-white p-6 sm:p-8 flex flex-col items-center justify-center shadow-md hover:bg-lottina-accent transition w-full">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-16 sm:w-16 mb-3 sm:mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h2l2-3h10l2 3h2a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13a3 3 0 100-6 3 3 0 000 6z"/>
+      </svg>
+      <span class="text-base sm:text-lg font-semibold text-center">Foto/ PDF hochladen (OCR)</span>
+      <input type="file" id="ocrUpload" accept="image/*,application/pdf" class="hidden" />
+    </label>
+  </div>
+
+  <!-- OCR Status -->
+  <div id="ocrPanel" class="hidden mt-6 p-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between gap-3">
+      <div class="text-lottina-primary font-semibold">OCR-Ergebnis</div>
+      <div id="ocrConf" class="text-xs text-gray-500"></div>
+    </div>
+    <div id="ocrStatus" class="mt-2 text-sm text-gray-700"></div>
+  </div>
+
+  <!-- Formular -->
+  <form id="eventForm" method="POST" action="/event-erstellen" enctype="multipart/form-data" class="mt-8 text-lottina-primary :mt-12 hidden">
+
+    <!-- Schritt 1 -->
+    <div class="step" data-step="1">
+      <label class="block text-lottina-primary font-semibold mb-2">Event-Titel</label>
+      <input type="text" id="title" name="title" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+    </div>
+
+    <!-- Schritt 2 -->
+    <div class="step hidden" data-step="2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Datum</label>
+          <input type="date" id="date" name="date" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+        </div>
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Uhrzeit (optional)</label>
+          <input type="time" id="time" name="time" class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+        </div>
+      </div>
+    </div>
+
+    <!-- Schritt 3 -->
+    <div class="step hidden" data-step="3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Ort</label>
+          <input type="text" id="location" name="location" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+        </div>
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Maps-URL (optional)</label>
+          <input type="url" id="maps_url" name="maps_url" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="https://maps.google.com/...">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Kategorie</label>
+          <input type="text" id="category" name="category" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="z. B. Konzert, Theater, Familie">
+        </div>
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Altersgruppe</label>
+          <input type="text" id="age_group" name="age_group" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="z. B. ab 6 Jahren">
+        </div>
+      </div>
+    </div>
+
+    <!-- Schritt 4 -->
+    <div class="step hidden" data-step="4">
+      <label class="block text-lottina-primary font-semibold mb-2">Beschreibung</label>
+      <textarea id="description" name="description" rows="4" class="w-full p-3 rounded-lg border border-gray-300 mb-6"></textarea>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Preis (EUR, optional)</label>
+          <input type="number" step="0.01" id="price" name="price" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="z. B. 12.50">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-lottina-primary font-semibold mb-2">Eintritt frei?</label>
+            <select id="is_free" name="is_free" class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+              <option value="">–</option>
+              <option value="true">Ja</option>
+              <option value="false">Nein</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-lottina-primary font-semibold mb-2">Outdoor?</label>
+            <select id="is_outdoor" name="is_outdoor" class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+              <option value="">–</option>
+              <option value="true">Ja</option>
+              <option value="false">Nein</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Quelle (URL)</label>
+          <input type="url" id="source_url" name="source_url" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="https://...">
+        </div>
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Quelle (Name)</label>
+          <input type="text" id="source_name" name="source_name" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="z. B. Stadt München">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Breite (lat)</label>
+          <input type="number" step="any" id="lat" name="lat" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="48.137">
+        </div>
+        <div>
+          <label class="block text-lottina-primary font-semibold mb-2">Länge (lon)</label>
+          <input type="number" step="any" id="lon" name="lon" class="w-full p-3 rounded-lg border border-gray-300 mb-6" placeholder="11.576">
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload-Bild -->
+    <div class="mt-4 sm:mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <label for="summaryUpload" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-lottina-primary text-white rounded-lg shadow hover:bg-lottina-accent w-full sm:w-auto justify-center">
+        📎 Bild hinzufügen
+        <input type="file" id="summaryUpload" name="summary_file" class="hidden" />
+      </label>
+      <div id="previewImage" class="w-24 h-24 sm:w-16 sm:h-16 rounded overflow-hidden hidden border border-gray-300">
+        <img src="" alt="Vorschau" class="w-full h-full object-cover" />
+      </div>
+      <input type="hidden" id="image_url" name="image_url">
+    </div>
+
+    <!-- Navigation -->
+    <div class="mt-8 sm:mt-6 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 sm:sticky sm:bottom-0 bg-lottina-background sm:bg-transparent py-2">
+      <button type="button" id="prevStep" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg w-full sm:w-auto">Zurück</button>
+      <div class="flex gap-3 w-full sm:w-auto">
+        <button type="button" id="previewBtn" class="px-4 py-2 bg-red-500 text-blue-900 font-semibold rounded-lg shadow w-full sm:w-auto hover:bg-red-600">Vorschau</button>
+        <button type="button" id="nextStep" class="px-4 py-2 bg-lottina-primary text-white rounded-lg w-full sm:w-auto">Weiter</button>
+        <button type="submit" id="submitEvent" class="hidden px-4 py-2 bg-lottina-primary text-white rounded-lg w-full sm:w-auto">Event speichern</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Vorschau-Modal -->
+<div id="previewModal" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/50"></div>
+  <div class="relative max-w-3xl mx-auto my-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Vorschau</h3>
+      <button id="closePreview" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">Schließen</button>
+    </div>
+
+    <div id="previewBody" class="p-6">
+      <!-- Dynamisch gefüllt -->
+    </div>
+  </div>
+</div>
+
+<!-- OCR Overlay -->
+<div id="ocrOverlay" class="fixed inset-0 z-[1000] hidden">
+  <!-- Blur-Hintergrund -->
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+  <!-- Content -->
+  <div class="relative h-full flex items-center justify-center pointer-events-none">
+    <div class="pointer-events-auto bg-white/90 rounded-2xl shadow-2xl p-6 sm:p-8 flex flex-col items-center gap-4">
+      <div class="relative w-48 h-48">
+        <img src="/static/img/oma-paper-512.png" alt="Oma sucht…" class="w-full h-full object-contain select-none" draggable="false" />
+      </div>
+
+      <p class="text-lottina-primary font-semibold text-center">
+        Ich suche für dich<span class="dots"></span>
+      </p>
+
+      <div class="mt-1 h-1 w-48 bg-gray-200 rounded-full overflow-hidden">
+        <div class="h-full w-1/3 bg-lottina-primary animate-progress"></div>
+      </div>
+
+      <button type="button" id="cancelOcr"
+              class="mt-2 text-xs text-gray-600 hover:text-gray-900 underline">
+        Abbrechen
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Punkte animieren */
+.dots::after { content: "…"; animation: dots 1.2s steps(4,end) infinite; }
+@keyframes dots { 0% {content:""} 25% {content:"."} 50% {content:".."} 75% {content:"..."} 100% {content:""} }
+
+/* Laufbalken */
+@keyframes progress { 0% {transform: translateX(-120%)} 100% {transform: translateX(300%)} }
+.animate-progress { animation: progress 1.2s linear infinite; }
+
+/* Lupe wackelt/scannt */
+@keyframes lupe { 0% { transform: rotate(0deg) translate(0,0) }
+  25% { transform: rotate(8deg) translate(-3px,-2px) }
+  50% { transform: rotate(-6deg) translate(2px,1px) }
+  75% { transform: rotate(10deg) translate(-2px,2px) }
+  100% { transform: rotate(0deg) translate(0,0) } }
+.animate-lupe { color: #0ea5e9; animation: lupe 1.4s ease-in-out infinite; }
+
+/* Fallback für Blur (manche Browser) */
+#ocrOverlay > .absolute { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+</style>
+
+<script>
+const choiceBox = document.getElementById("choiceBox");
+const form = document.getElementById("eventForm");
+const steps = form.querySelectorAll(".step");
+const ocrPanel = document.getElementById("ocrPanel");
+const ocrStatus = document.getElementById("ocrStatus");
+const ocrConf = document.getElementById("ocrConf");
+let currentStep = 0;
+
+document.getElementById("startManual")?.addEventListener("click", () => {
+  form.classList.remove("hidden");
+  steps[0].classList.remove("hidden");
+  choiceBox.classList.add("hidden");
+  updateButtons();
+});
+
+document.getElementById("nextStep")?.addEventListener("click", () => { gotoStep(currentStep + 1); });
+document.getElementById("prevStep")?.addEventListener("click", () => { gotoStep(currentStep - 1); });
+
+function gotoStep(idx) {
+  idx = Math.max(0, Math.min(idx, steps.length - 1));
+  steps[currentStep].classList.add("hidden");
+  steps[idx].classList.remove("hidden");
+  currentStep = idx;
+  updateButtons();
+  steps[currentStep].scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function updateButtons() {
+  const atLast = currentStep >= steps.length - 1;
+  document.getElementById("nextStep").classList.toggle("hidden", atLast);
+  document.getElementById("submitEvent").classList.toggle("hidden", !atLast);
+}
+updateButtons();
+
+function setVal(id, v) {
+  const el = document.getElementById(id);
+  if (!el || v === undefined || v === null) return;
+  el.value = v;
+  clearInvalid(el);
+}
+function setSelectBool(id, v) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (v === true) el.value = "true";
+  else if (v === false) el.value = "false";
+  else el.value = "";
+  clearInvalid(el);
+}
+function showPreviewImg(src) {
+  const wrap = document.getElementById("previewImage");
+  const img = wrap.querySelector("img");
+  img.src = src;
+  wrap.classList.remove("hidden");
+}
+function toHtmlDate(input) {
+  if (!input) return "";
+  const s = String(input);
+  const iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const dmy = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
+  if (dmy) {
+    let [_, d, m, y] = dmy;
+    if (y.length === 2) y = "20" + y;
+    return `${y.padStart(4,"0")}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
+  }
+  return "";
+}
+function toHtmlTime(input) {
+  if (!input) return "";
+  const t = String(input).replace("Uhr","").trim().replace(".",":");
+  const m = t.match(/^(\d{1,2}):(\d{2})$/);
+  return m ? `${m[1].padStart(2,"0")}:${m[2]}` : "";
+}
+function formatReadable(dateStr, timeStr) {
+  if (!dateStr) return "Datum unbekannt";
+  const d = new Date(dateStr + (timeStr ? "T"+timeStr : "T09:00"));
+  if (isNaN(d.getTime())) return "Datum unbekannt";
+  const weekday = d.toLocaleDateString("de-DE", { weekday: "long" });
+  const datePart = d.toLocaleDateString("de-DE");
+  const timePart = timeStr ? d.toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit" }).replace(":00"," Uhr") : "";
+  return `${weekday}, ${timePart} (${datePart})`.replace(" ,", ",");
+}
+function pad(v,len=2){ v=String(v); while(v.length<len) v="0"+v; return v; }
+
+function setInvalid(el){ el.classList.add("border-red-500","ring-2","ring-red-300"); }
+function clearInvalid(el){ el.classList.remove("border-red-500","ring-2","ring-red-300"); }
+function markMissing(missing=[]) {
+  const ids = ["title","description","date","time","location","category","maps_url","source_url","source_name","lat","lon","price","is_free","is_outdoor","age_group","image_url"];
+  ids.forEach(id => { const el=document.getElementById(id); if(el) clearInvalid(el); });
+  missing.forEach(id => { const el=document.getElementById(id); if(el) setInvalid(el); });
+}
+document.addEventListener("input",(e)=>{ if(e.target && e.target.closest("#eventForm")) clearInvalid(e.target); });
+
+// ---------- OCR Upload ----------
+document.getElementById("ocrUpload")?.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const fd = new FormData();
+  fd.append("file", file);
+
+  let res, data;
+  try {
+    res = await fetch("/ocr/upload", { method: "POST", body: fd });
+    if (!res.ok) throw new Error("Primary OCR endpoint failed");
+  } catch (_) {
+    res = await fetch("/ocr-upload", { method: "POST", body: fd });
+  }
+
+  try { data = await res.json(); } catch { alert("OCR-Fehler: ungültige Server-Antwort"); return; }
+  if (!data || data.error) { alert("OCR-Fehler: " + (data?.error || "Unbekannt")); return; }
+
+  choiceBox.classList.add("hidden");
+  form.classList.remove("hidden");
+  steps.forEach((s,i)=>s.classList.toggle("hidden", i!==0));
+
+  const f = data.fields || data;
+
+  setVal("title", f.title);
+  setVal("description", f.description);
+  setVal("date", toHtmlDate(f.date));
+  setVal("time", toHtmlTime(f.time));
+  setVal("location", f.location);
+  setVal("category", f.category || "Unbekannt");
+  setVal("maps_url", f.maps_url);
+  setVal("source_url", f.source_url);
+  setVal("source_name", f.source_name);
+  setVal("lat", f.lat);
+  setVal("lon", f.lon);
+  setVal("price", f.price);
+  setSelectBool("is_free", f.is_free);
+  setSelectBool("is_outdoor", f.is_outdoor);
+  setVal("age_group", f.age_group);
+
+  const imgUrl = data.image_url || f.image_url;
+  if (imgUrl) {
+    setVal("image_url", imgUrl);
+    showPreviewImg(imgUrl);
+  }
+
+  ocrPanel.classList.remove("hidden");
+  const found = data.found || [];
+  const missing = data.missing || [];
+  ocrStatus.innerHTML = `
+    <div class="mb-1">Erkannt: <strong>${found.length ? found.join(", ") : "–"}</strong></div>
+    <div>Fehlt: <strong>${missing.length ? missing.join(", ") : "–"}</strong></div>
+  `;
+  ocrConf.textContent = renderConfidence(data.confidence || {});
+  markMissing(missing);
+  gotoStep(steps.length - 1);
+});
+
+// Manueller Bild-Upload (nur Vorschau)
+document.getElementById("summaryUpload")?.addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  showPreviewImg(url);
+});
+
+// -------- Vorschau (Modal) --------
+document.getElementById("previewBtn")?.addEventListener("click", () => {
+  const previewData = {
+    title: document.getElementById("title").value || "Ohne Titel",
+    description: document.getElementById("description").value,
+    date: document.getElementById("date").value,
+    time: document.getElementById("time").value,
+    location: document.getElementById("location").value,
+    category: document.getElementById("category").value,
+    age_group: document.getElementById("age_group").value,
+    price: document.getElementById("price").value,
+    is_free: document.getElementById("is_free").value === "true",
+    is_outdoor: document.getElementById("is_outdoor").value === "true",
+    maps_url: document.getElementById("maps_url").value,
+    image_url: document.getElementById("image_url").value
+  };
+
+  renderPreview(previewData);
+  document.getElementById("previewModal").classList.remove("hidden");
+});
+document.getElementById("closePreview")?.addEventListener("click", () => {
+  document.getElementById("previewModal").classList.add("hidden");
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") document.getElementById("previewModal").classList.add("hidden");
+});
+
+function renderPreview(ev) {
+  const imgSrc = ev.image_url || (document.querySelector("#previewImage img")?.src || "");
+  const readable = formatReadable(ev.date, ev.time);
+  const badges = [];
+  if (ev.is_free) badges.push(`<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Kostenlos</span>`);
+  else if (ev.price) badges.push(`<span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">${Number(ev.price).toLocaleString("de-DE", {minimumFractionDigits:2, maximumFractionDigits:2})} €</span>`);
+  if (ev.is_outdoor) badges.push(`<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Draußen</span>`);
+  if (ev.age_group) badges.push(`<span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">${ev.age_group}</span>`);
+  if (ev.category) badges.push(`<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">${ev.category}</span>`);
+
+  const imgBlock = imgSrc
+    ? `<img src="${imgSrc}" alt="${escapeHtml(ev.title)}" class="w-full h-64 md:h-96 object-cover rounded-xl shadow border dark:border-gray-700 mb-6">`
+    : `<div class="w-full h-64 md:h-96 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-xl shadow border dark:border-gray-700 mb-6">Kein Bild verfügbar</div>`;
+
+  const mapsBlock = ev.maps_url ? `
+    <section class="mb-12">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Anfahrt</h2>
+      <iframe src="${ev.maps_url}" class="w-full h-64 rounded-xl border dark:border-gray-700 shadow"
+        allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </section>` : ``;
+
+  const html = `
+    <main class="mx-auto px-2 pt-2 pb-10">
+      ${imgBlock}
+      <div class="mb-4">
+        <h1 class="text-3xl font-bold text-lottina-primary dark:text-white">${escapeHtml(ev.title)}</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          ${escapeHtml(readable)} – ${escapeHtml(ev.location || "Ort unbekannt")}
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 text-sm mb-6">${badges.join("")}</div>
+      ${ev.description ? `
+      <section class="mb-8 prose dark:prose-invert">
+        <h2>Details</h2>
+        <p>${escapeHtml(ev.description)}</p>
+      </section>` : ``}
+      ${mapsBlock}
+    </main>
+  `;
+  document.getElementById("previewBody").innerHTML = html;
+}
+
+function escapeHtml(s) {
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+function renderConfidence(confObj) {
+  const vals = Object.values(confObj || {}).map(Number).filter(n => !isNaN(n));
+  if (!vals.length) return "";
+  const avg = Math.round(100 * vals.reduce((a,b)=>a+b,0) / vals.length);
+  return `≈ Erkennungs-Sicherheit: ${avg}%`;
+}
+</script>
+<script>
+// --- Prefill-Helfer, falls mehrere Kandidaten erkannt wurden ---
+function prefillFrom(fields) {
+  setVal("title", fields.title);
+  setVal("description", fields.description);
+  setVal("date", toHtmlDate(fields.date));
+  setVal("time", toHtmlTime(fields.time));
+  setVal("location", fields.location);
+  setVal("category", fields.category || "Unbekannt");
+  setVal("maps_url", fields.maps_url);
+  setVal("source_url", fields.source_url);
+  setVal("source_name", fields.source_name);
+  setVal("lat", fields.lat);
+  setVal("lon", fields.lon);
+  setVal("price", fields.price);
+  setSelectBool("is_free", fields.is_free);
+  setSelectBool("is_outdoor", fields.is_outdoor);
+  setVal("age_group", fields.age_group);
+  if (fields.image_url) setVal("image_url", fields.image_url);
+}
+
+// Nach deinem OCR-Fetch:
+async function handleOcrResponse(data) {
+  // ... dein bisheriges Prefill ...
+
+  // Kandidaten-Auswahl rendern, wenn es mehrere gibt
+  const candidates = data.candidates || [];
+  if (candidates.length > 1) {
+    const listId = "ocrCandidateList";
+    let host = document.getElementById(listId);
+    if (!host) {
+      host = document.createElement("div");
+      host.id = listId;
+      host.className = "mt-4 border-t pt-3";
+      ocrPanel.appendChild(host);
+    }
+    host.innerHTML = `<div class="text-sm font-semibold mb-2">Mehrere Events erkannt – wähle eines aus:</div>`;
+    candidates.slice(0,6).forEach((c, idx) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "block w-full text-left px-3 py-2 mb-2 rounded-lg border hover:bg-gray-50";
+      const label = `${c.title || "Ohne Titel"} — ${c.date || "Datum unbekannt"} — ${c.location || "Ort ?"}`
+      btn.textContent = label;
+      btn.addEventListener("click", () => {
+        prefillFrom(c);
+        markMissing([]); // nach Auswahl: Reset
+        gotoStep(steps.length - 1);
+      });
+      host.appendChild(btn);
+    });
+  }
+
+  // zum letzten Step springen (bleibt)
+  gotoStep(steps.length - 1);
+}
+</script>
+<script>
+let ocrController = null;
+const ocrOverlay = document.getElementById("ocrOverlay");
+const cancelBtn = document.getElementById("cancelOcr");
+
+function showOcrOverlay() { ocrOverlay.classList.remove("hidden"); }
+function hideOcrOverlay() { ocrOverlay.classList.add("hidden"); }
+
+// Abbrechen
+cancelBtn?.addEventListener("click", () => {
+  try { ocrController?.abort(); } catch {}
+  hideOcrOverlay();
+});
+
+// Hilfsfüller (falls du keinen eigenen Handler hast)
+function applyOcrFromResponse(data) {
+  const f = data.fields || data;
+  setVal("title", f.title);
+  setVal("description", f.description);
+  setVal("date", toHtmlDate(f.date));
+  setVal("time", toHtmlTime(f.time));
+  setVal("location", f.location);
+  setVal("category", f.category || "Unbekannt");
+  setVal("maps_url", f.maps_url);
+  setVal("source_url", f.source_url);
+  setVal("source_name", f.source_name);
+  setVal("lat", f.lat); setVal("lon", f.lon);
+  setVal("price", f.price);
+  setSelectBool("is_free", f.is_free);
+  setSelectBool("is_outdoor", f.is_outdoor);
+  setVal("age_group", f.age_group);
+  if (data.image_url) { setVal("image_url", data.image_url); showPreview(data.image_url); }
+
+  // OCR-Panel updaten, falls vorhanden
+  if (window.ocrPanel) {
+    const found = data.found || [];
+    const missing = data.missing || [];
+    ocrPanel.classList.remove("hidden");
+    ocrStatus.innerHTML = `
+      <div class="mb-1">Erkannt: <strong>${found.length ? found.join(", ") : "–"}</strong></div>
+      <div>Fehlt: <strong>${missing.length ? missing.join(", ") : "–"}</strong></div>`;
+    ocrConf.textContent = renderConfidence(data.confidence || {});
+  }
+
+  // direkt zum letzten Step springen
+  steps.forEach((s) => s.classList.add("hidden"));
+  steps[steps.length - 1].classList.remove("hidden");
+  currentStep = steps.length - 1;
+  updateButtons();
+
+  // fehlende Pflichtfelder rot umranden
+  ["title","date","location"].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.toggle("ring-2", !el.value);
+    el.classList.toggle("ring-red-500", !el.value);
+  });
+}
+
+// -------- OCR Upload (bestehenden Listener ersetzen) --------
+document.getElementById("ocrUpload")?.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const fd = new FormData();
+  fd.append("file", file);
+
+  showOcrOverlay();
+  ocrController = new AbortController();
+
+  let res, data;
+  try {
+    // Primär
+    res = await fetch("/ocr/upload", { method: "POST", body: fd, signal: ocrController.signal });
+    if (!res.ok) throw new Error("Upload fehlgeschlagen");
+    data = await res.json();
+    if (data?.error) throw new Error(data.error);
+
+    // UI vorbereiten (Form aufklappen, Choice verstecken)
+    choiceBox.classList.add("hidden");
+    form.classList.remove("hidden");
+
+    // Werte übernehmen
+    applyOcrFromResponse(data);
+  } catch (err) {
+    if (err.name !== "AbortError") alert("OCR-Fehler: " + (err.message || "Unbekannt"));
+  } finally {
+    hideOcrOverlay();
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Preise – lottina{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-b from-[#fffafa] to-[#fb5c4f] dark:bg-gray-900 py-16 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <h1 class="text-3xl md:text-4xl font-bold text-lottina-primary dark:text-white mb-4">Wähle dein lottina-Abo</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-10">Ob kostenlos oder Premium – hier ist für jede Familie etwas dabei.</p>
+
+    <!-- 💳 Preismodelle -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+      {% set plans = [
+        {'title': 'Basic', 'price': '0 €', 'desc': 'Kostenlos entdecken', 'features': [
+          'Alle Events durchsuchen', 'Standort + Datum wählen', 'Dark-/Light-Modus'
+        ], 'highlight': False},
+
+        {'title': 'Classic', 'price': '4,90 €', 'desc': 'Mehr Komfort', 'features': [
+          'Favoriten speichern', 'Erweiterte Filter', 'Persönliche Vorschläge'
+        ], 'highlight': False},
+
+        {'title': 'Plus', 'price': '7,90 €', 'desc': 'Familienmodus', 'features': [
+          'Region merken', 'Benachrichtigungen', 'Premium-Karte'
+        ], 'highlight': True},
+
+        {'title': 'Pro', 'price': '12,90 €', 'desc': 'Für Vielplaner:innen', 'features': [
+          'Kalender-Export', 'Mehrere Standorte', 'Offline-Modus'
+        ], 'highlight': False}
+      ] %}
+
+      <!--Hightlight Preis-->
+  {% for plan in plans %}
+  <div class="
+    p-6 rounded-2xl shadow-md transition transform hover:scale-[1.02] 
+    {{ 'bg-lottina-primary text-white ring-4 ring-lottina-accent scale-[1.05]' if plan.highlight else 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700' }}
+    {{ 'relative z-10' if plan.highlight else 'relative z-0' }}
+  ">
+
+    {% if plan.highlight %}
+    <div class="absolute -top-3 -left-3 bg-lottina-accent text-white text-xs px-3 py-1 rounded-full font-semibold shadow-md">
+      ⭐ Unser Tipp
+    </div>
+    {% endif %}
+
+    <h2 class="text-2xl font-bold mb-1 {{ 'text-lottina-accent' if plan.highlight else 'text-gray-800 dark:text-white' }}">{{ plan.title }}</h2>
+    <p class="text-sm mb-4 {{ 'text-lottina-background' if plan.highlight else 'text-gray-500 dark:text-gray-400' }}">{{ plan.desc }}</p>
+    <div class="text-3xl font-bold mb-6 {{ 'text-lottina-accent' if plan.highlight else 'text-lottina-primary' }}">{{ plan.price }}</div>
+
+    <ul class="text-sm space-y-2 mb-6 {{ 'text-lottina-background' if plan.highlight else 'text-gray-700 dark:text-gray-300' }}">
+      {% for f in plan.features %}
+      <li>✔️ {{ f }}</li>
+      {% endfor %}
+    </ul>
+
+    <button class="w-full py-2 px-4 font-semibold rounded-md 
+                   {{ 'bg-white text-lottina-primary hover:bg-lottina-accent hover:text-white' if plan.highlight 
+                      else 'bg-lottina-primary text-white hover:bg-lottina-accent' }} 
+                   transition disabled:opacity-60 cursor-not-allowed"
+            disabled>
+      Bald verfügbar
+    </button>
+  </div>
+  {% endfor %}
+</div>
+
+  </div>
+</section>
+{% endblock %}

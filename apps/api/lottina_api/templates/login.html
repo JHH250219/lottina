@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Login – lottina{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center px-4 pt-20 pb-24 bg-gradient-to-b from-[#fffafa] to-[#fb5c4f]">
+  <div class="min-h-screen">
+    <h2 class="text-2xl font-lottina mb-4 text-lottina-primary dark:text-white">Login</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-3 rounded text-sm text-white {{ 'bg-red-500' if category == 'danger' else 'bg-green-500' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="space-y-4">
+      <input name="email" type="email" placeholder="E-Mail"
+             class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white" required />
+
+      <input name="password" type="password" placeholder="Passwort"
+             class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white" required />
+
+      <button class="w-full bg-lottina-primary hover:bg-white hover:text-[#1f2148] text-white font-lottina font-semibold py-2 px-4 rounded transition">
+        Einloggen
+      </button>
+    </form>
+    <!-- ➕ Registrieren-Link -->
+<div class="mt-6 text-center">
+  <p class="text-sm text-gray-600 dark:text-gray-400">
+    Noch kein Konto?
+  </p>
+  <a href="{{ url_for('register') }}"
+     class="inline-block mt-2 bg-lottina-accent hover:bg-white hover:text-[#1f2148] text-lottina-primary font-lottina font-semibold py-2 px-6 rounded transition">
+    Jetzt registrieren
+  </a>
+</div>
+  </div>
+</div>
+{% endblock %}

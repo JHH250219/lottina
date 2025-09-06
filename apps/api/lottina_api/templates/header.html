@@ -1,0 +1,128 @@
+{# templates/header.html #}
+<header class="fixed top-0 inset-x-0 z-50 bg-white opacity-95">
+  <div class="mx-auto w-full px-4 sm:px-6 lg:px-8 py-4">
+    <div class="flex items-center gap-4">
+
+      <!-- 🔷 Logo -->
+      <a href="{{ url_for('index') }}" class="shrink-0 flex items-center gap-2" aria-label="Startseite">
+        <h1 class="text-lottina-primary text-3xl sm:text-4xl font-bold font-lottina drop-shadow-sm">
+          lottina
+        </h1>
+      </a>
+
+      <!-- 🔍 Suche (nur wenn NICHT Startseite) -->
+      {% if not request.path == '/' %}
+      <form action="{{ url_for('suchergebnisse') }}" method="get"
+            class="hidden sm:flex flex-1 mx-2">
+        <input
+          type="text"
+          name="q"
+          placeholder="Suche nach Ort oder Begriff"
+          value="{{ query if query else '' }}"
+          class="w-full px-4 py-2 rounded-lg border border-lottina-primary/70 dark:border-gray-700 bg-white/90 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-lottina-accent/40"
+          aria-label="Suche" />
+      </form>
+      {% else %}
+      <div class="flex-1"></div>
+      {% endif %}
+
+      <!-- 👤 Actions -->
+      <nav class="flex items-center gap-4">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('profil') }}" class="text-sm text-lottina-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">Mein Profil</a>
+          <a href="{{ url_for('logout') }}" class="text-sm text-lottina-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="text-sm text-lottina-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">Login</a>
+        {% endif %}
+
+        <!-- ☰ Menü-Button -->
+        <button id="menuToggle"
+                class="text-gray-700 dark:text-gray-300 hover:text-[#fb5c4f] dark:hover:text-purple-400 focus:outline-none text-2xl sm:text-3xl"
+                aria-label="Menü öffnen/schließen"
+                aria-expanded="false">
+          ☰
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+<!-- 🌐 Overlay & Panel -->
+<div id="menuOverlay"
+     class="fixed inset-0 z-50 hidden">
+  <aside id="menuPanel"
+         class="absolute top-4 right-4 w-72 max-w-[80vw]
+                bg-lottina-primary p-6 shadow-xl rounded-2xl
+                flex flex-col gap-3 transform translate-x-full
+                transition-transform duration-300 ease-out">
+
+    <nav class="space-y-2">
+      <a href="/favorites"
+         class="flex w-full items-center gap-3 px-4 py-2 rounded-full
+                text-lottina-white hover:bg-[#fb5c4f] hover:text-lottina-white
+                transition-colors">
+        <span>Meine Favoriten</span>
+      </a>
+
+      <a href="/event-erstellen"
+         class="flex w-full items-center gap-3 px-4 py-2 rounded-full
+                text-lottina-white hover:bg-[#fb5c4f] hover:text-lottina-white
+                transition-colors">
+        <span>Event erstellen</span>
+      </a>
+
+      <a href="#faq" id="menuFaqLink"
+         class="flex w-full items-center gap-3 px-4 py-2 rounded-full
+                text-lottina-white hover:bg-[#fb5c4f] hover:text-lottina-white
+                transition-colors">
+        <span>FAQ</span>
+      </a>
+    </nav>
+
+    <div class="mt-2 flex items-center gap-4 text-lottina-white/90">
+      <a href="{{ request.path }}?lang=de" class="hover:text-white">🇩🇪 DE</a>
+      <a href="{{ request.path }}?lang=en" class="hover:text-white">🇬🇧 EN</a>
+    </div>
+  </aside>
+</div>
+
+
+</div>
+
+</header>
+
+<!-- 🧠 Menü + FAQ JavaScript -->
+<script>
+  const toggle  = document.getElementById("menuToggle");
+  const overlay = document.getElementById("menuOverlay");
+  const panel   = document.getElementById("menuPanel");
+  const faqLink = document.getElementById("menuFaqLink");
+
+  function openMenu() {
+    overlay.classList.remove("hidden");
+    requestAnimationFrame(() => panel.classList.remove("translate-x-full"));
+    toggle?.setAttribute("aria-expanded", "true");
+  }
+  function closeMenu() {
+    panel.classList.add("translate-x-full");
+    setTimeout(() => overlay.classList.add("hidden"), 300);
+    toggle?.setAttribute("aria-expanded", "false");
+  }
+  function toggleMenu() {
+    const isOpen = !overlay.classList.contains("hidden");
+    isOpen ? closeMenu() : openMenu();
+  }
+
+  toggle?.addEventListener("click", toggleMenu);
+  overlay?.addEventListener("click", (e) => {
+    if (!panel.contains(e.target)) closeMenu();
+  });
+
+  // 📍 Scroll + Menü schließen bei Klick auf FAQ-Link
+  faqLink?.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeMenu();
+    const target = document.getElementById("faq");
+    if (target) setTimeout(() => target.scrollIntoView({ behavior: "smooth" }), 350);
+  });
+</script>

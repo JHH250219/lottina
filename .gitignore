@@ -1,4 +1,21 @@
-venv/
+# Python
 __pycache__/
-.env*
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+
+# Virtualenv
+venv/
+.env/
+.venv/
+
+# Docker
+*.log
+*.pid
+*.seed
+*.bak
+
+# macOS
 .DS_Store

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}lottina{% endblock %}</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Icons/Helper -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://unpkg.com/heroicons@2.0.16/dist/24/outline.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-XQoYMqMTK8LvdlxU/3aQZbY0qEAt9nLk3cZg9ZkYfQo="
+        crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-o9N1j7kGmS+Jp3rgZj+Po+ozQdWpXdZ+1lzLk2g0kzU="
+          crossorigin=""></script>
+
+  <!-- Material Tailwind (optional) -->
+  <link href="https://unpkg.com/@material-tailwind/html@latest/styles/material-tailwind.css" rel="stylesheet" />
+  <script src="https://unpkg.com/@material-tailwind/html@latest/scripts/script.js"></script>
+
+  <!-- App CSS / Fonts -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+@keyframes slideIn {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+.page-enter {
+  animation: slideIn 0.6s ease-out forwards;
+}
+@keyframes flyOut {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity: 1; }
+  40%  { transform: translate(150px,-100px) scale(1.2) rotate(-20deg); opacity: 1; }
+  100% { transform: translate(600px,-250px) scale(0.8) rotate(-45deg); opacity: 0; }
+}
+.fly-anim {
+  animation: flyOut 1.2s ease forwards;
+}
+
+
+</style>
+</head>
+
+<body class="{% if request.endpoint == 'results' %}page-enter{% endif %} min-h-screen flex flex-col font-lottina bg-gradient-to-b from-[#fffafa] to-[#fb5c4f] text-white">
+  {% include "header.html" %}
+
+  <!-- Einheitlicher, breiter Container für Seiteninhalte -->
+  <main class="flex-grow pt-24">
+    <div class="mx-auto w-full ">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  {% include "footer.html" %}
+
+  <!-- Theme Toggle -->
+  <script>
+    const toggleBtn = document.getElementById("theme-toggle");
+    const iconDark  = document.getElementById("theme-toggle-dark-icon");
+    const iconLight = document.getElementById("theme-toggle-light-icon");
+
+    if (localStorage.getItem("theme") === "dark" ||
+       (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.classList.add("dark");
+      iconLight && iconLight.classList.remove("hidden");
+    } else {
+      document.documentElement.classList.remove("dark");
+      iconDark && iconDark.classList.remove("hidden");
+    }
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        const isDark = document.documentElement.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        iconDark  && iconDark.classList.toggle("hidden", isDark);
+        iconLight && iconLight.classList.toggle("hidden", !isDark);
+      });
+    }
+  </script>
+
+  {% include "cookie.html" %}
+  <!-- Overlay-Flieger -->
+<svg id="fly-overlay" xmlns="http://www.w3.org/2000/svg"
+     class="hidden fixed top-1/2 left-1/2 w-10 h-10 text-lottina-accent z-50 pointer-events-none"
+     viewBox="0 0 24 24" fill="currentColor">
+  <!-- Papierflieger -->
+  <path d="M2 3l20 9-20 9 5-9-5-9z"/>
+</svg>
+
+</body>
+</html>

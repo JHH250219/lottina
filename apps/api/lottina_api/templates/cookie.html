@@ -1,0 +1,70 @@
+<!-- Cookie Consent Banner (Tailwind + Oma) -->
+<div id="cookie-banner" role="dialog" aria-modal="true" aria-labelledby="cookie-title"
+     class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4 py-10">
+  <div class="bg-white max-w-md w-full rounded-2xl shadow-2xl p-6 relative text-center">
+    
+    <!-- Oma-Bild -->
+    <img src="{{ url_for('static', filename='img/oma-cookies.png') }}"
+         alt="Oma mit Keksen"
+         class="w-28 h-28 mx-auto rounded-full mb-4 shadow floating-card"
+         loading="lazy" />
+
+    <!-- Text -->
+    <h2 id="cookie-title" class="text-xl font-bold mb-2">🍪 Oma hat frische Cookies gebacken!</h2>
+    <p class="text-sm text-gray-700 mb-4">
+      Möchtest du ein paar? Wir verwenden Cookies für eine bessere Erfahrung.
+    </p>
+
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row justify-center gap-3 mt-4">
+      <button onclick="acceptCookies()"
+              class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow">
+        Ja, her damit!
+      </button>
+      <button onclick="declineCookies()"
+              class="bg-gray-300 hover:bg-gray-400  text-gray-800 font-semibold px-4 py-2 rounded-lg shadow">
+        Nur das Nötigste
+      </button>
+    </div>
+
+    <!-- Link -->
+    <p class="mt-4 text-xs text-gray-600">
+      <a href="/datenschutz" class="underline hover:text-purple-600">Mehr erfahren</a>
+    </p>
+  </div>
+</div>
+
+<!-- Cookie-Logik -->
+<script>
+  function setCookieConsent(status) {
+    localStorage.setItem('cookieConsent', status);
+    document.getElementById('cookie-banner').style.display = 'none';
+  }
+
+  function acceptCookies() {
+    setCookieConsent('accepted');
+    // Optional: initAnalytics()
+  }
+
+  function declineCookies() {
+    setCookieConsent('declined');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const consent = localStorage.getItem('cookieConsent');
+    if (consent === 'accepted' || consent === 'declined') {
+      document.getElementById('cookie-banner').style.display = 'none';
+    }
+  });
+</script>
+
+<!-- Bonus: Floating Animation -->
+<style>
+  .floating-card {
+    animation: float 4s ease-in-out;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>

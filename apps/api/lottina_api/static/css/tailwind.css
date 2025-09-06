@@ -1,0 +1,45 @@
+/* === Basis-Setup fÃ¼r TailwindCSS Standalone === */
+
+/* ✅ Font-Import */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200..1000&display=swap');
+
+/* ✅ Custom Properties */
+:root {
+  --lottina-primary: #1f2148;
+  --lottina-secondary: #ffb7a3;
+  --lottina-accent: #fb5c4f;
+  --lottina-highlight: #f2e205;
+  --lottina-background: #fffafa;
+  --lottina-white: #fffafa;
+  --font-lottina: 'Nunito Sans', sans-serif;
+}
+
+/* ✅ Tailwind-like Reset */
+*, ::before, ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: currentColor;
+}
+
+/* ✅ Global Styles */
+body {
+  margin: 0;
+  font-family: var(--font-lottina);
+  background-color: var(--lottina-background);
+  color: var(--lottina-primary);
+}
+
+
+/* Beispielklassen */
+.bg-lottina-primary     { background-color: var(--lottina-primary); }
+.bg-lottina-secondary   { background-color: var(--lottina-secondary); }
+.bg-lottina-accent      { background-color: var(--lottina-accent); }
+.bg-lottina-highlight   { background-color: var(--lottina-highlight); }
+.bg-lottina-background  { background-color: var(--lottina-background); }
+
+.text-lottina-primary   { color: var(--lottina-primary); }
+.text-lottina-accent    { color: var(--lottina-accent); }
+
+.font-fredoka          { font-family: var(--font-fredoka); }
+
