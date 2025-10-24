@@ -1,341 +1,301 @@
-
 {% extends "base.html" %}
 {% block title %}Startseite – lottina{% endblock %}
 
 {% block content %}
+{% set events = events or [] %}
+{% set testimonials = testimonials or [] %}
 
-
-<!-- Hero Section mit Farbverlauf -->
-<section class="relative min-h-screen bg-gradient-to-b from-[#fffafa] to-[#fb5c4f] pb-20">
-  <div class="relative z-10 flex flex-col items-center justify-center h-full pb-40 pt-20 px-10 text-center">
-  
-    <h1 class="text-left text-lottina-primary text-4xl font-bold font-lottina mb-14 drop-shadow-lg">  
-      Dein Event-Guide für die ganze Familie
-    </h1>
-  
-
-<form action="/results" method="GET"
-  class="bg-lottina-primary rounded-2xl shadow-2xl p-6 w-full max-w-4xl flex flex-wrap md:flex-nowrap items-end gap-4">
-
-  <!-- 📍 Ort -->
-  <div class="relative flex-1 min-w-[160px]">
-    <input type="text" name="location" placeholder="z. B. Hamburg"
-      class="peer w-full border-b border-lottina-accent bg-transparent pt-4 pb-1.5 text-base text-lottina-white placeholder-transparent outline-none focus:border-white" />
-    <label
-      class="pointer-events-none absolute left-0 -top-1.5 text-sm text-lottina-white transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-lottina-white peer-focus:-top-1.5 peer-focus:text-sm peer-focus:text-gray-400">
-      Ort
-    </label>
-  </div>
-
-  <!-- 👶 Alter -->
-  <div class="relative flex-1 min-w-[160px]">
-    <select name="age" class="peer w-full border-b border-lottina-accent bg-transparent pt-4 pb-1.5 text-base text-lottina-white appearance-none outline-none focus:border-white">
-      <option value="" disabled selected hidden>Alter der Kinder</option>
-      <option value="0-2">0–2 Jahre</option>
-      <option value="3-5">3–5 Jahre</option>
-      <option value="6-10">6–10 Jahre</option>
-      <option value="11+">ab 11 Jahre</option>
-    </select>
-    <label class="pointer-events-none absolute left-0 -top-1.5 text-sm text-lottina-white transition-all peer-focus:text-gray-400">
-      Alter
-    </label>
-  </div>
-
-  <!-- ✅ Filter -->
-  <div class="flex flex-wrap gap-2 min-w-[140px]">
-    <label class="cursor-pointer">
-      <input type="checkbox" name="free" value="1" class="hidden peer" />
-      <span
-        class="px-3 py-1 text-sm rounded-full bg-white text-gray-800
-          transition transform
-          hover:-translate-y-0.5 hover:shadow
-          peer-checked:bg-gradient-to-r peer-checked:from-green-400 peer-checked:to-emerald-700
-          peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-105">
-        Kostenlos
+<!-- Hero: Split Layout -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#1f2148] via-[#2d235d] to-[#fb5c4f] text-white">
+  <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
+  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-5 gap-12 items-center">
+    <div class="lg:col-span-3 space-y-6">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-sm font-semibold tracking-wide uppercase">
+        <span class="h-2 w-2 rounded-full bg-lottina-accent"></span>
+        Für Familien & Entdecker:innen
       </span>
-    </label>
-    <label class="cursor-pointer">
-      <input type="checkbox" name="always_open" value="1" class="hidden peer" />
-      <span
-        class="px-3 py-1 text-sm rounded-full bg-white text-gray-800
-          transition transform
-          hover:-translate-y-0.5 hover:shadow
-          peer-checked:bg-gradient-to-r peer-checked:from-green-400 peer-checked:to-emerald-700
-          peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-105">
-        Immer offen
-      </span>
-    </label>
+      <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
+        Freizeit erleben, ohne Suchexperimente.
+      </h1>
+      <p class="text-lg text-white/80 max-w-xl">
+        lottina bündelt Events, Workshops und Geheimtipps deiner Stadt – DSGVO-konform, werbefrei und immer aktuell. Plane dein nächstes Erlebnis in Sekunden.
+      </p>
+
+      <form id="hero-search" class="bg-white text-lottina-primary rounded-2xl shadow-2xl border border-white/25 flex flex-col sm:flex-row gap-3 px-4 py-3"
+            action="/results" method="GET" role="search" aria-label="Events durchsuchen">
+        <div class="flex-1">
+          <label for="hero-q" class="sr-only">Suche nach Events</label>
+          <input id="hero-q" name="q" type="text" autocomplete="off"
+                 placeholder="Wonach suchst du? (z. B. Flohmarkt, Workshop …)"
+                 class="w-full border-0 bg-transparent text-base text-lottina-primary placeholder:text-lottina-primary/50 focus:ring-0">
+        </div>
+        <button type="submit"
+                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-lottina-accent text-lottina-primary font-semibold shadow-xl hover:translate-y-[-1px] transition"
+                aria-label="Suche starten">
+          <span>Suche</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-4.3-4.3m1.6-4.7a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="flex flex-wrap gap-3">
+        <a href="/event-erstellen"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
+          </svg>
+          Poster scannen (OCR)
+        </a>
+        <a href="/results"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
+          Alle Events anzeigen
+        </a>
+      </div>
+
+      <div class="flex flex-wrap gap-2 text-sm">
+        <a href="/results?free=1" class="hero-chip">Kostenlos</a>
+        <a href="/results?outdoor=1" class="hero-chip">Outdoor</a>
+        <a href="/results?cats[]=today" class="hero-chip">Heute</a>
+        <a href="/results?cats[]=workshops" class="hero-chip">Workshops</a>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2 flex flex-col gap-6">
+      <div class="rounded-3xl bg-white/95 text-lottina-primary shadow-2xl border border-white/50 px-6 py-6">
+        <h2 class="text-lg font-semibold">Diese Woche auf lottina</h2>
+        <div class="mt-4 grid grid-cols-2 gap-4">
+          <div class="stat-card">
+            <span class="stat-value">{{ events|length }}</span>
+            <span class="stat-label">kuratierte Events</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">12</span>
+            <span class="stat-label">neue Poster<br>durch OCR</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">4</span>
+            <span class="stat-label">neue Stadtbereiche</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">100%</span>
+            <span class="stat-label">familienfreundlich</span>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-3xl border border-white/40 bg-white/80 text-lottina-primary px-6 py-5 shadow-xl backdrop-blur">
+        <h3 class="text-base font-semibold mb-2">So funktioniert’s</h3>
+        <ul class="space-y-2 text-sm text-lottina-primary/80">
+          <li class="flex items-start gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-lottina-accent"></span>
+            Poster abfotografieren oder PDF hochladen – OCR übernimmt den Rest.
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-lottina-accent"></span>
+            Kategorien, Kontakt & Öffnungszeiten werden automatisch vorgeschlagen.
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-lottina-accent"></span>
+            Mit einem Klick veröffentlichen und in der Karte anzeigen lassen.
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
+</section>
 
-  <!-- 🔍 Submit -->
-<button id="submit-btn" type="submit"
-  class="relative flex items-center justify-center bg-lottina-accent text-lottina-white
-         rounded-full w-14 h-14 shadow-lg hover:scale-105 transition">
-  <svg xmlns="http://www.w3.org/2000/svg"
-       class="w-7 h-7"
-       fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-    <path stroke-linecap="round" stroke-linejoin="round"
-          d="M14 5l7 7m0 0l-7 7m7-7H3" />
-  </svg>
-</button>
+<!-- Feature Cards -->
+<section class="bg-white py-16">
+  <div class="max-w-6xl mx-auto px-6 lg:px-10">
+    <div class="grid md:grid-cols-3 gap-6">
+      <a href="/results" class="feature-card feature-card--primary">
+        <div class="feature-icon bg-lottina-primary/10 text-lottina-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6l4 2m5-2A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z"/>
+          </svg>
+        </div>
+        <h3>Events in Echtzeit</h3>
+        <p>Immer aktuelle Angebote aus deiner Region: Ferienprogramme, Stadtfeste, Theaterstücke und mehr.</p>
+        <span class="feature-link">Jetzt entdecken</span>
+      </a>
+      <a href="/event-erstellen" class="feature-card feature-card--accent">
+        <div class="feature-icon bg-[#fb5c4f]/15 text-[#fb5c4f]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2v20m-7-7h14"/>
+          </svg>
+        </div>
+        <h3>Poster scannen</h3>
+        <p>Ein Foto reicht: lottina erkennt Datum, Ort, Kontakt und bereitet das Event automatisch auf.</p>
+        <span class="feature-link">Poster hochladen</span>
+      </a>
+      <a href="/datenschutz" class="feature-card feature-card--secondary">
+        <div class="feature-icon bg-lottina-primary/10 text-emerald-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.1 7.93a1 1 0 0 1 .32-1.38L11.4 1.8a1 1 0 0 1 1 0l7.97 4.75a1 1 0 0 1 .32 1.38L12.82 20.4a1 1 0 0 1-1.64 0L3.1 7.93ZM12 9v4"/>
+          </svg>
+        </div>
+        <h3>Kuratiert & sicher</h3>
+        <p>Wir prüfen Events, bevor sie live gehen. Datenschutz made in Germany – ohne Tracking & Ads.</p>
+        <span class="feature-link">Mehr erfahren</span>
+      </a>
+    </div>
+  </div>
+</section>
 
+<!-- Event Highlights -->
+<section class="bg-gradient-to-br from-[#fff2ee] via-[#ffe0d6] to-[#ffc7b9] py-16">
+  <div class="max-w-6xl mx-auto px-6 lg:px-10">
+    <div class="flex flex-wrap items-baseline gap-4 justify-between">
+      <div>
+        <h2 class="text-3xl font-bold text-lottina-primary">Für dieses Wochenende</h2>
+        <p class="text-sm text-lottina-primary/75">Frisch kuratierte Tipps – familienfreundlich und mit Liebe ausgewählt.</p>
+      </div>
+      <a href="/results?cats[]=today" class="inline-flex items-center gap-2 text-lottina-primary font-semibold hover:gap-3 transition-all">
+        Alles für heute anzeigen
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
+      {% for event in events %}
+        <article class="event-card group">
+          <div class="relative h-48 rounded-2xl overflow-hidden bg-gray-200">
+            <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.png') }}"
+                 alt="{{ event.title or 'Event Bild' }}"
+                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+            {% if event.dt_start %}
+              <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">
+                {{ event.dt_start.astimezone().strftime("%a, %d.%m.") }}
+              </div>
+            {% endif %}
+          </div>
+          <div class="mt-4 space-y-3">
+            <h3 class="text-xl font-semibold text-lottina-primary leading-snug">
+              {{ event.title or "Event ohne Titel" }}
+            </h3>
+            <p class="text-sm text-lottina-primary/80 line-clamp-3">
+              {{ event.description or event.summary or "Mehr Details auf der Eventseite." }}
+            </p>
+            <div class="flex flex-wrap gap-2 text-xs text-lottina-primary/70">
+              {% if event.location %}
+                <span class="px-2 py-1 rounded-full bg-white shadow-sm">{{ event.location }}</span>
+              {% endif %}
+              {% if event.categories %}
+                {% for c in event.categories[:2] %}
+                  <span class="px-2 py-1 rounded-full bg-white/80 border border-white/50">{{ c.name }}</span>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <a href="/event/{{ event.id }}"
+               class="inline-flex items-center gap-2 text-sm text-[#fb5c4f] font-semibold group-hover:gap-3 transition-all">
+              Details ansehen
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+      {% else %}
+        <div class="col-span-full rounded-2xl border border-dashed border-white/60 bg-white/60 px-6 py-10 text-center text-lottina-primary/70">
+          Noch keine Events vorhanden – lade das erste Poster hoch!
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Feed -->
+<section class="bg-white py-16">
+  <div class="max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row gap-10">
+    <div class="lg:w-1/3 space-y-4">
+      <h2 class="text-3xl font-bold text-lottina-primary">Was Familien erzählen</h2>
+      <p class="text-sm text-lottina-primary/75">
+        Echtes Feedback von Eltern, Veranstalter:innen und Kids, die mit lottina ihre Highlights gefunden haben.
+      </p>
+      <a href="{{ url_for('ueber_uns') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-[#fb5c4f] hover:gap-3 transition-all">
+        Mehr über lottina erfahren
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+    <div class="lg:w-2/3 grid md:grid-cols-2 gap-6">
+      {% for t in testimonials %}
+        <article class="testimonial-card">
+          <div class="flex items-center gap-3">
+            <img src="{{ url_for('static', filename=t.img) }}" alt="{{ t.name }}" class="h-12 w-12 rounded-full object-cover ring-2 ring-white/40">
+            <div>
+              <p class="text-base font-semibold text-white">{{ t.name }}</p>
+              <p class="text-xs uppercase tracking-wider text-white/70">lottina Community</p>
+            </div>
+          </div>
+          <p class="text-sm text-white/85 leading-relaxed">“{{ t.text }}”</p>
+        </article>
+      {% else %}
+        <div class="testimonial-card text-sm text-white/85">
+          Noch keine Testimonials – du kannst der oder die Erste sein! Schreib uns gern dein Feedback.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Map CTA -->
+<section class="relative overflow-hidden py-20 bg-gradient-to-r from-[#1f2148] via-[#36255f] to-[#fb5c4f] text-white">
+  <div class="absolute inset-0 opacity-15 pointer-events-none bg-[url('data:image/svg+xml,%3Csvg width%3D%22100%25%22 height%3D%22100%25%22 xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Cdefs%3E%3Cpattern id%3D%22grid%22 width%3D%2240%22 height%3D%2240%22 patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath d%3D%22M 40 0 L 0 0 0 40%22 fill%3D%22none%22 stroke%3D%22white%22 stroke-width%3D%220.35%22/%3E%3C/pattern%3E%3C/defs%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22url(%23grid)%22/%3E%3C/svg%3E')]"></div>
+  <div class="relative max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-10">
+    <div class="lg:w-2/3 space-y-5">
+      <h2 class="text-3xl lg:text-4xl font-lottina font-bold drop-shadow-lg">Entdecke Events in deiner Nähe</h2>
+      <p class="text-base lg:text-lg text-white/80 max-w-2xl">
+        Unsere interaktive Karte zeigt dir kinderfreundliche Highlights in ganz Deutschland. Filtere nach Outdoor-Aktivitäten, Altersgruppen, Kosten oder Datum – alles mit wenigen Klicks.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <button id="openMap"
+                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
+          Karte öffnen
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7.5 8 5l8 3 5-2M8 5v15m8-12v15"/>
+          </svg>
+        </button>
+        <a href="/results" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
+          Alle Events anzeigen
+        </a>
+      </div>
+    </div>
+    <div class="lg:w-1/3 w-full rounded-3xl border-2 border-white/60 bg-white/85 text-lottina-primary shadow-2xl overflow-hidden">
+      <div class="h-60" id="map-preview"></div>
+    </div>
+  </div>
+</section>
 
 <script>
-document.querySelector("form").addEventListener("submit", (e) => {
-  e.preventDefault();
+  document.getElementById("openMap")?.addEventListener("click", () => {
+    window.location.href = "/results";
+  });
 
-  const btn = document.getElementById("submit-btn");
-  const overlay = document.getElementById("fly-overlay");
-
-  // Button-Koordinaten ermitteln
-  const rect = btn.getBoundingClientRect();
-  const startX = rect.left + rect.width / 2;
-  const startY = rect.top + rect.height / 2;
-
-  // Overlay-Flieger an Button-Position setzen
-  overlay.style.left = `${startX}px`;
-  overlay.style.top = `${startY}px`;
-  overlay.style.transform = "translate(-50%, -50%)"; // zentrieren
-  overlay.classList.remove("hidden");
-
-  // Animation starten
-  overlay.classList.remove("fly-anim"); // reset, falls mehrfach geklickt
-  void overlay.offsetWidth; // reflow erzwingen
-  overlay.classList.add("fly-anim");
-
-  // Nach Animation absenden
-  setTimeout(() => {
-    e.target.submit();
-  }, 1000);
-});
-</script>
-
-
-
-</form>
- <p class="text-left text-lottina-primary text-xl m-10 font-lottina drop-shadow-lg"> Finde kinderfreundliche Events in deiner Nähe
-    </p>
-  </div>
-
-<!-- Hervorgehobene events -->
-<div class="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 px-4 max-w-6xl mx-auto">
-  {% for event in events %}
-    <a href="/event/{{ event.id }}"
-       class="group rounded-xl overflow-hidden bg-lottina-primary shadow-lottina-hard block hover:scale-[1.02] transition-transform duration-200">
-      
-      <img src="{{ event.image_url }}" alt="{{ event.title }}"
-           class="w-full h-64 object-cover group-hover:opacity-90 transition">
-      
-      <div class="p-4">
-        <h3 class="text-lg font-semibold text-lottina-accent">
-          {{ event.title }}
-        </h3>
-        <p class="text-sm text-lottina-white line-clamp-3">
-          {{ event.description }}
-        </p>
-      </div>
-    </a>
-  {% endfor %}
-</div>
-
-
-
-
-</section>
-<!-- 🙌 Testimonials -->
-<section class="relative bg-lottina-primary text-lottina-accent min-h-[70vh] flex flex-col justify-center px-6">
-  <div class="max-w-6xl mx-auto w-full flex flex-col md:flex-row items-center gap-10">
-
-    <!-- 📣 Headline & Thumbnails -->
-    <div class="w-full md:w-1/3">
-      <h2 class="text-3xl sm:text-4xl font-bold mb-6 leading-tight">Was Familien über uns sagen</h2>
-      <div class="flex space-x-3">
-        {% for t in testimonials %}
-        <button data-index="{{ loop.index0 }}" class="testimonial-thumb w-12 h-12 rounded-full overflow-hidden ring-2 ring-lottina-primary focus:outline-none focus:ring-4 transition">
-          <img src="{{ url_for('static', filename=t.img.split('static/')[1]) }}" alt="{{ t.name }}" class="w-full h-full object-cover">
-        </button>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- 💬 Testimonial Text -->
-    <div class="w-full md:w-2/3">
-      <div id="testimonial-slider" class="relative bg-white rounded-xl p-6 shadow-lg min-h-[220px]">
-        {% for t in testimonials %}
-        <div class="testimonial-slide {% if not loop.first %}hidden{% endif %}" data-index="{{ loop.index0 }}">
-          <p class="text-lg italic mb-4">"{{ t.text }}"</p>
-          <p class="text-sm uppercase tracking-wide font-semibold text-lottina-accent">{{ t.name }}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-
-  <!-- 🔁 Auto-Switch Script -->
-  <script>
-    const slides = document.querySelectorAll('.testimonial-slide');
-    const thumbs = document.querySelectorAll('.testimonial-thumb');
-    let currentIndex = 0;
-
-    function showSlide(index) {
-      slides.forEach((s, i) => {
-        s.classList.toggle('hidden', i !== index);
-        thumbs[i].classList.toggle('ring-lottina-primary', i === index);
-        thumbs[i].classList.toggle('ring-gray-400', i !== index);
-      });
-      currentIndex = index;
-    }
-
-    thumbs.forEach((btn, idx) => {
-      btn.addEventListener('click', () => showSlide(idx));
-    });
-
-    setInterval(() => {
-      const next = (currentIndex + 1) % slides.length;
-      showSlide(next);
-    }, 10000);
-  </script>
-</section>
-
-<!-- 🗺️ Kartenbereich mit Geolocation & CTA -->
-<section class="relative min-h-[70vh] bg-white overflow-hidden">
-
-  <!-- 🌍 Map-Container (start: geblurrt & gesperrt) -->
-  <div id="map-wrapper"
-       class="absolute inset-0 z-0 transition-all duration-700 blur-sm scale-[1.01] pointer-events-none">
-    <div id="start-map" class="w-full h-full"></div>
-  </div>
-
-  <!-- 📣 Overlay mit Button -->
-  <div id="map-overlay"
-       class="relative z-10 flex flex-col justify-center items-center h-[70vh] text-center px-4">
-    <h2 class="text-3xl font-bold text-gray-800 mb-4">
-      Entdecke Events in deiner Nähe
-    </h2>
-    <button id="activateMap"
-            class="bg-lottina-accent text-lottina-primary px-6 py-2 rounded-xl shadow-md hover:bg-[#fffafa] transition">
-      In meiner Region umsehen
-    </button>
-  </div>
-
-  <!-- 📦 Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <script>
-    let map;
-
-    // Karte initialisieren (nicht interaktiv)
-    document.addEventListener("DOMContentLoaded", () => {
-      map = L.map('start-map', {
+  window.addEventListener("load", () => {
+    const mapTarget = document.getElementById("map-preview");
+    if (!mapTarget) return;
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(css);
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload = () => {
+      const map = L.map("map-preview", {
         zoomControl: false,
         dragging: false,
         scrollWheelZoom: false,
         doubleClickZoom: false,
-        boxZoom: false,
-        keyboard: false,
-        touchZoom: false
-      }).setView([51.1657, 10.4515], 6); // Deutschland Mitte
-
-      L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
-    });
-
-    // Aktivieren-Button
-    document.getElementById("activateMap").addEventListener("click", function () {
-      const wrapper = document.getElementById("map-wrapper");
-      const overlayBox = document.getElementById("map-overlay");
-
-      // Blur/Scale/Pointers entfernen
-      wrapper.classList.remove("blur-sm", "scale-[1.01]", "pointer-events-none");
-
-      // Overlay deaktivieren (blockiert sonst Klicks)
-      overlayBox.classList.add("pointer-events-none", "opacity-0");
-      setTimeout(() => overlayBox.classList.add("hidden"), 300);
-
-      // Interaktion einschalten
-      map.scrollWheelZoom.enable();
-      map.touchZoom.enable();
-      map.doubleClickZoom.enable();
-      map.dragging.enable();
-      map.boxZoom.enable();
-      map.keyboard.enable();
-      map.zoomControl.addTo(map);
-
-      // Nach Layout-Änderung Größe neu berechnen
-      setTimeout(() => map.invalidateSize(), 50);
-
-      // Geolocation (nur über HTTPS oder localhost!)
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-
-          map.setView([lat, lon], 13);
-
-          L.circleMarker([lat, lon], {
-            radius: 8,
-            fillColor: "#1f2148",   // lottina-primary
-            color: "#ffffff",
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.9
-          }).addTo(map).bindPopup("Du bist hier").openPopup();
-
-        }, err => {
-          console.warn("Geolocation-Fehler:", err);
-          alert("Standort konnte nicht ermittelt werden. Erlaube Ortungsdienste oder nutze HTTPS/localhost.");
-        }, { enableHighAccuracy: true, timeout: 8000 });
-      } else {
-        alert("Geolocation wird von deinem Browser nicht unterstützt.");
-      }
-
-      // Button selbst ausblenden
-      this.style.display = "none";
-    });
-  </script>
-</section>
-
-
-<!-- 🙋 FAQ Sektion -->
-<section id="faq" class="scroll-mt-20 bg-lottina-background py-16 px-4">
-  <div class="max-w-4xl mx-auto text-center mb-10">
-    <h2 class="text-3xl font-bold text-lottina-primary">Häufige Fragen</h2>
-    <p class="text-gray-600 mt-2">Alles, was du über lottina wissen musst.</p>
-  </div>
-
-  <div class="max-w-3xl mx-auto space-y-4">
-    {% set faqs = [
-      {'question': 'Kostet die Nutzung etwas?', 'answer': 'Nein! Du kannst alle Veranstaltungen kostenlos durchsuchen. Manche Events sind kostenpflichtig – das steht aber immer dabei.'},
-      {'question': 'Wie aktuell sind die Events?', 'answer': 'Wir aktualisieren unsere Datenbank mehrmals täglich mit einem automatisierten Crawler.'},
-      {'question': 'Kann ich auch eigene Events einstellen?', 'answer': 'Ja, über „Event erstellen“ im Menü kannst du Events vorschlagen – wir prüfen sie redaktionell.'},
-      {'question': 'Brauche ich ein Konto?', 'answer': 'Nicht zwingend. Für Favoriten, Kalender-Sync & Premium-Vorteile brauchst du ein kostenloses Konto.'}
-    ] %}
-    {% for faq in faqs %}
-    <details class="bg-white rounded-lg shadow-sm p-4 group open:shadow-md transition">
-      <summary class="cursor-pointer font-semibold text-gray-800 group-open:text-lottina-primary">
-        {{ faq.question }}
-      </summary>
-      <p class="text-gray-600 mt-2">{{ faq.answer }}</p>
-    </details>
-    {% endfor %}
-  </div>
-</section>
-
-
-<!-- 💎 Abo CTA auf Startseite -->
-<section class="bg-lottina-primary text-lottina-white py-40 px-6">
-  <div class="max-w-5xl mx-auto text-center">
-    <h2 class="text-3xl font-bold mb-4">Mehr Möglichkeiten mit lottina+</h2>
-    <p class="text-lg mb-6">Speichere Favoriten, erhalte Empfehlungen & mehr – bald verfügbar.</p>
-    <a href="{{ url_for('preise') }}"
-       class="inline-block px-6 py-3 bg-lottina-accent text-lottina-primary font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition">
-      Preise & Vorteile ansehen
-    </a>
-  </div>
-</section>
-
+        attributionControl: false
+      }).setView([51.1657, 10.4515], 5);
+      L.tileLayer("https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
+    };
+    document.body.appendChild(script);
+  });
+</script>
 
 {% endblock %}

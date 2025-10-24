@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lottina – Bald geht’s los</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+
+  <style>
+    /* Vollflächiger Hero */
+    .hero {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      background:
+        radial-gradient(1200px 1200px at 10% 10%, rgba(255,183,163,0.25), transparent 60%),
+        radial-gradient(1000px 1000px at 90% 20%, rgba(251,92,79,0.15), transparent 60%),
+        var(--lottina-background);
+    }
+    .wrap {
+      width: 100%;
+      max-width: 1100px;
+      text-align: center;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .brand img {
+      height: 64px;
+      width: auto;
+    }
+    .headline {
+      color: var(--lottina-primary);
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1.1;
+      font-weight: 800;
+      margin: 0.25rem 0 1rem;
+    }
+    .tagline {
+      color: var(--lottina-accent);
+      font-weight: 700;
+      font-size: clamp(1.25rem, 2.5vw, 2rem);
+      margin-bottom: 2rem;
+    }
+
+    /* Countdown – “Airport Board” Style */
+    .board {
+      display: inline-grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-inline: auto;
+      margin-bottom: 2rem;
+      width: min(100%, 900px);
+    }
+    .cell {
+      background: var(--lottina-primary);
+      color: var(--lottina-white);
+      border-radius: 20px;
+      padding: 1.25rem 0.75rem;
+      box-shadow: 0 10px 30px rgba(31,33,72,0.2);
+      display: grid;
+      gap: 0.35rem;
+    }
+    .label {
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+    .digits {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .digit {
+      position: relative;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      min-width: 1.2em;
+      display: inline-grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      border-radius: 14px;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.5s ease, filter 0.5s ease;
+    }
+    .digit.flip {
+      transform: rotateX(360deg);
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+    }
+
+    /* CTA / Footer */
+    .cta {
+      display: inline-flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-primary, .btn-secondary {
+      border-radius: 999px;
+      padding: 0.9rem 1.25rem;
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary {
+      background: var(--lottina-accent);
+      color: var(--lottina-white);
+    }
+    .btn-secondary {
+      background: var(--lottina-secondary);
+      color: var(--lottina-primary);
+    }
+
+    @media (max-width: 720px) {
+      .board { grid-template-columns: repeat(2, minmax(120px,1fr)); }
+      .brand img { height: 52px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="hero">
+    <div class="wrap">
+      <!-- Logo + Wortmarke -->
+      <a href="{{ url_for('index') }}" class="brand" aria-label="Startseite">
+
+        <img src="{{ url_for('static', filename='img/lottina_logo.png') }}" alt="Lottina Logo">
+      </a>
+
+      <!-- Claim -->
+      <p class="tagline">Dein Abenteuer erwacht</p>
+
+      <!-- Countdown Board -->
+      <section class="board" aria-label="Countdown">
+        <div class="cell">
+          <div class="label">Tage</div>
+          <div class="digits" id="days"></div>
+        </div>
+        <div class="cell">
+          <div class="label">Stunden</div>
+          <div class="digits" id="hours"></div>
+        </div>
+        <div class="cell">
+          <div class="label">Minuten</div>
+          <div class="digits" id="minutes"></div>
+        </div>
+        <div class="cell">
+          <div class="label">Sekunden</div>
+          <div class="digits" id="seconds"></div>
+        </div>
+      </section>
+
+            <!-- CTAs -->
+      <div class="cta" style="margin-top:1rem;">
+        <a class="btn-primary" href="#notify" id="notify-cta">Ich will Erster sein</a>
+        <a class="btn-secondary" href="{{ url_for('event_erstellen') }}">Ich will Helfer sein</a>
+      </div>
+
+      <!-- Notify me Section -->
+      <section id="notify" style="margin-top:2rem; display:grid; place-items:center;">
+        <form id="notifyForm" class="notify-card" style="
+          width:min(100%,700px); background:var(--lottina-white); 
+          border-radius:24px; padding:1.25rem; box-shadow:0 10px 30px rgba(31,33,72,.12);
+          display:grid; gap:1rem;">
+          
+          <!-- Honeypot -->
+          <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute; left:-9999px; opacity:0; height:0; width:0;">
+
+          <label for="email" style="text-align:left; font-weight:700; color:var(--lottina-primary);">E-Mail für Launch-Update</label>
+          <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
+            <input id="email" name="email" type="email" required placeholder="dein.name@mail.de" inputmode="email"
+                   style="flex:1 1 260px; padding:.9rem 1rem; border-radius:14px; border:1px solid rgba(31,33,72,.2); outline:none;">
+            <button class="btn-primary" type="submit" id="submitBtn">Benachrichtigt mich</button>
+          </div>
+
+          <label style="display:flex; align-items:flex-start; gap:.6rem; text-align:left; font-size:.95rem; color:#333;">
+            <input type="checkbox" name="consent" required style="margin-top:.2rem;">
+            <span>Ich bin einverstanden, dass meine E-Mail zum Zweck der Benachrichtigung zum Lottina-Launch gespeichert und verwendet wird. Details: <a href="{{ url_for('datenschutz') }}" style="color:var(--lottina-accent); font-weight:700;">Datenschutz</a>.</span>
+          </label>
+
+          <p id="notifyMsg" aria-live="polite" style="min-height:1.2em; font-weight:700;"></p>
+        </form>
+      </section>
+
+      <script>
+        // Smooth scroll zum Formular
+        document.getElementById('notify-cta')?.addEventListener('click', function(e){
+          const target = document.getElementById('notify');
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Fokus auf das Input
+            setTimeout(() => document.getElementById('email')?.focus(), 400);
+          }
+        });
+
+        // Formular-Handling
+        const form = document.getElementById('notifyForm');
+        const msg  = document.getElementById('notifyMsg');
+        const btn  = document.getElementById('submitBtn');
+
+        form?.addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          msg.textContent = '';
+          btn.disabled = true;
+
+          const data = new FormData(form);
+
+          // einfache Client-Validation
+          const email = (data.get('email') || '').toString().trim();
+          const consent = data.get('consent') === 'on';
+          const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRx.test(email)) {
+            msg.textContent = 'Bitte gib eine gültige E-Mail ein.';
+            msg.style.color = 'var(--lottina-accent)';
+            btn.disabled = false;
+            return;
+          }
+          if (!consent) {
+            msg.textContent = 'Bitte stimme der Benachrichtigung zu.';
+            msg.style.color = 'var(--lottina-accent)';
+            btn.disabled = false;
+            return;
+          }
+
+          try {
+            const res = await fetch('{{ url_for("notify") }}', {
+              method: 'POST',
+              body: data,
+              headers: { 'X-Requested-With': 'fetch' }
+            });
+            const json = await res.json().catch(() => ({}));
+            if (res.ok && json.ok) {
+              msg.textContent = 'Danke! Wir melden uns zum Start 🚀';
+              msg.style.color = 'green';
+              form.reset();
+            } else if (json.error === 'invalid_email') {
+              msg.textContent = 'Bitte gib eine gültige E-Mail ein.';
+              msg.style.color = 'var(--lottina-accent)';
+            } else if (json.error === 'no_consent') {
+              msg.textContent = 'Bitte stimme der Benachrichtigung zu.';
+              msg.style.color = 'var(--lottina-accent)';
+            } else {
+              msg.textContent = 'Uups – das hat nicht geklappt. Versuch es später nochmal.';
+              msg.style.color = 'var(--lottina-accent)';
+            }
+          } catch (e) {
+            msg.textContent = 'Netzwerkfehler. Bitte später erneut versuchen.';
+            msg.style.color = 'var(--lottina-accent)';
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      </script>
+
+    </div>
+  </main>
+
+  <script>
+    // Zielzeit: 29.09.2025, 18:00 in Europe/Berlin (nach Zeitumstellung: CET = UTC+1)
+    const TARGET = new Date('2025-09-29T18:00:00+01:00').getTime();
+
+    const slots = {
+      days:    document.getElementById('days'),
+      hours:   document.getElementById('hours'),
+      minutes: document.getElementById('minutes'),
+      seconds: document.getElementById('seconds'),
+    };
+
+    function toDigits(n, width) {
+      return String(n).padStart(width, '0').split('');
+    }
+
+    function renderDigits(el, digits) {
+      // initial render → create spans if not present
+      if (!el.dataset.init) {
+        el.innerHTML = '';
+        digits.forEach(d => {
+          const s = document.createElement('span');
+          s.className = 'digit';
+          s.textContent = d;
+          el.appendChild(s);
+        });
+        el.dataset.init = '1';
+        return;
+      }
+      // update with flip effect
+      const children = Array.from(el.children);
+      digits.forEach((d, i) => {
+        const s = children[i];
+        if (!s) return;
+        if (s.textContent !== d) {
+          s.classList.remove('flip');
+          // force reflow to restart animation cleanly
+          void s.offsetWidth;
+          s.textContent = d;
+          s.classList.add('flip');
+        }
+      });
+    }
+
+    function tick() {
+      const now = Date.now();
+      let diff = Math.max(0, Math.floor((TARGET - now) / 1000)); // seconds
+
+      const d = Math.floor(diff / 86400); diff -= d * 86400;
+      const h = Math.floor(diff / 3600);  diff -= h * 3600;
+      const m = Math.floor(diff / 60);    diff -= m * 60;
+      const s = diff;
+
+      renderDigits(slots.days, toDigits(d, Math.max(2, String(d).length)));
+      renderDigits(slots.hours, toDigits(h, 2));
+      renderDigits(slots.minutes, toDigits(m, 2));
+      renderDigits(slots.seconds, toDigits(s, 2));
+
+      // Wenn abgelaufen → Message zeigen
+      if (TARGET - now <= 0) {
+        clearInterval(timer);
+        document.querySelector('.tagline').textContent = 'Wir sind gelandet. Gleich geht’s los ✨';
+      }
+    }
+
+    // first paint fast, then every second
+    tick();
+    const timer = setInterval(tick, 1000);
+  </script>
+</body>
+</html>

@@ -1,18 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Ergebnisse – lottina{% endblock %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 {% block content %}
-<div x-data="filterPage()" class="page-enter max-w-7xl mx-auto px-4 py-8bg-gradient-to-b from-[#fffafa] to-[#fb5c4f]">
+<div x-data="filterPage()" class="page-enter max-w-7xl mx-auto px-4 py-8 bg-gradient-to-b from-[#fffafa] to-[#fb5c4f]">
 
   <!-- Mobile Kopf (Filter öffnen) -->
   <div class="flex items-center justify-between mb-4 lg:hidden">
     <button @click="drawer=true"
-            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800">
+            class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white">
       Filter
     </button>
     <a href="{{ url_for('suchergebnisse') }}"
-       class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
+       class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700">
       Löschen
     </a>
   </div>
@@ -23,37 +21,37 @@
     <!-- 1/5: Filter (Sidebar) -->
     <aside class="lg:col-span-1">
       <form method="GET" action="{{ url_for('suchergebnisse') }}"
-            class="hidden lg:block sticky top-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 space-y-5">
+            class="hidden lg:block sticky top-4 bg-white border border-gray-200 rounded-2xl p-4 space-y-5">
 
         <!-- Ort / Suchfeld -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Ort / Stichwort</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ort / Stichwort</label>
           <input type="text" name="q" value="{{ request.args.get('q','') }}"
-                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-white"
+                 class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-800"
                  placeholder="z.B. Aachen, Minigolf" />
         </div>
 
         <!-- Datum -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Datum</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Datum</label>
           <input type="date" name="date" value="{{ date_filter }}"
-                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-white" />
+                 class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-800" />
         </div>
 
         <!-- Kategorien mit Suche -->
         <div x-data="{q:'',open:true}">
           <button type="button" @click="open = !open"
                   class="w-full flex items-center justify-between py-2">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Kategorien</span>
+            <span class="text-sm font-medium text-gray-700">Kategorien</span>
             <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/></svg>
           </button>
           <div x-show="open" class="space-y-2">
             <input x-model="q" type="text" placeholder="Kategorie suchen…"
-                   class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm">
+                   class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm">
             <div class="max-h-56 overflow-auto pr-1 space-y-1">
               {% for cat in categories %}
-              <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"
-                     x-show="'{{ cat|e }}'.toLowerCase().includes(q.toLowerCase())">
+              <label class="flex items-center gap-2 text-sm text-gray-700"
+                     x-show="{{ cat| tojson}}.toLowerCase().includes(q.toLowerCase())">
                 <input type="checkbox" name="cats[]"
                        value="{{ cat }}"
                        {% if request.args.getlist('cats[]') and (cat in request.args.getlist('cats[]')) %}checked{% endif %}
@@ -144,7 +142,7 @@
             <div class="max-h-64 overflow-auto pr-1 space-y-1">
               {% for cat in categories %}
               <label class="flex items-center gap-2 text-sm"
-                     x-show="'{{ cat|e }}'.toLowerCase().includes(q.toLowerCase())">
+                     x-show="{{ cat| tojson}}.toLowerCase().includes(q.toLowerCase())">
                 <input type="checkbox" name="cats[]"
                        value="{{ cat }}"
                        {% if request.args.getlist('cats[]') and (cat in request.args.getlist('cats[]')) %}checked{% endif %}
@@ -184,49 +182,54 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {% for event in events %}
         <a href="{{ url_for('event_detail', event_id=event.id) }}"
-           class="block rounded-xl overflow-hidden bg-lottina-primary dark:bg-gray-800 shadow hover:shadow-lg transition focus:outline-none focus:ring-2 focus:ring-lottina-primary">
-          {% if event.image_url %}
-            <img src="{{ event.image_url }}" alt="{{ event.title }}" class="w-full h-44 object-cover" />
+
+           class="block rounded-xl overflow-hidden bg-lottina-primary shadow hover:shadow-lg transition focus:outline-none focus:ring-2 focus:ring-lottina-primary">
+          {% if event.image %}
+            <img src="{{ event.image }}" alt="{{ event.title }}" class="w-full h-44 object-cover" />
           {% else %}
-            <div class="w-full h-44 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300">
+            <div class="w-full h-44 bg-gray-200 flex items-center justify-center text-gray-500">
               Kein Bild verfügbar
             </div>
           {% endif %}
           <div class="p-4">
-            <h2 class="text-lg font-bold text-lottina-white dark:text-white mb-1">{{ event.title }}</h2>
+            <h2 class="text-lg font-bold text-lottina-white mb-1">{{ event.title }}</h2>
             <p class="text-sm text-white mb-2">
-              {{ event.date | smartdate }} – {{ event.location or "Ort unbekannt" }}
+              {{ event.dt_start | smartdate }}
+              –
+              {{ (event.location.address if event.location and event.location.address else (event.location.name if event.location else "Ort unbekannt")) }}
             </p>
             <p class="text-sm text-white/90 line-clamp-3 mb-3">{{ event.description }}</p>
             <div class="flex flex-wrap gap-2 text-xs text-white">
-              {% if event.price == 0 or event.is_free %}
-              <span class="bg-green-500 rounded-full px-2 py-1">Kostenlos</span>
-              {% elif event.price %}
-              <span class="bg-purple-600 rounded-full px-2 py-1">{{ event.price|euro }} €</span>
+              {% if event.is_free %}
+                <span class="bg-green-500 rounded-full px-2 py-1">Kostenlos</span>
+              {% elif event.price_value %}
+                <span class="bg-purple-600 rounded-full px-2 py-1">{{ event.price_value|euro }} €</span>
               {% endif %}
-              {% if event.is_outdoor %}
-              <span class="bg-blue-500 rounded-full px-2 py-1">Draußen</span>
+
+
+              {# optional flags, wenn du sie später in der DB hast #}
+              {# {% if event.is_outdoor %}<span class="bg-blue-500 rounded-full px-2 py-1">Draußen</span>{% endif %} #}
+
+              {% if event.categories %}
+                {% for c in event.categories[:2] %}
+                  <span class="bg-yellow-600 rounded-full px-2 py-1">{{ c.name }}</span>
+                {% endfor %}
               {% endif %}
-              {% if event.age_group %}
-              <span class="bg-gray-500 rounded-full px-2 py-1">{{ event.age_group }}</span>
-              {% endif %}
-              {% if event.category %}
-              <span class="bg-yellow-600 rounded-full px-2 py-1">{{ event.category }}</span>
-              {% endif %}
+
             </div>
           </div>
         </a>
         {% endfor %}
       </div>
       {% else %}
-        <p class="text-gray-600 dark:text-gray-300">Keine Veranstaltungen gefunden.</p>
+        <p class="text-gray-600">Keine Veranstaltungen gefunden.</p>
       {% endif %}
     </section>
 
     <!-- 1/5: Karte -->
     <aside class="lg:col-span-1">
       <div class="sticky top-4">
-        <div id="result-map" class="w-full h-[540px] rounded-xl shadow border border-gray-200 dark:border-gray-700"></div>
+        <div id="result-map" class="w-full h-[540px] rounded-xl shadow border border-gray-200"></div>
         <!-- Datenquelle für Marker -->
         <script id="coords-data" type="application/json">
   {{ coords | tojson | safe }}
@@ -273,7 +276,7 @@
     const markers = [];
     (RESULTS_WITH_COORDS || []).forEach(ev => {
       const m = L.marker([ev.lat, ev.lon], {icon}).addTo(map)
-        .bindPopup(`<strong>${ev.title}</strong><br>${ev.date}<br><a href="/event/${ev.id}" class="underline">Details</a>`);
+        .bindPopup(`<strong>${ev.title}</strong><br>${ev.date}<br><a href="/event/${ev.url}" class="underline">Details</a>`);
       markers.push(m);
     });
 

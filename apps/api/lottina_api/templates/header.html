@@ -1,97 +1,125 @@
 {# templates/header.html #}
-<header class="fixed top-0 inset-x-0 z-50 bg-white opacity-95">
-  <div class="mx-auto w-full px-4 sm:px-6 lg:px-8 py-4">
-    <div class="flex items-center gap-4">
+<header class="fixed top-0 inset-x-0 z-50">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="mt-4 flex items-center gap-4 rounded-2xl bg-gradient-to-r from-[#1f2148]/95 via-[#2b245c]/95 to-[#fb5c4f]/90 px-4 py-3 shadow-xl backdrop-blur border border-white/10">
 
-      <!-- 🔷 Logo -->
-      <a href="{{ url_for('index') }}" class="shrink-0 flex items-center gap-2" aria-label="Startseite">
-        <h1 class="text-lottina-primary text-3xl sm:text-4xl font-bold font-lottina drop-shadow-sm">
-          lottina
-        </h1>
+      <!-- Logo -->
+      <a href="{{ url_for('index') }}" class="inline-flex items-center gap-2 text-white" aria-label="Startseite">
+        <img src="{{ url_for('static', filename='img/lottina_logo_weiß.png') }}" alt="lottina Logo" class="h-10 w-auto">
+        <span class="text-lg font-lottina tracking-wide"></span>
       </a>
 
-      <!-- 🔍 Suche (nur wenn NICHT Startseite) -->
-      {% if not request.path == '/' %}
+      <!-- Suche -->
+      {% if request.path != '/' %}
       <form action="{{ url_for('suchergebnisse') }}" method="get"
-            class="hidden sm:flex flex-1 mx-2">
-        <input
-          type="text"
-          name="q"
-          placeholder="Suche nach Ort oder Begriff"
-          value="{{ query if query else '' }}"
-          class="w-full px-4 py-2 rounded-lg border border-lottina-primary/70 dark:border-gray-700 bg-white/90 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-lottina-accent/40"
-          aria-label="Suche" />
+            class="hidden md:flex flex-1 mx-2">
+        <label for="header-q" class="sr-only">Suche</label>
+        <input id="header-q" type="text" name="q" value="{{ query if query else '' }}"
+               placeholder="Suche nach Ort oder Begriff"
+               class="w-full px-4 py-2 rounded-xl border border-white/20 bg-white/15 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-[#fb5c4f]/60">
       </form>
       {% else %}
       <div class="flex-1"></div>
       {% endif %}
 
-      <!-- 👤 Actions -->
-      <nav class="flex items-center gap-4">
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center gap-4 text-sm font-semibold text-white">
+        <a href="{{ url_for('results') }}" class="hover:text-[#ffd9cf] transition">Events</a>
+        <a href="/so-funktionierts" class="hover:text-[#ffd9cf] transition">So funktioniert’s</a>
+        <a href="{{ url_for('ueber_uns') }}" class="hover:text-[#ffd9cf] transition">Über uns</a>
         {% if current_user.is_authenticated %}
-          <a href="{{ url_for('profil') }}" class="text-sm text-lottina-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">Mein Profil</a>
-          <a href="{{ url_for('logout') }}" class="text-sm text-lottina-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">Logout</a>
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('dashboard') }}" class="hover:text-[#ffd9cf] transition">Admin</a>
+          {% endif %}
+          <a href="{{ url_for('profil') }}" class="hover:text-[#ffd9cf] transition">Profil</a>
+          <a href="{{ url_for('logout') }}" class="hover:text-[#ffd9cf] transition">Logout</a>
         {% else %}
-          <a href="{{ url_for('login') }}" class="text-sm text-lottina-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">Login</a>
+          <a href="{{ url_for('login') }}" class="hover:text-[#ffd9cf] transition">Login</a>
         {% endif %}
-
-        <!-- ☰ Menü-Button -->
-        <button id="menuToggle"
-                class="text-gray-700 dark:text-gray-300 hover:text-[#fb5c4f] dark:hover:text-purple-400 focus:outline-none text-2xl sm:text-3xl"
-                aria-label="Menü öffnen/schließen"
-                aria-expanded="false">
-          ☰
-        </button>
       </nav>
 
+      <div class="hidden md:flex items-center gap-3">
+        <a href="{{ url_for('event_erstellen') }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-lottina-primary font-semibold shadow hover:translate-y-[-1px] transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
+          </svg>
+          Event erstellen
+        </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button id="menuToggle"
+              class="flex md:hidden items-center justify-center rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-white text-lg shadow hover:bg-white/20 transition focus:outline-none"
+              aria-label="Menü öffnen oder schließen"
+              aria-expanded="false">
+        ☰
+      </button>
     </div>
   </div>
 
-<!-- 🌐 Overlay & Panel -->
-<div id="menuOverlay"
-     class="fixed inset-0 z-50 hidden">
-  <aside id="menuPanel"
-         class="absolute top-4 right-4 w-72 max-w-[80vw]
-                bg-lottina-primary p-6 shadow-xl rounded-2xl
-                flex flex-col gap-3 transform translate-x-full
-                transition-transform duration-300 ease-out">
-
-    <nav class="space-y-2">
-      <a href="/favorites"
-         class="flex w-full items-center gap-3 px-4 py-2 rounded-full
-                text-lottina-white hover:bg-[#fb5c4f] hover:text-lottina-white
-                transition-colors">
-        <span>Meine Favoriten</span>
-      </a>
-
-      <a href="/event-erstellen"
-         class="flex w-full items-center gap-3 px-4 py-2 rounded-full
-                text-lottina-white hover:bg-[#fb5c4f] hover:text-lottina-white
-                transition-colors">
-        <span>Event erstellen</span>
-      </a>
-
-      <a href="#faq" id="menuFaqLink"
-         class="flex w-full items-center gap-3 px-4 py-2 rounded-full
-                text-lottina-white hover:bg-[#fb5c4f] hover:text-lottina-white
-                transition-colors">
-        <span>FAQ</span>
-      </a>
-    </nav>
-
-    <div class="mt-2 flex items-center gap-4 text-lottina-white/90">
-      <a href="{{ request.path }}?lang=de" class="hover:text-white">🇩🇪 DE</a>
-      <a href="{{ request.path }}?lang=en" class="hover:text-white">🇬🇧 EN</a>
-    </div>
-  </aside>
-</div>
-
-
-</div>
-
+  <!-- Mobile Overlay -->
+  <div id="menuOverlay" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <aside id="menuPanel"
+           class="absolute top-6 right-6 w-72 max-w-[80vw] rounded-3xl border border-white/15 bg-gradient-to-br from-[#1f2148] via-[#2c235c] to-[#fb5c4f] text-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col gap-4 p-6">
+      <nav class="space-y-3 text-sm font-semibold">
+        <a href="{{ url_for('results') }}" class="mobile-link">Events entdecken</a>
+        <a href="{{ url_for('event_erstellen') }}" class="mobile-link">Event erstellen</a>
+        <a href="/so-funktionierts" class="mobile-link">So funktioniert’s</a>
+        <a href="{{ url_for('ueber_uns') }}" class="mobile-link">Über uns</a>
+        <a href="/faq" id="menuFaqLink" class="mobile-link">FAQ</a>
+      </nav>
+      <div class="mt-2 flex items-center gap-4 text-xs text-white/70">
+        <span>Sprache:</span>
+        <a href="{{ request.path }}?lang=de" class="hover:text-white transition">🇩🇪 DE</a>
+        <a href="{{ request.path }}?lang=en" class="hover:text-white transition">🇬🇧 EN</a>
+      </div>
+      <div class="border-t border-white/20 pt-4 text-sm text-white/80 space-y-1">
+        {% if current_user.is_authenticated %}
+          <span>Angemeldet als {{ current_user.username }}</span>
+          <a href="{{ url_for('logout') }}" class="mobile-link">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="mobile-link">Login</a>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
 </header>
 
-<!-- 🧠 Menü + FAQ JavaScript -->
+<style>
+  .mobile-link {
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    padding:.65rem .9rem;
+    border-radius:1rem;
+    background:rgba(255,255,255,0.08);
+    color:inherit;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .mobile-link::before {
+    content:"›";
+    font-weight:bold;
+    opacity:.6;
+  }
+  .mobile-link:hover {
+    background:rgba(255,255,255,0.16);
+    transform:translateX(4px);
+  }
+  .sr-only {
+    position:absolute;
+    width:1px;
+    height:1px;
+    padding:0;
+    margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
+  }
+</style>
+
 <script>
   const toggle  = document.getElementById("menuToggle");
   const overlay = document.getElementById("menuOverlay");
@@ -105,7 +133,7 @@
   }
   function closeMenu() {
     panel.classList.add("translate-x-full");
-    setTimeout(() => overlay.classList.add("hidden"), 300);
+    setTimeout(() => overlay.classList.add("hidden"), 280);
     toggle?.setAttribute("aria-expanded", "false");
   }
   function toggleMenu() {
@@ -118,7 +146,6 @@
     if (!panel.contains(e.target)) closeMenu();
   });
 
-  // 📍 Scroll + Menü schließen bei Klick auf FAQ-Link
   faqLink?.addEventListener("click", (e) => {
     e.preventDefault();
     closeMenu();

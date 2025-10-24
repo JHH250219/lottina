@@ -1,2 +1,9 @@
 flask==3.0.3
 gunicorn==22.0.0
+Flask-Migrate==4.1.0
+GeoAlchemy2
+psycopg2-binary
+opencv-python
+easyocr
+PyMuPDF
+numpy

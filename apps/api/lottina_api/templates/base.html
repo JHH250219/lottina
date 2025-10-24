@@ -21,7 +21,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-o9N1j7kGmS+Jp3rgZj+Po+ozQdWpXdZ+1lzLk2g0kzU="
           crossorigin=""></script>
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <!-- Material Tailwind (optional) -->
   <link href="https://unpkg.com/@material-tailwind/html@latest/styles/material-tailwind.css" rel="stylesheet" />
   <script src="https://unpkg.com/@material-tailwind/html@latest/scripts/script.js"></script>
@@ -30,73 +31,166 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-@keyframes slideIn {
-  0%   { transform: translateX(-100%); opacity: 0; }
-  100% { transform: translateX(0); opacity: 1; }
-}
-.page-enter {
-  animation: slideIn 0.6s ease-out forwards;
-}
-@keyframes flyOut {
-  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity: 1; }
-  40%  { transform: translate(150px,-100px) scale(1.2) rotate(-20deg); opacity: 1; }
-  100% { transform: translate(600px,-250px) scale(0.8) rotate(-45deg); opacity: 0; }
-}
-.fly-anim {
-  animation: flyOut 1.2s ease forwards;
-}
-
-
-</style>
+  
 </head>
 
-<body class="{% if request.endpoint == 'results' %}page-enter{% endif %} min-h-screen flex flex-col font-lottina bg-gradient-to-b from-[#fffafa] to-[#fb5c4f] text-white">
+<body class="{% if request.endpoint == 'results' %}page-enter{% endif %} min-h-screen flex flex-col font-lottina bg-white text-lottina-primary antialiased">
   {% include "header.html" %}
 
   <!-- Einheitlicher, breiter Container für Seiteninhalte -->
-  <main class="flex-grow pt-24">
-    <div class="mx-auto w-full ">
-      {% block content %}{% endblock %}
-    </div>
+  <main class="flex-grow pt-24 bg-white">
+    {% block content %}{% endblock %}
   </main>
 
   {% include "footer.html" %}
 
-  <!-- Theme Toggle -->
+  <div id="contact-modal" class="contact-modal" hidden>
+    <div class="contact-modal__backdrop" data-contact-close></div>
+    <div class="contact-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+      <div class="contact-modal__header">
+        <div>
+          <h2 id="contact-modal-title" class="contact-modal__title">Direkt mit lottina sprechen</h2>
+          <p class="text-sm text-white/80 leading-relaxed mt-2">
+            Wir freuen uns über kommunale Projekte, Vereinsanfragen und Partner, die Freizeit sichtbar machen wollen.
+          </p>
+        </div>
+        <button type="button" class="contact-modal__close" data-contact-close aria-label="Schließen">
+          ×
+        </button>
+      </div>
+      <div class="contact-modal__body">
+        <p>
+          Lass uns wissen, wie wir helfen können. Wir melden uns schnellstmöglich – versprochen.
+        </p>
+        <div class="contact-modal__fields">
+          <div>
+            <label for="contact-name">Name</label>
+            <input id="contact-name" type="text" placeholder="Vor- und Nachname">
+          </div>
+          <div>
+            <label for="contact-email">E-Mail</label>
+            <input id="contact-email" type="email" placeholder="deine@mail.de">
+          </div>
+          <div>
+            <label for="contact-message">Nachricht</label>
+            <textarea id="contact-message" rows="4" placeholder="Worum geht es?"></textarea>
+          </div>
+        </div>
+        <div class="contact-modal__actions">
+          <a href="mailto:hello@lottina.de" class="contact-modal__primary" data-contact-mail>
+            Schnell Abschicken
+          </a>
+          <span class="contact-modal__hint">
+            oder schreib direkt an <a href="mailto:hello@lottina.de" class="underline text-white">hello@lottina.de</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const toggleBtn = document.getElementById("theme-toggle");
-    const iconDark  = document.getElementById("theme-toggle-dark-icon");
-    const iconLight = document.getElementById("theme-toggle-light-icon");
+    document.addEventListener("DOMContentLoaded", () => {
+      const modal = document.getElementById("contact-modal");
+      if (!modal) return;
 
-    if (localStorage.getItem("theme") === "dark" ||
-       (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      document.documentElement.classList.add("dark");
-      iconLight && iconLight.classList.remove("hidden");
-    } else {
-      document.documentElement.classList.remove("dark");
-      iconDark && iconDark.classList.remove("hidden");
-    }
+      const openerSet = new Set([...document.querySelectorAll("[data-contact-trigger]")]);
+      const textualMatches = Array.from(document.querySelectorAll("a, button"))
+        .filter(el => el.textContent?.trim().toLowerCase() === "kontakt aufnehmen");
+      textualMatches.forEach(el => openerSet.add(el));
+      const closeTargets = modal.querySelectorAll("[data-contact-close]");
+      const mailButton = modal.querySelector("[data-contact-mail]");
+      const inputs = {
+        name: modal.querySelector("#contact-name"),
+        email: modal.querySelector("#contact-email"),
+        message: modal.querySelector("#contact-message")
+      };
+      const focusableSelectors = "a[href], button, textarea, input, select, [tabindex]:not([tabindex='-1'])";
+      let lastFocused;
 
-    if (toggleBtn) {
-      toggleBtn.addEventListener("click", () => {
-        document.documentElement.classList.toggle("dark");
-        const isDark = document.documentElement.classList.contains("dark");
-        localStorage.setItem("theme", isDark ? "dark" : "light");
-        iconDark  && iconDark.classList.toggle("hidden", isDark);
-        iconLight && iconLight.classList.toggle("hidden", !isDark);
+      const toggleScrollLock = (shouldLock) => {
+        document.body.classList.toggle("modal-open", shouldLock);
+      };
+
+      const trapFocus = (event) => {
+        if (event.key !== "Tab") return;
+        const focusable = Array.from(modal.querySelectorAll(focusableSelectors))
+          .filter(el => !el.hasAttribute("disabled") && el.offsetParent !== null);
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      };
+
+      const openModal = () => {
+        if (!modal) return;
+        lastFocused = document.activeElement;
+        modal.hidden = false;
+        toggleScrollLock(true);
+        const firstInput = inputs.name;
+        window.requestAnimationFrame(() => {
+          (firstInput || modal.querySelector(focusableSelectors))?.focus();
+        });
+        document.addEventListener("keydown", onKeyDown);
+      };
+
+      const closeModal = () => {
+        if (!modal || modal.hidden) return;
+        modal.hidden = true;
+        toggleScrollLock(false);
+        document.removeEventListener("keydown", onKeyDown);
+        if (lastFocused && typeof lastFocused.focus === "function") {
+          lastFocused.focus();
+        }
+      };
+
+      const onKeyDown = (event) => {
+        if (event.key === "Escape") {
+          closeModal();
+        } else if (event.key === "Tab") {
+          trapFocus(event);
+        }
+      };
+
+      Array.from(openerSet).forEach(trigger => {
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          openModal();
+        });
       });
-    }
+
+      closeTargets.forEach(target => {
+        target.addEventListener("click", () => closeModal());
+      });
+
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      mailButton?.addEventListener("click", () => {
+        const subject = encodeURIComponent("Kontakt über lottina.de");
+        const lines = [];
+        if (inputs.name?.value) lines.push(`Name: ${inputs.name.value}`);
+        if (inputs.email?.value) lines.push(`E-Mail: ${inputs.email.value}`);
+        if (inputs.message?.value) {
+          lines.push("");
+          lines.push(inputs.message.value);
+        }
+        const body = encodeURIComponent(lines.join("\n"));
+        mailButton.href = `mailto:hello@lottina.de?subject=${subject}&body=${body}`;
+        closeModal();
+      });
+    });
   </script>
 
   {% include "cookie.html" %}
-  <!-- Overlay-Flieger -->
-<svg id="fly-overlay" xmlns="http://www.w3.org/2000/svg"
-     class="hidden fixed top-1/2 left-1/2 w-10 h-10 text-lottina-accent z-50 pointer-events-none"
-     viewBox="0 0 24 24" fill="currentColor">
-  <!-- Papierflieger -->
-  <path d="M2 3l20 9-20 9 5-9-5-9z"/>
-</svg>
-
 </body>
 </html>

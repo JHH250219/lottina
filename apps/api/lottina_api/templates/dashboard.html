@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Mein Profil – lottina{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-[#fffafa] to-[#fb5c4f] mx-auto mt-16 px-4">
+  <div class="dark:bg-gray-900 p-6 rounded-xl shadow max-w-4xl mx-auto">
+
+    <!-- 👤 Header -->
+    <div class="flex items-center gap-6 mb-6">
+      {% if current_user.profile_image %}
+        <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) }}"
+             alt="Profilbild"
+             class="w-24 h-24 rounded-full object-cover border-4 border-lottina-primary shadow" />
+      {% else %}
+        
+      {% endif %}
+
+      <div>
+        <h1 class="text-3xl font-lottina font-bold text-lottina-primary dark:text-white">
+          Hallo {{ current_user.firstname }} {{ current_user.lastname }}
+        </h1>
+        <p class="text-gray-700 dark:text-gray-300 mt-1">✉️ {{ current_user.email }}</p>
+        {% if current_user.city %}
+        <p class="text-gray-700 dark:text-gray-300 mt-1">🏙️ Stadt: {{ current_user.city }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 💳 Abo -->
+    <div class="mt-4">
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Abo-Status</h2>
+      {% if current_user.is_premium %}
+        <div class="inline-block bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-4 py-2 rounded-full text-sm font-semibold">
+          ✅ lottina+
+        </div>
+     {% else %}
+  <div class="inline-block bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 px-4 py-2 rounded-full text-sm">
+    Kostenloses Konto
+  </div>
+  <div class="mt-3">
+    <a href="{{ url_for('preise') }}"
+       class="inline-block px-6 py-3 bg-lottina-accent text-lottina-primary font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition">
+      Jetzt upgraden
+    </a>
+  </div>
+{% endif %}
+
+    </div>
+
+    <!-- 📅 Kalender-Sektion -->
+    <div class="mt-10">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">📆 Meine Favoriten im Kalender</h2>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow text-gray-600 dark:text-gray-300 text-sm">
+        <!-- Hier könnten später Events mit Datum geladen und in Kalender-Grid dargestellt werden -->
+        <p>Hier werden künftig deine gespeicherten Events übersichtlich angezeigt.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
