@@ -20,8 +20,11 @@ from pathlib import Path
 import mimetypes
 from werkzeug.utils import secure_filename
 from .utils import (
-    allowed, save_upload, pdf_to_images, ocr_image,
-    extract_fields, confidence_stats, extract_addr_city_from_text
+    allowed,
+    save_upload,
+    extract_fields,
+    confidence_stats,
+    extract_addr_city_from_text,
 )
 
 # ---------------------------------------------------------------------------
@@ -385,9 +388,11 @@ def ocr_upload():
     Erwartet Feldname 'file' im Multipart-Upload.
     """
 
-    # LAZY IMPORT, damit der Server ohne OpenCV bootet
-    import cv2
+    # Lazy imports, damit der Server in Production ohne libGL (OpenCV)
+    # trotzdem starten kann und Sliplane den Container nicht sofort killt.
     import numpy as np
+    import cv2
+    from .utils.ocr import pdf_to_images, ocr_image  # zieht easyocr/cv2 erst jetzt rein
 
     file = request.files.get("file")
     if not file or not file.filename or not allowed(file.filename):
@@ -395,7 +400,7 @@ def ocr_upload():
 
     ext = file.filename.rsplit(".", 1)[-1].lower()
 
-    # --- PDF ---
+    # --- PDF Upload ---
     if ext == "pdf":
         saved = save_upload(file, PDF_FOLDER)
         try:
@@ -407,7 +412,8 @@ def ocr_upload():
         if not pages:
             return jsonify({"ok": False, "error": "PDF hatte keine renderbaren Seiten."}), 400
 
-        texts, confs_all = [], []
+        texts = []
+        confs_all = []
         for img_rgb in pages:
             text, confs, meta = ocr_image(img_rgb)
             if text:
@@ -416,6 +422,7 @@ def ocr_upload():
 
         full_text = "\n".join(texts).strip()
         fields = extract_fields(full_text)
+
         found = [k for k, v in fields.items() if v not in (None, "")]
         missing = [k for k in ("title", "date", "location") if not fields.get(k)]
 
@@ -428,11 +435,12 @@ def ocr_upload():
             "image_url": None,
         })
 
-    # --- Bild ---
+    # --- Bild Upload ---
     saved = save_upload(file, IMAGE_FOLDER)
     rel_url = f"/uploads/images/{saved.name}"
 
     try:
+        # np.fromfile + cv2.imdecode ist pfad-sicherer bei Unicode etc.
         data = np.fromfile(str(saved), dtype=np.uint8)
         img_bgr = cv2.imdecode(data, cv2.IMREAD_COLOR)
         if img_bgr is None:
@@ -458,6 +466,7 @@ def ocr_upload():
         "confidence": confidence_stats(confs),
         "image_url": rel_url,
     })
+
 
 @app.post("/event-erstellen")
 def create_event():
