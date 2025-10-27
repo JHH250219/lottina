@@ -5,12 +5,12 @@
 
 /* ✅ Custom Properties */
 :root {
-  --lottina-primary: #1f2148;
-  --lottina-secondary: #ffb7a3;
-  --lottina-accent: #fb5c4f;
-  --lottina-highlight: #f2e205;
-  --lottina-background: #fffafa;
-  --lottina-white: #fffafa;
+  --lottina-primary: #08414e;
+  --lottina-secondary: #ded480;
+  --lottina-accent: #fda69b;
+  --lottina-highlight: #ded480;
+  --lottina-background: #ffece0;
+  --lottina-white: #fffbf6;
   --font-lottina: 'Nunito Sans', sans-serif;
 }
 
@@ -65,12 +65,12 @@ body {
   gap: 0.4rem;
   padding: 0.45rem 0.95rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  background: rgba(253, 166, 155, 0.25);
+  color: var(--lottina-primary);
   font-weight: 600;
   font-size: 0.85rem;
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(8, 65, 78, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
@@ -78,14 +78,14 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
   background: rgba(255, 255, 255, 0.3);
-  color: #1f2148;
+  color: var(--lottina-primary);
 }
 
 .stat-card {
   padding: 1rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(251, 92, 79, 0.18));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 25px rgba(31, 33, 72, 0.08);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(253, 166, 155, 0.25));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 25px rgba(8, 65, 78, 0.12);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -94,7 +94,7 @@ body {
 .stat-value {
   font-size: 1.9rem;
   font-weight: 700;
-  color: #1f2148;
+  color: var(--lottina-primary);
   line-height: 1;
 }
 
@@ -102,41 +102,41 @@ body {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(31, 33, 72, 0.6);
+  color: rgba(8, 65, 78, 0.55);
 }
 
 .feature-card {
-  background: linear-gradient(140deg, rgba(31, 33, 72, 0.92), rgba(49, 35, 93, 0.85));
+  background: linear-gradient(140deg, rgba(8, 65, 78, 0.15), rgba(222, 212, 128, 0.2));
   border-radius: 1.5rem;
   padding: 1.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 22px 40px rgba(20, 21, 45, 0.35);
+  border: 1px solid rgba(8, 65, 78, 0.12);
+  box-shadow: 0 18px 32px rgba(8, 65, 78, 0.18);
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  color: #f9f9fb;
+  color: var(--lottina-primary);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .feature-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 28px 55px rgba(20, 21, 45, 0.45);
-  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 24px 48px rgba(8, 65, 78, 0.25);
+  border-color: rgba(8, 65, 78, 0.2);
 }
 
 .feature-card--accent {
-  background: linear-gradient(140deg, rgba(251, 92, 79, 0.9), rgba(255, 162, 143, 0.95));
-  color: #1f2148;
-  border-color: rgba(255, 255, 255, 0.4);
+  background: linear-gradient(140deg, rgba(253, 166, 155, 0.9), rgba(255, 236, 224, 0.95));
+  color: var(--lottina-primary);
+  border-color: rgba(8, 65, 78, 0.18);
 }
 
 .feature-card--accent:hover {
-  box-shadow: 0 30px 60px rgba(251, 92, 79, 0.45);
+  box-shadow: 0 30px 60px rgba(253, 166, 155, 0.35);
 }
 
 .feature-card--secondary {
-  background: linear-gradient(140deg, rgba(49, 35, 93, 0.92), rgba(93, 63, 153, 0.85));
-  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(140deg, rgba(222, 212, 128, 0.9), rgba(255, 236, 224, 0.8));
+  border-color: rgba(8, 65, 78, 0.12);
 }
 
 .feature-card h3 {
@@ -147,15 +147,15 @@ body {
 
 .feature-card p {
   font-size: 0.92rem;
-  color: rgba(249, 249, 251, 0.82);
+  color: rgba(8, 65, 78, 0.72);
 }
 
 .feature-card.feature-card--accent p {
-  color: rgba(31, 33, 72, 0.75);
+  color: rgba(8, 65, 78, 0.7);
 }
 
 .feature-card.feature-card--accent h3 {
-  color: #1f2148;
+  color: var(--lottina-primary);
 }
 
 .feature-icon {
@@ -166,17 +166,17 @@ body {
   justify-content: center;
   border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+  color: var(--lottina-primary);
 }
 
 .feature-card.feature-card--accent .feature-icon {
   background: rgba(255, 255, 255, 0.2);
-  color: #fb5c4f;
+  color: var(--lottina-accent);
 }
 
 .feature-card.feature-card--secondary .feature-icon {
   background: rgba(255, 255, 255, 0.2);
-  color: #dcd7ff;
+  color: #e5ffe1;
 }
 
 .feature-link {
@@ -211,16 +211,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: linear-gradient(135deg, rgba(31, 33, 72, 0.95), rgba(43, 36, 92, 0.92), rgba(251, 92, 79, 0.9));
-  color: #f7f5ff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 24px 50px rgba(20, 21, 45, 0.35);
+  background: linear-gradient(135deg, rgba(253, 166, 155, 0.25), rgba(222, 212, 128, 0.25));
+  color: var(--lottina-primary);
+  border: 1px solid rgba(8, 65, 78, 0.15);
+  box-shadow: 0 18px 32px rgba(8, 65, 78, 0.18);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .testimonial-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 28px 60px rgba(20, 21, 45, 0.45);
+  box-shadow: 0 24px 48px rgba(8, 65, 78, 0.22);
 }
 
 .contact-modal {
@@ -239,7 +239,7 @@ body {
 .contact-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(16, 18, 42, 0.75);
+  background: rgba(8, 65, 78, 0.25);
   backdrop-filter: blur(6px);
 }
 
@@ -249,10 +249,10 @@ body {
   min-height: min(60vh, 32rem);
   border-radius: 1.75rem;
   padding: 2.5rem;
-  background: linear-gradient(140deg, rgba(31, 33, 72, 0.96), rgba(43, 36, 92, 0.92), rgba(251, 92, 79, 0.9));
-  color: #fff;
-  box-shadow: 0 35px 80px rgba(17, 19, 45, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--lottina-background);
+  color: var(--lottina-primary);
+  box-shadow: 0 28px 55px rgba(8, 65, 78, 0.2);
+  border: 1px solid rgba(8, 65, 78, 0.15);
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
@@ -274,8 +274,8 @@ body {
 .contact-modal__close {
   appearance: none;
   border: 0;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: rgba(253, 166, 155, 0.25);
+  color: var(--lottina-primary);
   border-radius: 999px;
   padding: 0.4rem 0.65rem;
   cursor: pointer;
@@ -291,7 +291,7 @@ body {
   display: grid;
   gap: 1.25rem;
   font-size: 0.95rem;
-  color: rgba(249, 249, 255, 0.88);
+  color: rgba(8, 65, 78, 0.8);
 }
 
 .contact-modal__fields {
@@ -305,7 +305,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(8, 65, 78, 0.6);
   margin-bottom: 0.35rem;
 }
 
@@ -313,9 +313,9 @@ body {
 .contact-modal__fields textarea {
   width: 100%;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  border: 1px solid rgba(8, 65, 78, 0.2);
+  background: rgba(255, 236, 224, 0.7);
+  color: var(--lottina-primary);
   padding: 0.85rem 1rem;
   font-size: 0.95rem;
   transition: border-color 0.2s ease, background 0.2s ease;
@@ -326,8 +326,8 @@ body {
 .contact-modal__fields input:focus,
 .contact-modal__fields textarea:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(8, 65, 78, 0.4);
+  background: rgba(253, 166, 155, 0.25);
 }
 
 .contact-modal__actions {
@@ -344,8 +344,8 @@ body {
   gap: 0.5rem;
   padding: 0.95rem 1.8rem;
   border-radius: 1rem;
-  background: #fff;
-  color: #1f2148;
+  background: var(--lottina-accent);
+  color: var(--lottina-primary);
   font-weight: 700;
   text-decoration: none;
   box-shadow: 0 18px 35px rgba(15, 18, 45, 0.3);

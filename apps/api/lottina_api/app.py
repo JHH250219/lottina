@@ -104,16 +104,26 @@ def index():
         .all()
     )
 
-    categories = [
-        name
-        for (name,) in (
-            db.session.query(Category.name)
-            .distinct()
-            .order_by(Category.name.asc())
-            .limit(40)
-            .all()
-        )
-    ]
+   # helper für slug (ä->ae etc.)
+    _AUML = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
+    def _slugify(s: str) -> str:
+        import re
+        s = (s or "").strip().lower()
+        for a, b in _AUML.items():
+            s = s.replace(a, b)
+        s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+        return s or "kategorie"
+
+    # hole name + slug aus DB; fallback: slugify(name), falls slug NULL ist
+    rows = (
+        db.session.query(Category.name, Category.slug)
+        .distinct()
+        .order_by(Category.name.asc())
+        .limit(40)
+        .all()
+    )
+    categories = [{"label": name, "slug": (slug or _slugify(name))} for (name, slug) in rows]
+
 
     quick_filters = [
         {"label": "Heute", "href": url_for("suchergebnisse", date=datetime.now().strftime("%Y-%m-%d"))},

@@ -10,19 +10,19 @@
     or request.args.get('q')
     or date_filter %}
 
-<div class="page-enter min-h-screen bg-gradient-to-br from-[#1f2148] via-[#2d235d] to-[#fb5c4f] text-white">
+<div class="page-enter min-h-screen bg-lottina-background text-lottina-primary">
   <div class="w-full px-4 sm:px-8 lg:px-12 py-10 lg:py-12 space-y-8" x-data="{drawer:false}">
 
     <!-- Header -->
     <header class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
       <div class="space-y-3">
-        <p class="text-xs uppercase tracking-[0.24em] text-white/70 font-semibold">
+        <p class="text-xs uppercase tracking-[0.24em] text-lottina-primary/70 font-semibold">
           Suchergebnisse
         </p>
-        <h1 class="text-3xl font-lottina font-bold text-white leading-tight drop-shadow">
+        <h1 class="text-3xl font-lottina font-bold text-lottina-primary leading-tight drop-shadow">
           {{ request.args.get('q') or "Alle Familien-Events" }}
         </h1>
-        <p class="text-sm md:text-base text-white/80 max-w-3xl">
+        <p class="text-sm md:text-base text-lottina-primary/80 max-w-3xl">
           Filtere nach Ort, Datum, Kategorien oder besonderen Merkmalen. Die Liste zeigt Treffer aus der lottina Datenbank,
           rechts findest du die passende Karte.
         </p>
@@ -44,13 +44,13 @@
         {% if request.args.get('always') == '1' %}
           {% set _ = summary.append("immer offen") %}
         {% endif %}
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 border border-white/20 text-sm text-lottina-primary shadow">
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-lottina-primary/10 text-sm text-lottina-primary shadow">
           <span class="inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
           {{ events|length }} Ergebnisse{% if summary %} · {{ summary|join(" · ") }}{% endif %}
         </span>
         {% if has_active_filters %}
           <a href="{{ url_for('suchergebnisse') }}"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/40 text-sm text-white/80 hover:bg-white/15 transition">
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/20 text-sm text-lottina-primary/80 hover:bg-white transition">
             Filter zurücksetzen
           </a>
         {% endif %}
@@ -71,7 +71,7 @@
             </svg>
             Filter
           </button>
-          <a href="{{ url_for('suchergebnisse') }}" class="text-sm text-white/80 underline">
+          <a href="{{ url_for('suchergebnisse') }}" class="text-sm text-lottina-primary/80 underline">
             Reset
           </a>
         </div>
@@ -145,7 +145,7 @@
 
             <div class="flex gap-2 pt-2">
               <button type="submit"
-                      class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-lottina-accent text-lottina-primary font-semibold hover:bg-[#ff7b6f] transition">
+                      class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-lottina-accent text-lottina-primary font-semibold hover:bg-[#76d64a] transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-4.3-4.3m1.6-4.7a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/>
                 </svg>
@@ -167,7 +167,7 @@
                   </span>
                 {% endfor %}
                 {% if request.args.get('date') %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fb5c4f]/10 text-[#fb5c4f]">
+                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fda69b]/10 text-[#fda69b]">
                     {{ request.args.get('date') }}
                   </span>
                 {% endif %}
@@ -280,7 +280,7 @@
                   </span>
                 {% endfor %}
                 {% if request.args.get('date') %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fb5c4f]/10 text-[#fb5c4f]">
+                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fda69b]/10 text-[#fda69b]">
                     {{ request.args.get('date') }}
                   </span>
                 {% endif %}
@@ -346,13 +346,13 @@
                   {% endif %}
                   {% if event.categories %}
                     {% for c in event.categories[:2] %}
-                      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#fb5c4f]/10 text-[#fb5c4f] font-medium">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#fda69b]/10 text-[#fda69b] font-medium">
                         {{ c.name }}
                       </span>
                     {% endfor %}
                   {% endif %}
                 </div>
-                <span class="inline-flex items-center gap-2 text-sm font-semibold text-[#fb5c4f]">
+                <span class="inline-flex items-center gap-2 text-sm font-semibold text-[#fda69b]">
                   Details ansehen
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7" />
@@ -364,18 +364,18 @@
           {% endfor %}
         </div>
         {% else %}
-        <div class="rounded-2xl border border-dashed border-lottina-primary/30 bg-white/80 px-6 py-12 text-center text-lottina-primary/70">
+        <div class="rounded-2xl border border-dashed border-lottina-primary/15 bg-white px-6 py-12 text-center text-lottina-primary/70">
           Keine Veranstaltungen gefunden. Passe deine Filter an oder entferne Einschränkungen.
         </div>
         {% endif %}
 
         <div class="flex flex-wrap gap-3 pt-2">
           <a href="{{ url_for('index') }}"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/30 text-white hover:bg-white/10 transition">
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-lottina-primary hover:bg-white/70 transition">
             Zur Startseite
           </a>
           <a href="{{ url_for('event_erstellen') }}"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 border border-white/20 text-lottina-primary font-semibold hover:bg-white transition">
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-lottina-primary/10 text-lottina-primary font-semibold hover:bg-white transition">
             Event einreichen
           </a>
         </div>
@@ -384,7 +384,7 @@
       <!-- Map -->
       <aside class="lg:col-span-1">
         <div class="sticky top-4">
-          <div id="result-map" class="w-full h-[520px] rounded-2xl border border-white/20 shadow-lg bg-white/80"></div>
+          <div id="result-map" class="w-full h-[520px] rounded-2xl border border-lottina-primary/10 shadow-lg bg-white"></div>
           <script id="coords-data" type="application/json">
   {{ coords | tojson | safe }}
 </script>
@@ -428,7 +428,7 @@
       if (typeof ev.lat !== 'number' || typeof ev.lon !== 'number') return;
       const marker = L.marker([ev.lat, ev.lon], {icon}).addTo(map);
       const date = ev.date ? new Date(ev.date).toLocaleString('de-DE', {dateStyle:'short', timeStyle:'short'}) : 'Termin folgt';
-      marker.bindPopup(`<strong>${ev.title}</strong><br>${date}<br><a href="${ev.url}" class="underline text-[#fb5c4f]">Details</a>`);
+      marker.bindPopup(`<strong>${ev.title}</strong><br>${date}<br><a href="${ev.url}" class="underline text-[#fda69b]">Details</a>`);
       markers.push(marker);
     });
 

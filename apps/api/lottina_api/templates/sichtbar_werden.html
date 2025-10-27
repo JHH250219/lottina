@@ -4,9 +4,9 @@
 {% block content %}
 
 <!-- Hero -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#1f2148] via-[#2d235d] to-[#fb5c4f] text-white">
+<section class="relative overflow-hidden bg-lottina-background text-lottina-primary">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
-  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-12 gap-12 items-center">
+  <div class="relative z-10 max-w-6xl mx-auto pt-20 px-6 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-12 gap-12 items-center">
     <div class="lg:col-span-7 space-y-6">
       <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-sm font-semibold tracking-wide uppercase">
         <span class="h-2 w-2 rounded-full bg-lottina-highlight"></span>
@@ -15,7 +15,7 @@
       <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
         Mach dein Angebot für Familien sichtbar – ohne zusätzlichen Aufwand.
       </h1>
-      <p class="text-lg text-white/80 max-w-2xl">
+      <p class="text-lg text-lottina-primary/80 max-w-2xl">
         lottina bringt dein Angebot dorthin, wo Familien suchen: ins Netz, auf die Karte und in personalisierte Übersichten.
         Lade Poster hoch, nutze unser OCR und werde sichtbar, weil dein Angebot es verdeint hat.
       </p>
@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="lg:col-span-5 space-y-6">
-      <div class="rounded-3xl bg-white/10 border border-white/25 backdrop-blur-sm shadow-2xl px-6 py-6 flex flex-col items-center gap-6">
+      <div class="rounded-3xl bg-lottina-highlight/25 border border-lottina-primary/12 backdrop-blur-sm shadow-2xl px-6 py-6 flex flex-col items-center gap-6">
         <div class="w-full flex justify-center">
           <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_poster-upload.json"
                          background="transparent"
@@ -43,7 +43,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
           </svg>
         </a>
-        <p class="text-base text-white/85 text-center">
+        <p class="text-base text-lottina-primary/85 text-center">
           Wie könnte dein Angebot aussehen.
         </p>
       </div>
@@ -52,7 +52,7 @@
 </section>
 
 <!-- Mission section -->
-<section class="bg-gradient-to-br from-[#fff2ee] via-[#ffe0d6] to-[#ffc7b9] py-16">
+<section class="bg-lottina-background py-16">
   <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center space-y-6">
     <h2 class="text-3xl font-bold text-lottina-primary leading-tight">Warum lottina deine Bühne ist</h2>
     <p class="text-base text-lottina-primary/75 leading-relaxed">
@@ -62,7 +62,7 @@
   </div>
   <div class="max-w-5xl mx-auto px-6 lg:px-10 mt-10 grid sm:grid-cols-2 gap-6">
     <a href="/event-erstellen" class="feature-card feature-card--accent">
-      <div class="feature-icon bg-[#fb5c4f]/15 text-[#fb5c4f]">
+      <div class="feature-icon bg-lottina-accent/30 text-lottina-primary">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2v20m-7-7h14"/>
         </svg>
@@ -72,7 +72,7 @@
       <span class="feature-link">Poster hochladen</span>
     </a>
     <a href="{{ url_for('register') }}" class="feature-card feature-card--secondary">
-      <div class="feature-icon bg-white/15 text-white">
+      <div class="feature-icon bg-lottina-highlight/40 text-lottina-primary">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11c1.934 0 3.5-1.566 3.5-3.5S13.934 4 12 4s-3.5 1.566-3.5 3.5S10.066 11 12 11Zm0 2c-2.33 0-7 1.172-7 3.5V19h14v-2.5c0-2.328-4.67-3.5-7-3.5Z"/>
         </svg>
@@ -99,12 +99,12 @@
 </section>
 
 <!-- CTA -->
-<section class="bg-gradient-to-br from-[#1f2148] via-[#2d235d] to-[#fb5c4f] text-white py-16">
+<section class="bg-lottina-background text-lottina-primary py-16">
   <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-8">
     <div class="grid lg:grid-cols-2 gap-10 items-center">
       <div class="space-y-4">
         <h2 class="text-3xl font-bold">Bereit für mehr Sichtbarkeit?</h2>
-        <p class="text-sm text-white/80 leading-relaxed">
+        <p class="text-sm text-lottina-primary/80 leading-relaxed">
           Ob Stadt, Verein oder Kulturhaus – wir begleiten dich bei den ersten Uploads, helfen beim Datenimport und sorgen für Aktualität. Schreib uns oder buche direkt ein Onboarding.
         </p>
         <div class="flex flex-wrap gap-3">
@@ -113,14 +113,14 @@
             Jetzt Event einreichen
           </a>
           <a href="/kontakt"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/40 text-sm font-semibold hover:bg-white/10 transition">
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold hover:bg-lottina-highlight/25 transition">
             Kontakt aufnehmen
           </a>
         </div>
       </div>
-      <div class="rounded-3xl bg-white/10 border border-white/20 shadow-2xl p-6 space-y-4">
+      <div class="rounded-3xl bg-lottina-highlight/25 border border-lottina-primary/10 shadow-2xl p-6 space-y-4">
         <h3 class="text-lg font-semibold">Optional: Automatischer Datenimport</h3>
-        <p class="text-sm text-white/80 leading-relaxed">
+        <p class="text-sm text-lottina-primary/80 leading-relaxed">
           Wir integrieren Dropbox, Google Drive, RSS oder Newsletter-Skripte direkt in unsere Plattform.
           Damit landen neue Termine sofort bei Familien – ohne dass du sie doppelt pflegst.
         </p>

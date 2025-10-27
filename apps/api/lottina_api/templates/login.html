@@ -2,7 +2,7 @@
 {% block title %}Login – lottina{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-[#1f2148] via-[#2d235d] to-[#fb5c4f] text-white">
+<div class="min-h-screen bg-lottina-background text-lottina-primary">
   <div class="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-16">
     <div class="grid lg:grid-cols-2 gap-12 items-center">
 
@@ -13,19 +13,19 @@
         <h1 class="text-3xl sm:text-4xl font-lottina font-bold leading-tight drop-shadow-lg">
           Melde dich an und verwalte deine Events.
         </h1>
-        <p class="text-sm sm:text-base text-white/80 max-w-xl">
+        <p class="text-sm sm:text-base text-lottina-primary/80 max-w-xl">
           Mit deinem Konto kannst du Poster hochladen, OCR-Ergebnisse prüfen und deine Veranstaltungen jederzeit aktualisieren.
         </p>
-        <div class="text-sm text-white/75">
+        <div class="text-sm text-lottina-primary/75">
           Noch kein Zugang?
-          <a href="{{ url_for('register') }}" class="font-semibold text-[#ffd2cc] hover:text-white transition">
+          <a href="{{ url_for('register') }}" class="font-semibold text-[#ffd2cc] hover:text-lottina-primary transition">
             Jetzt registrieren
           </a>
         </div>
       </div>
 
       <div>
-        <div class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-white/40 px-6 sm:px-8 py-8 space-y-6">
+        <div class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-lottina-primary/15 px-6 sm:px-8 py-8 space-y-6">
           <div>
             <h2 class="text-2xl font-semibold">Login</h2>
             <p class="text-sm text-lottina-primary/70">
@@ -37,8 +37,8 @@
             {% if messages %}
               <div class="space-y-3">
                 {% for category, message in messages %}
-                  <div class="px-4 py-3 rounded-2xl text-sm font-medium text-white
-                              {{ 'bg-[#fb5c4f]' if category == 'danger' else 'bg-lottina-primary' }}">
+                  <div class="px-4 py-3 rounded-2xl text-sm font-medium text-lottina-primary
+                              {{ 'bg-lottina-accent' if category == 'danger' else 'bg-lottina-primary' }}">
                     {{ message }}
                   </div>
                 {% endfor %}
@@ -60,7 +60,7 @@
             </div>
 
             <button type="submit"
-                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-lottina-accent text-white font-semibold shadow-lg hover:bg-[#ff7b6f] transition">
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-lottina-accent text-lottina-primary font-semibold shadow-lg hover:bg-lottina-highlight/80 transition">
               Einloggen
             </button>
           </form>
