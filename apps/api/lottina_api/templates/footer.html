@@ -38,8 +38,8 @@
         <h3 class="text-white/80 font-semibold tracking-wide uppercase text-xs">Plattform</h3>
         <ul class="space-y-2 text-white/70">
           <li><a href="{{ url_for('ueber_uns') }}" class="footer-link">Über uns</a></li>
-          <li><a href="/so-funktionierts" class="footer-link">So funktioniert’s</a></li>
-          <li><a href="/vorgaben" class="footer-link">Inhaltliche Vorgaben</a></li>
+          <li><a href="{{ url_for('sichtbar_werden')}}" class="footer-link">Sichtbar werden</a></li>
+          <li><a href="{{ url_for('vorgaben') }}" class="footer-link">Inhaltliche Vorgaben</a></li>
         </ul>
       </div>
 
@@ -55,7 +55,7 @@
   </div>
   <div class="border-t border-white/15">
     <div class="max-w-6xl mx-auto px-6 lg:px-10 py-6 flex flex-col md:flex-row items-center gap-3 text-xs text-white/60">
-      <span class="flex-1 text-center md:text-left">© {{ current_year | default("2025") }} lottina Gbr. Alle Rechte vorbehalten.</span>
+      <span class="flex-1 text-center md:text-left">© {{ current_year | default("2025") }} lottina. Alle Rechte vorbehalten.</span>
       <span class="text-center md:text-right">Built in Germany · DSGVO-konform · Werbefrei</span>
     </div>
   </div>

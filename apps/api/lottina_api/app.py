@@ -97,22 +97,44 @@ def healthz():
 # ---------------------------------------------------------------------------
 @app.route("/")
 def index():
-    categories = [
-        {"label": "Outdoor",     "slug": "outdoor"},
-        {"label": "Museen",      "slug": "museen"},
-        {"label": "Spielplätze", "slug": "spielplaetze"},
-        {"label": "Workshops",   "slug": "workshops"},
-        {"label": "Theater",     "slug": "theater"},
-        {"label": "Kostenlos",   "slug": "free"},
-        {"label": "Heute",       "slug": "today"},
-    ]
-
     events = (
         db.session.query(Offer)
         .order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
         .limit(9)
         .all()
     )
+
+    categories = [
+        name
+        for (name,) in (
+            db.session.query(Category.name)
+            .distinct()
+            .order_by(Category.name.asc())
+            .limit(40)
+            .all()
+        )
+    ]
+
+    quick_filters = [
+        {"label": "Heute", "href": url_for("suchergebnisse", date=datetime.now().strftime("%Y-%m-%d"))},
+        {"label": "Kostenlos", "href": url_for("suchergebnisse", free=1)},
+        {"label": "Outdoor", "href": url_for("suchergebnisse", outdoor=1)},
+        {"label": "Immer offen", "href": url_for("suchergebnisse", always=1)},
+    ]
+
+    coords = []
+    for ev in events:
+        if ev.location and ev.location.lat is not None and ev.location.lon is not None:
+            coords.append(
+                {
+                    "id": str(ev.id),
+                    "title": ev.title or "Ohne Titel",
+                    "lat": ev.location.lat,
+                    "lon": ev.location.lon,
+                    "date": ev.dt_start.isoformat() if ev.dt_start else "",
+                    "url": url_for("event_detail", event_id=str(ev.id)),
+                }
+            )
 
     testimonials = [
         {
@@ -136,6 +158,8 @@ def index():
         "index.html",
         categories=categories,
         events=events,
+        coords=coords,
+        quick_filters=quick_filters,
         testimonials=testimonials,
     )
 
@@ -239,6 +263,18 @@ def results():
 @app.get("/teaser")
 def teaser_preview():
     return render_template("teaser.html")
+
+@app.route("/sichtbar_werden")
+def sichtbar_werden():
+    return render_template("sichtbar_werden.html")
+
+@app.get("/impressum")
+def impressum():
+    return render_template("impressum.html")
+
+@app.get("/vorgaben")
+def vorgaben():
+    return render_template("vorgaben.html")
 
 @app.route("/event/<uuid:event_id>")
 def event_detail(event_id):

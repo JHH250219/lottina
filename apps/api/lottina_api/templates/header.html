@@ -24,8 +24,8 @@
 
       <!-- Desktop Navigation -->
       <nav class="hidden md:flex items-center gap-4 text-sm font-semibold text-white">
-        <a href="{{ url_for('results') }}" class="hover:text-[#ffd9cf] transition">Events</a>
-        <a href="/so-funktionierts" class="hover:text-[#ffd9cf] transition">So funktioniert’s</a>
+        <a href="{{ url_for('results') }}" class="hover:text-[#ffd9cf] transition">Erlebnisse</a>
+        <a href="{{ url_for('sichtbar_werden')}}" class="hover:text-[#ffd9cf] transition">Sichtbar werden</a>
         <a href="{{ url_for('ueber_uns') }}" class="hover:text-[#ffd9cf] transition">Über uns</a>
         {% if current_user.is_authenticated %}
           {% if current_user.is_admin %}
@@ -44,7 +44,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
           </svg>
-          Event erstellen
+          Erlebnis erstellen
         </a>
       </div>
 

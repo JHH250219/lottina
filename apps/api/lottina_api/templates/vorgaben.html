@@ -1,36 +1,96 @@
 {% extends "base.html" %}
-{% block title %}Inhaltliche Vorgaben – FamilienRadar{% endblock %}
+{% block title %}Inhaltliche Vorgaben – lottina{% endblock %}
 
 {% block content %}
-<section class="max-w-4xl mx-auto px-4 py-12 text-gray-800 dark:text-gray-100">
-  <h1 class="text-3xl font-bold mb-6">Inhaltliche Vorgaben</h1>
+<div class="min-h-screen bg-gradient-to-br from-[#1f2148] via-[#2d235d] to-[#fb5c4f] text-white">
+  <div class="max-w-6xl mx-auto pt-40 px-4 sm:px-8 lg:px-12 py-16 space-y-12">
 
-  <p class="mb-4">
-    Um FamilienRadar informativ und kindgerecht zu gestalten, gelten folgende Vorgaben für Inhalte und Veranstaltungen:
-  </p>
+    <header class="pt-6 space-y-4 text-center">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.3em]">
+        Guidelines
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold leading-tight drop-shadow-lg">
+        Inhaltliche Vorgaben für Events auf lottina
+      </h1>
+      <p class="text-sm sm:text-base text-white/80 max-w-3xl mx-auto">
+        Damit Familien relevanten, sicheren und inspirierenden Content entdecken, kuratieren wir jedes Event. Nutze die folgenden Leitlinien als Checkliste,
+        bevor du Angebote einreichst.
+      </p>
+    </header>
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">🔹 Familienfreundlichkeit</h2>
-  <p class="mb-4">
-    Events müssen für Familien mit Kindern geeignet sein – altersgerechte Sprache, sichere Umgebung und einladendes Konzept.
-  </p>
+    <section class="grid gap-6 lg:grid-cols-2">
+      {% set guidelines = [
+        {
+          "title": "Familienfreundlich & sicher",
+          "body": "Angebote richten sich an Kinder, Eltern oder Betreuungspersonen. Orte sind barrierearm, sicher und gut erreichbar.",
+          "icon": "M12 2a7 7 0 0 1 7 7v1h1a3 3 0 0 1 0 6h-.26A6 6 0 0 1 13 21h-2a6 6 0 0 1-6.74-5H4a3 3 0 1 1 0-6h1V9a7 7 0 0 1 7-7Z"
+        },
+        {
+          "title": "Werbefrei & transparent",
+          "body": "Keine reinen Verkaufsveranstaltungen oder Lockangebote. Erwähne Preise, Zusatzkosten oder Anmeldungen klar verständlich.",
+          "icon": "M4 6h16M4 12h16M4 18h16"
+        },
+        {
+          "title": "Divers & inklusiv",
+          "body": "Sprache und Inhalte sind offen für unterschiedliche Familienmodelle, Hintergründe und Bedürfnisse. Diskriminierung ist tabu.",
+          "icon": "M12 2a5 5 0 0 1 5 5v1h1a4 4 0 0 1 0 8h-1v1a5 5 0 0 1-5 5 5.2 5.2 0 0 1-1-.09A5 5 0 0 1 6 17v-1H5a4 4 0 1 1 0-8h1V7a5 5 0 0 1 5-5Z"
+        },
+        {
+          "title": "Klare Informationen",
+          "body": "Wir brauchen Titel, Beschreibung, Datum/Uhrzeit, Ort (mit Adresse) sowie Kontakt oder Link. Altersangabe & Hinweise (z. B. barrierefrei) helfen Familien bei der Planung.",
+          "icon": "M5 3h14a2 2 0 0 1 2 2v14l-4-3-2 2-3-2-3 2-2-2-4 3V5a2 2 0 0 1 2-2Z"
+        }
+      ] %}
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">🔹 Keine Werbung</h2>
-  <p class="mb-4">
-    Die Plattform ist werbefrei. Reine Werbe- oder Verkaufsveranstaltungen werden nicht aufgenommen.
-  </p>
+      {% for item in guidelines %}
+      <article class="rounded-3xl bg-white/10 border border-white/25 backdrop-blur-sm px-6 py-6 space-y-4 shadow-lg">
+        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-white/90">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="{{ item.icon }}" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold">{{ item.title }}</h2>
+        <p class="text-sm text-white/80 leading-relaxed">{{ item.body }}</p>
+      </article>
+      {% endfor %}
+    </section>
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">🔹 Diversität & Inklusion</h2>
-  <p class="mb-4">
-    Wir bevorzugen Inhalte, die offen für alle Familienformen, Altersgruppen und soziale Hintergründe sind.
-  </p>
+    <section class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-white/35 px-6 sm:px-8 py-10 space-y-6">
+      <h2 class="text-2xl font-semibold">Was wir ablehnen</h2>
+      <ul class="space-y-2 text-sm text-lottina-primary/75 leading-relaxed">
+        <li>• Inhalte mit diskriminierender, extremistischer oder jugendgefährdender Tendenz</li>
+        <li>• Reine Werbe- oder Verkaufsshows ohne Mehrwert für Familien</li>
+        <li>• Veranstaltungen ohne klare Angaben zu Datum, Ort oder Verantwortlichen</li>
+        <li>• Gewinnspiele oder Aktionen, die persönliche Daten ungefragt sammeln</li>
+      </ul>
+      <p class="text-xs text-lottina-primary/50">
+        Du bist unsicher? Sende uns dein Poster trotzdem – wir geben Feedback, was noch fehlt.
+      </p>
+    </section>
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">🔹 Sprache & Ton</h2>
-  <p class="mb-4">
-    Texte sollen verständlich, freundlich und positiv formuliert sein. Gewaltverherrlichung, Diskriminierung oder Angstinhalte sind tabu.
-  </p>
+    <section class="rounded-3xl bg-white/10 border border-white/20 backdrop-blur-sm px-6 sm:px-8 py-10 space-y-5">
+      <h2 class="text-xl font-semibold">So prüfst du dein Event vor dem Upload</h2>
+      <ol class="space-y-3 text-sm text-white/80 leading-relaxed">
+        <li><strong>Poster bereit?</strong> Foto oder PDF mit gut lesbarem Text.</li>
+        <li><strong>Daten ergänzen:</strong> Kurzbeschreibung, genaue Adresse, Altersrange, Preis/Spendenhinweis.</li>
+        <li><strong>Besonderheiten erwähnen:</strong> Indoor/Outdoor, barrierefrei, Anmeldung nötig?</li>
+        <li><strong>Kontakt angeben:</strong> Website, E-Mail oder Telefonnummer für Rückfragen.</li>
+      </ol>
+      <div class="flex flex-wrap gap-3">
+        <a href="{{ url_for('event_erstellen') }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-lottina-accent text-white font-semibold shadow hover:bg-[#ff7b6f] transition">
+          Erlebnis einreichen
+        </a>
+        <a href="{{ url_for('register') }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/40 text-sm font-semibold text-white hover:bg-white/10 transition">
+          Zum Anbieter-Login
+        </a>
+      </div>
+    </section>
 
-  <p>
-    Wenn du ein Event einreichen willst, orientiere dich bitte an diesen Leitlinien. Vielen Dank!
-  </p>
-</section>
+    <footer class="text-xs text-white/70 text-center">
+      Stand: {{ current_year }} · Richtlinien werden regelmäßig aktualisiert. Fragen? Schreib uns an <a href="mailto:hello@lottina.de" class="underline text-[#ffd2cc] hover:text-white">hello@lottina.de</a>.
+    </footer>
+  </div>
+</div>
 {% endblock %}

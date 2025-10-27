@@ -1,16 +1,9 @@
 # apps/api/lottina_api/utils/__init__.py
-from .uploads import allowed, save_upload, ALLOWED_IMG, ALLOWED_PDF
-from .ocr import get_reader, pdf_to_images, ocr_image
-from .parsers import (
-    shorten, extract_addr_city_from_text,
-    norm_date_from_text, norm_time_from_text,
-    guess_location, extract_fields, confidence_stats
-)
+# Nur "leichte" Utils hier importieren – KEIN OCR / easyocr / cv2!
+# Hintergrund: Das Modul wird beim App-Start geladen. Alles Schwere (OCR)
+# muss lazy direkt in den Endpoints importiert werden.
 
-__all__ = [
-    "allowed","save_upload","ALLOWED_IMG","ALLOWED_PDF",
-    "get_reader","pdf_to_images","ocr_image",
-    "shorten","extract_addr_city_from_text",
-    "norm_date_from_text","norm_time_from_text",
-    "guess_location","extract_fields","confidence_stats",
-]
+from .uploads import allowed, save_upload  # schlanke Upload-Helfer
+from .parsers import extract_fields, confidence_stats, extract_addr_city_from_text  # Textauswertung
+
+__all__ = ["allowed", "save_upload", "extract_fields", "confidence_stats", "extract_addr_city_from_text"]
