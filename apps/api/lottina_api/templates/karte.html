@@ -154,6 +154,7 @@
 
     const markerGroup = L.layerGroup().addTo(map);
     const markerEntries = [];
+    let userMarker;
 
     points.forEach((point) => {
       if (typeof point.lat !== 'number' || typeof point.lon !== 'number') return;
@@ -274,6 +275,34 @@
       filterInputs.forEach((input) => { input.checked = true; });
       applyFilters({ autoFit: true });
     });
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        const locationLatLng = [latitude, longitude];
+        const radius = Math.min(Math.max(position.coords.accuracy || 7000, 5000), 12000);
+
+        if (userMarker) {
+          map.removeLayer(userMarker);
+        }
+
+        userMarker = L.marker(locationLatLng, {
+          icon: L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            iconSize: [30, 50],
+            iconAnchor: [15, 50],
+            popupAnchor: [0, -46],
+            shadowSize: [50, 50],
+          })
+        }).addTo(map);
+        userMarker.bindPopup('<strong>Du bist hier</strong>').openPopup();
+
+        map.setView(locationLatLng, 13);
+      }, () => {
+        // Nutzer hat Geolocation abgelehnt – keine Änderung notwendig
+      });
+    }
   });
 </script>
 {% endblock %}

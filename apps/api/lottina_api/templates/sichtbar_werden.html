@@ -29,12 +29,9 @@
     <div class="lg:col-span-5 space-y-6">
       <div class="rounded-3xl bg-white/15 border border-white/25 backdrop-blur-sm shadow-2xl px-6 py-6 flex flex-col items-center gap-6 text-white">
         <div class="w-full flex justify-center">
-          <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_poster-upload.json"
-                         background="transparent"
-                         speed="1"
-                         class="w-52 h-52"
-                         loop
-                         autoplay></lottie-player>
+          <img src="{{ url_for('static', filename='img/ocr-search.png') }}"
+               alt="Poster-OCR Vorschau"
+               class="w-full max-w-sm rounded-2xl border border-white/20 shadow-xl">
         </div>
         <a href="{{ url_for('event_erstellen') }}"
            class="inline-flex items-center justify-center gap-3 w-full px-6 py-4 rounded-2xl bg-lottina-accent text-white font-semibold shadow-lg text-lg hover:translate-y-[-1px] transition">
