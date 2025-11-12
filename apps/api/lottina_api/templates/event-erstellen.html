@@ -2,91 +2,150 @@
 {% block title %}Event erstellen – lottina{% endblock %}
 
 {% block content %}
-<section class="relative overflow-hidden bg-lottina-background text-lottina-primary">
-  <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))] pointer-events-none"></div>
-  <div class="relative z-10 max-w-4xl mx-auto pt-40 px-6 lg:px-10 py-16 space-y-6">
-    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
-      Event erstellen
-    </h1>
-    <p class="text-base sm:text-lg text-lottina-primary/80 max-w-2xl">
-      Trage dein Event manuell ein oder nutze unsere OCR, um Poster und PDFs automatisch erfassen zu lassen. In wenigen Minuten ist dein Erlebnis für Familien sichtbar.
-    </p>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="choiceBox">
-      <button id="startManual" type="button"
-              class="group relative overflow-hidden rounded-3xl border border-lottina-primary/10 bg-white text-lottina-primary px-6 py-6 sm:py-8 shadow-xl transition transform hover:-translate-y-1">
-        <div class="flex items-start justify-between gap-4">
-          <div class="space-y-2 text-left">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-background text-xs font-semibold text-lottina-accent uppercase tracking-wide">
-              Schritt für Schritt
-            </span>
-            <p class="text-lg font-semibold">Manuell anlegen</p>
-            <p class="text-sm text-lottina-primary/70 max-w-xs">
-              Ideal, wenn du Details ergänzen möchtest oder noch kein Poster vorliegen hast.
-            </p>
-          </div>
-          <span class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#fda69b] to-[#ffe0cc] text-lottina-primary shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+<div class="page-enter bg-[#f3f7f6] text-lottina-primary">
+  <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+    <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
+    <div class="relative z-10 max-w-6xl mx-auto pt-32 pb-16 px-4 sm:px-8 lg:px-12">
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+        <div class="space-y-4 max-w-3xl">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold uppercase tracking-[0.24em]">
+            Event einreichen
           </span>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg text-white">
+            Mach dein Familien-Event sichtbar
+          </h1>
+          <p class="text-base sm:text-lg text-white/80">
+            Lege dein Angebot Schritt für Schritt an oder lade ein Poster hoch und lasse unsere OCR die wichtigsten Daten
+            für dich erkennen. Danach veredelst du die Details und veröffentlichst mit wenigen Klicks.
+          </p>
         </div>
-      </button>
-
-      <label for="ocrUpload"
-             class="group relative overflow-hidden rounded-3xl border border-lottina-primary/20 bg-gradient-to-br from-[#fda69b] via-[#ffe4d4] to-[#fff6e6] text-lottina-primary px-6 py-6 sm:py-8 shadow-xl cursor-pointer transition transform hover:-translate-y-1">
-        <div class="flex items-start justify-between gap-4">
-          <div class="space-y-2 text-left">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold uppercase tracking-wide">
-              OCR · Beta
-            </span>
-            <p class="text-lg font-semibold">Poster scannen (OCR)</p>
-            <p class="text-sm text-lottina-primary/85 max-w-xs">
-              Foto oder PDF hochladen – lottina erkennt Datum, Ort, Kontakt & mehr automatisch.
-            </p>
+        <div class="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/15 border border-white/30 shadow text-sm text-white/85 backdrop-blur-sm">
+          <span class="inline-flex h-2.5 w-2.5 rounded-full bg-lottina-accent"></span>
+          <div class="space-y-0.5">
+            <p class="font-semibold text-white">Import-Assistent</p>
+            <p class="text-xs text-white/70">OCR, Kategorien &amp; Geodaten in wenigen Minuten</p>
           </div>
-          <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-lottina-primary shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h2l2-3h10l2 3h2a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 13a3 3 0 100-6 3 3 0 000 6z"/>
-            </svg>
-          </span>
         </div>
-        <input type="file" id="ocrUpload" accept="image/*,application/pdf" class="hidden" />
-      </label>
+      </div>
     </div>
+  </section>
 
-    <div class="grid gap-3 sm:grid-cols-3 text-sm text-lottina-primary/75">
-      <div class="flex items-center gap-2">
-        <span class="h-2.5 w-2.5 rounded-full bg-white/60"></span>
-        Poster & PDFs bis 12&nbsp;MB
+  <div class="relative z-10 max-w-6xl mx-auto -mt-12 px-4 sm:px-8 lg:px-12 pb-16 space-y-8">
+      <div id="choiceBox" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <button id="startManual" type="button"
+                class="group relative overflow-hidden rounded-[28px] border border-lottina-primary/10 bg-white px-6 py-7 text-left shadow-xl transition transform hover:-translate-y-1 hover:shadow-2xl">
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-3">
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-background text-xs font-semibold text-lottina-accent uppercase tracking-wide">
+                Schritt für Schritt
+              </span>
+              <h2 class="text-xl font-semibold text-lottina-primary">Manuell anlegen</h2>
+              <p class="text-sm text-lottina-primary/70 max-w-xs">
+                Für alle, die jedes Detail selbst bestimmen möchten – inklusive Beschreibung, Medien und Kontakt.
+              </p>
+              <ul class="text-xs text-lottina-primary/60 space-y-1.5">
+                <li class="flex items-center gap-2">
+                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-lottina-accent/80"></span>
+                  Mehrstufiger Assistent mit Vorschau
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-lottina-accent/80"></span>
+                  Orte & Kategorien auswählbar
+                </li>
+              </ul>
+            </div>
+            <span class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#34d399] to-[#bbf7d0] text-lottina-primary shadow-lg ring-4 ring-white/70">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="absolute inset-0 -z-10 bg-gradient-to-br from-white via-white to-lottina-background opacity-0 transition group-hover:opacity-100"></div>
+        </button>
+
+        <label for="ocrUpload"
+               class="group relative overflow-hidden rounded-[28px] border border-transparent bg-gradient-to-br from-[#34d399] via-[#86efac] to-[#ecfdf3] px-6 py-7 text-left text-lottina-primary shadow-xl cursor-pointer transition transform hover:-translate-y-1 hover:shadow-2xl">
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-3">
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 text-xs font-semibold uppercase tracking-wide text-[#c2410c]">
+                OCR · Beta
+              </span>
+              <h2 class="text-xl font-semibold text-lottina-primary">Poster hochladen & scannen</h2>
+              <p class="text-sm text-lottina-primary/85 max-w-xs">
+                Lade ein Foto oder PDF deiner Veranstaltung hoch – wir extrahieren Datum, Zeiten, Ort und Kontakt automatisch.
+              </p>
+              <ul class="text-xs text-lottina-primary/70 space-y-1.5">
+                <li class="flex items-center gap-2">
+                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-white/70"></span>
+                  Intelligente Felderkennung für deutschsprachige Inhalte
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-white/70"></span>
+                  Danach frei bearbeitbar
+                </li>
+              </ul>
+            </div>
+            <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-lottina-primary shadow-lg ring-4 ring-white/40">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h2l2-3h10l2 3h2a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 13a3 3 0 100-6 3 3 0 000 6z"/>
+              </svg>
+            </span>
+          </div>
+          <input type="file" id="ocrUpload" accept="image/*,application/pdf" class="hidden" />
+          <div class="absolute inset-0 -z-10 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-0 transition group-hover:opacity-80"></div>
+        </label>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="h-2.5 w-2.5 rounded-full bg-white/60"></span>
-        OCR für deutschsprachige Inhalte optimiert
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="h-2.5 w-2.5 rounded-full bg-white/60"></span>
-        Manuelle Korrektur jederzeit möglich
+
+      <div class="grid gap-3 sm:grid-cols-3 text-sm text-lottina-primary/70">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-lottina-accent/70"></span>
+          Poster & PDFs bis 12&nbsp;MB
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-lottina-accent/70"></span>
+          OCR für deutschsprachige Inhalte optimiert
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-lottina-accent/70"></span>
+          Manuelle Korrektur jederzeit möglich
+        </div>
       </div>
     </div>
   </div>
-</section>
 
-<section class="bg-[#fef8f6]">
-  <div class="max-w-4xl mx-auto px-6 lg:px-10 py-12">
-    
-      <div id="ocrPanel" class="hidden rounded-2xl border border-lottina-accent/25 bg-lottina-background px-5 py-4 shadow-lg">
-        <div class="flex items-center justify-between gap-3">
-          <div class="text-lottina-primary font-semibold">OCR-Ergebnis</div>
-          <div id="ocrConf" class="text-xs text-lottina-primary/60"></div>
+  <div class="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-20 space-y-8">
+    <div class="rounded-3xl border border-lottina-primary/10 bg-white/80 backdrop-blur shadow-lg px-5 sm:px-7 py-6 flex flex-wrap items-center justify-between gap-3 text-sm text-lottina-primary/65">
+      <div class="flex items-center gap-3">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-lottina-accent/20 text-lottina-primary shadow-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </span>
+        <div>
+          <p class="font-semibold text-lottina-primary">Tipp</p>
+          <p class="text-xs sm:text-sm text-lottina-primary/60">Speichere als Entwurf und bearbeite später weiter – alles bleibt für dich gesichert.</p>
         </div>
-        <div id="ocrStatus" class="mt-2 text-sm text-lottina-primary/80"></div>
       </div>
+      <a href="{{ url_for('suchergebnisse') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 bg-white text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5 transition">
+        Beispiele ansehen
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+    
+    <div id="ocrPanel" class="hidden rounded-3xl border border-lottina-accent/20 bg-lottina-background/85 backdrop-blur px-6 py-5 shadow-lg">
+      <div class="flex items-center justify-between gap-3">
+        <div class="text-sm font-semibold uppercase tracking-[0.18em] text-lottina-primary/70">OCR-Ergebnis</div>
+        <div id="ocrConf" class="text-xs text-lottina-primary/60"></div>
+      </div>
+      <div id="ocrStatus" class="mt-2 text-sm text-lottina-primary/85"></div>
+    </div>
 
-      <form id="eventForm" method="POST" action="/event-erstellen" enctype="multipart/form-data" class="text-lottina-primary hidden space-y-10">
+    <form id="eventForm" method="POST" action="/event-erstellen" enctype="multipart/form-data" class="text-lottina-primary hidden space-y-10">
 
-        <div class="step space-y-6 bg-lottina-background border border-lottina-accent/20 rounded-2xl p-6" data-step="1">
+        <div class="step space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="1">
           <div>
             <label class="block text-lottina-primary font-semibold mb-2">Event-Titel</label>
             <input type="text" id="title" name="title" required class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="z. B. Familien-Flohmarkt im Stadtpark">
@@ -97,7 +156,7 @@
           </div>
         </div>
 
-        <div class="step hidden space-y-6 bg-lottina-background border border-lottina-accent/20 rounded-2xl p-6" data-step="2">
+        <div class="step hidden space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="2">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="block text-lottina-primary font-semibold mb-2">Datum</label>
@@ -114,7 +173,7 @@
           </div>
         </div>
 
-        <div class="step hidden space-y-6 bg-lottina-background border border-lottina-accent/20 rounded-2xl p-6" data-step="3">
+        <div class="step hidden space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="3">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-lottina-primary font-semibold mb-2">Ort</label>
@@ -165,7 +224,7 @@
           </div>
         </div>
 
-        <div class="step hidden space-y-6 bg-lottina-background border border-lottina-accent/20 rounded-2xl p-6" data-step="4">
+        <div class="step hidden space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="4">
           <div id="ocrReview" class="hidden mb-2 p-4 rounded-2xl border border-lottina-accent/25 bg-white shadow-sm">
             <div class="flex items-center justify-between gap-3">
               <div class="text-lottina-primary font-semibold">Autofill-Übersicht</div>
@@ -186,17 +245,17 @@
           <input type="hidden" id="image_url" name="image_url">
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          <button type="button" id="prevStep" class="px-4 py-2 rounded-xl border border-lottina-primary/20 bg-white text-lottina-primary font-semibold shadow-sm w-full sm:w-auto hover:bg-lottina-primary/10 transition">Zurück</button>
-          <div class="flex gap-3 w-full sm:w-auto">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 bg-white/95 border border-lottina-primary/10 rounded-[24px] shadow-lg p-5">
+          <button type="button" id="prevStep" class="px-4 py-2 rounded-xl border border-lottina-primary/15 bg-white text-lottina-primary font-semibold shadow-sm w-full sm:w-auto hover:bg-lottina-primary/5 transition">Zurück</button>
+          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button type="button" id="previewBtn" class="px-4 py-2 rounded-xl bg-lottina-primary text-lottina-background font-semibold shadow hover:bg-lottina-primary/80 transition w-full sm:w-auto">Vorschau</button>
-            <button type="button" id="nextStep" class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#fda69b] to-[#ffe0cc] text-lottina-primary font-semibold shadow-lg hover:from-[#f6b7ac] hover:to-[#fff0da] transition w-full sm:w-auto">Weiter</button>
-            <button type="submit" id="submitEvent" class="hidden px-4 py-2 rounded-xl bg-gradient-to-r from-[#fda69b] to-[#ffe0cc] text-lottina-primary font-semibold shadow-lg hover:from-[#f6b7ac] hover:to-[#fff0da] transition w-full sm:w-auto">Event speichern</button>
+            <button type="button" id="nextStep" class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#34d399] to-[#6ee7b7] text-lottina-primary font-semibold shadow-lg hover:from-[#059669] hover:to-[#34d399] hover:shadow-xl transition w-full sm:w-auto">Weiter</button>
+            <button type="submit" id="submitEvent" class="hidden px-4 py-2 rounded-xl bg-gradient-to-r from-[#34d399] to-[#6ee7b7] text-lottina-primary font-semibold shadow-lg hover:from-[#059669] hover:to-[#34d399] hover:shadow-xl transition w-full sm:w-auto">Event speichern</button>
           </div>
         </div>
       </form>
+    </div>
   </div>
-</section>
 
 <!-- Vorschau-Modal -->
 <div id="previewModal" class="hidden fixed inset-0 z-50">
@@ -283,7 +342,7 @@
 }
 .bubble-loader{ display:flex; gap:.6rem; align-items:center; justify-content:center; height:70px; }
 .bubble-loader span{
-  width:14px; height:14px; border-radius:999px; background:#fda69b;
+  width:14px; height:14px; border-radius:999px; background:#34d399;
   opacity:.35; animation:bubble 1.2s ease-in-out infinite;
 }
 .bubble-loader span:nth-child(2){ animation-delay:.1s }

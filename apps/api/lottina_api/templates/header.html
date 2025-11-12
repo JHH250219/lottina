@@ -1,155 +1,213 @@
 {# templates/header.html #}
 <header class="fixed top-0 inset-x-0 z-50">
   <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-    <div class="mt-4 flex items-center gap-4 rounded-2xl bg-lottina-accent px-4 py-3 shadow-xl border border-lottina-primary/10">
-
+    <div class="mt-4 flex flex-wrap items-center gap-4 rounded-2xl bg-gradient-to-r from-[#0f2f2c]/95 via-[#1f6d5c]/95 to-[#8be84f]/90 px-4 py-3 shadow-xl backdrop-blur border border-white/10">
       <!-- Logo -->
-      <a href="{{ url_for('index') }}" class="inline-flex items-center gap-2 text-lottina-primary" aria-label="Startseite">
-        <img src="{{ url_for('static', filename='img/lottina_logo_weiß.png') }}" alt="lottina Logo" class="h-10 w-auto filter drop-shadow" style="mix-blend-mode:multiply;">
+      <a href="{{ url_for('index') }}"
+         class="order-1 inline-flex items-center gap-2 text-white"
+         aria-label="Startseite">
+        <img src="{{ url_for('static', filename='img/lottina_logo_weiß.png') }}" alt="lottina Logo" class="h-10 w-auto">
         <span class="text-lg font-lottina tracking-wide"></span>
       </a>
 
-      <!-- Suche -->
-      {% if request.path != '/' %}
-      <form action="{{ url_for('suchergebnisse') }}" method="get"
-            class="hidden md:flex flex-1 mx-2">
-        <label for="header-q" class="sr-only">Suche</label>
-        <input id="header-q" type="text" name="q" value="{{ query if query else '' }}"
-               placeholder="Suche nach Ort oder Begriff"
-               class="w-full px-4 py-2 rounded-xl border border-lottina-primary/20 bg-white text-lottina-primary placeholder:text-lottina-primary/40 focus:outline-none focus:ring-2 focus:ring-lottina-accent/60">
-      </form>
-      {% else %}
-      <div class="flex-1"></div>
-      {% endif %}
-
-      <!-- Desktop Navigation -->
-      <nav class="hidden md:flex items-center gap-4 text-sm font-semibold text-lottina-primary">
-        <a href="{{ url_for('results') }}" class="hover:text-white transition">Erlebnisse</a>
-        <a href="{{ url_for('sichtbar_werden')}}" class="hover:text-white transition">Sichtbar werden</a>
-        <a href="{{ url_for('ueber_uns') }}" class="hover:text-white transition">Über uns</a>
-        {% if current_user.is_authenticated %}
-          {% if current_user.is_admin %}
-            <a href="{{ url_for('dashboard') }}" class="hover:text-white transition">Admin</a>
-          {% endif %}
-          <a href="{{ url_for('profil') }}" class="hover:text-white transition">Profil</a>
-          <a href="{{ url_for('logout') }}" class="hover:text-white transition">Logout</a>
-        {% else %}
-          <a href="{{ url_for('login') }}" class="hover:text-white transition">Login</a>
-        {% endif %}
-      </nav>
-
-      <div class="hidden md:flex items-center gap-3">
+      <!-- CTA + Menu Trigger -->
+      <div class="order-3 md:order-3 flex flex-wrap sm:flex-nowrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
         <a href="{{ url_for('event_erstellen') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-lottina-primary font-semibold shadow hover:translate-y-[-1px] transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+           class="header-cta-primary inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-wide text-[#0f2f2c] shadow-2xl transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
           </svg>
           Erlebnis erstellen
         </a>
+        <button id="headerMenuToggle"
+                class="header-menu-button inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                aria-label="Menü öffnen oder schließen"
+                aria-expanded="false">
+          <span class="hidden sm:inline">Menü</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h16"/>
+          </svg>
+        </button>
       </div>
 
-      <!-- Mobile Menu Button -->
-      <button id="menuToggle"
-              class="flex md:hidden items-center justify-center rounded-xl border border-lottina-primary/20 bg-white px-3 py-2 text-lottina-primary text-lg shadow hover:bg-white focus:outline-none"
-              aria-label="Menü öffnen oder schließen"
-              aria-expanded="false">
-        ☰
-      </button>
+      <!-- Suche -->
+      {% if request.path != '/' %}
+        <form action="{{ url_for('suchergebnisse') }}" method="get"
+              class="order-4 md:order-2 w-full md:flex-1 md:min-w-[220px]">
+          <label for="header-q" class="sr-only">Suche</label>
+          <input id="header-q" type="text" name="q" value="{{ query if query else '' }}"
+                 placeholder="Suche nach Ort oder Begriff"
+                 class="w-full px-4 py-2 rounded-xl border border-white/20 bg-white/15 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-[#8be84f]/60">
+        </form>
+      {% else %}
+        <div class="order-4 md:order-2 hidden md:flex flex-1"></div>
+      {% endif %}
     </div>
-  </div>
-
-  <!-- Mobile Overlay -->
-  <div id="menuOverlay" class="fixed inset-0 z-[60] hidden">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-    <aside id="menuPanel"
-           class="absolute top-6 right-6 w-72 max-w-[80vw] rounded-3xl border border-lottina-primary/15 bg-lottina-accent text-lottina-primary shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col gap-4 p-6">
-      <nav class="space-y-3 text-sm font-semibold">
-        <a href="{{ url_for('results') }}" class="mobile-link">Events entdecken</a>
-        <a href="{{ url_for('event_erstellen') }}" class="mobile-link">Event erstellen</a>
-        <a href="/so-funktionierts" class="mobile-link">So funktioniert’s</a>
-        <a href="{{ url_for('ueber_uns') }}" class="mobile-link">Über uns</a>
-        <a href="/faq" id="menuFaqLink" class="mobile-link">FAQ</a>
-      </nav>
-      <div class="mt-2 flex items-center gap-4 text-xs text-lottina-primary/70">
-        <span>Sprache:</span>
-        <a href="{{ request.path }}?lang=de" class="hover:text-lottina-primary transition">🇩🇪 DE</a>
-        <a href="{{ request.path }}?lang=en" class="hover:text-lottina-primary transition">🇬🇧 EN</a>
-      </div>
-      <div class="border-t border-lottina-primary/20 pt-4 text-sm text-lottina-primary/80 space-y-1">
-        {% if current_user.is_authenticated %}
-          <span>Angemeldet als {{ current_user.username }}</span>
-          <a href="{{ url_for('logout') }}" class="mobile-link">Logout</a>
-        {% else %}
-          <a href="{{ url_for('login') }}" class="mobile-link">Login</a>
-        {% endif %}
-      </div>
-    </aside>
   </div>
 </header>
 
+<div id="headerMenuOverlay" class="fixed inset-0 z-[60] hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <aside class="header-drawer absolute top-6 right-6 w-80 max-w-[90vw] rounded-3xl border border-white/15 bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col gap-5 p-6">
+    <div class="flex items-center justify-between">
+      <span class="text-base font-semibold tracking-wide uppercase text-white/80">Navigation</span>
+      <button id="headerMenuClose" class="rounded-full border border-white/30 p-2 text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60" aria-label="Menü schließen">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 6l12 12M6 18 18 6" />
+        </svg>
+      </button>
+    </div>
+    {% set current_endpoint = request.endpoint %}
+    <nav class="flex flex-col gap-2 text-sm font-semibold" aria-label="Hauptnavigation">
+      <a href="{{ url_for('results') }}"
+         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'results' else '' }}"
+         {% if current_endpoint == 'results' %}aria-current="page"{% endif %}>
+        Erlebnisse
+      </a>
+      <a href="{{ url_for('sichtbar_werden') }}"
+         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'sichtbar_werden' else '' }}"
+         {% if current_endpoint == 'sichtbar_werden' %}aria-current="page"{% endif %}>
+        Sichtbar werden
+      </a>
+      <a href="{{ url_for('ueber_uns') }}"
+         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'ueber_uns' else '' }}"
+         {% if current_endpoint == 'ueber_uns' %}aria-current="page"{% endif %}>
+        Über uns
+      </a>
+      {% if current_user.is_authenticated %}
+        {% if current_user.is_admin %}
+          <a href="{{ url_for('dashboard') }}"
+             class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'dashboard' else '' }}"
+             {% if current_endpoint == 'dashboard' %}aria-current="page"{% endif %}>
+            Admin
+          </a>
+        {% endif %}
+        <a href="{{ url_for('profil') }}"
+           class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'profil' else '' }}"
+           {% if current_endpoint == 'profil' %}aria-current="page"{% endif %}>
+          Profil
+        </a>
+        <a href="{{ url_for('logout') }}" class="header-drawer__link">
+          Logout
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}"
+           class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'login' else '' }}"
+           {% if current_endpoint == 'login' %}aria-current="page"{% endif %}>
+          Login
+        </a>
+      {% endif %}
+    </nav>
+    <div class="pt-2 border-t border-white/15 space-y-2 text-sm text-white/80">
+      <p class="text-xs uppercase tracking-[0.2em] text-white/60">Kurzlinks</p>
+      <a href="/faq" class="header-drawer__link">FAQ</a>
+      <a href="/so-funktionierts" class="header-drawer__link">So funktioniert’s</a>
+    </div>
+  </aside>
+</div>
+
 <style>
-  .mobile-link {
-    display:flex;
-    align-items:center;
-    gap:.6rem;
-    padding:.65rem .9rem;
-    border-radius:1rem;
-    background:rgba(255,255,255,0.08);
-    color:inherit;
-    transition:background .2s ease, transform .2s ease;
-  }
-  .mobile-link::before {
-    content:"›";
-    font-weight:bold;
-    opacity:.6;
-  }
-  .mobile-link:hover {
-    background:rgba(255,255,255,0.16);
-    transform:translateX(4px);
-  }
   .sr-only {
-    position:absolute;
-    width:1px;
-    height:1px;
-    padding:0;
-    margin:-1px;
-    overflow:hidden;
-    clip:rect(0,0,0,0);
-    white-space:nowrap;
-    border:0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .header-cta-primary {
+    background: linear-gradient(135deg, #d7ff9c, #8be84f, #2c9677);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .header-menu-button {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .header-menu-button:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .header-drawer__link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .header-drawer__link::before {
+    content: "›";
+    opacity: 0.4;
+    font-weight: 600;
+  }
+
+  .header-drawer__link:hover {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateX(4px);
+  }
+
+  .header-drawer__link--active {
+    background: rgba(255, 255, 255, 0.22);
   }
 </style>
 
 <script>
-  const toggle  = document.getElementById("menuToggle");
-  const overlay = document.getElementById("menuOverlay");
-  const panel   = document.getElementById("menuPanel");
-  const faqLink = document.getElementById("menuFaqLink");
+  (function () {
+    const toggle = document.getElementById("headerMenuToggle");
+    const closeBtn = document.getElementById("headerMenuClose");
+    const overlay = document.getElementById("headerMenuOverlay");
+    const drawer = overlay?.querySelector(".header-drawer");
 
-  function openMenu() {
-    overlay.classList.remove("hidden");
-    requestAnimationFrame(() => panel.classList.remove("translate-x-full"));
-    toggle?.setAttribute("aria-expanded", "true");
-  }
-  function closeMenu() {
-    panel.classList.add("translate-x-full");
-    setTimeout(() => overlay.classList.add("hidden"), 280);
-    toggle?.setAttribute("aria-expanded", "false");
-  }
-  function toggleMenu() {
-    const isOpen = !overlay.classList.contains("hidden");
-    isOpen ? closeMenu() : openMenu();
-  }
+    if (!toggle || !overlay || !drawer) return;
 
-  toggle?.addEventListener("click", toggleMenu);
-  overlay?.addEventListener("click", (e) => {
-    if (!panel.contains(e.target)) closeMenu();
-  });
+    let lastFocused;
 
-  faqLink?.addEventListener("click", (e) => {
-    e.preventDefault();
-    closeMenu();
-    const target = document.getElementById("faq");
-    if (target) setTimeout(() => target.scrollIntoView({ behavior: "smooth" }), 350);
-  });
+    const openMenu = () => {
+      lastFocused = document.activeElement;
+      overlay.classList.remove("hidden");
+      requestAnimationFrame(() => drawer.classList.remove("translate-x-full"));
+      toggle.setAttribute("aria-expanded", "true");
+      document.addEventListener("keydown", onKeyDown);
+    };
+
+    const closeMenu = () => {
+      drawer.classList.add("translate-x-full");
+      setTimeout(() => overlay.classList.add("hidden"), 260);
+      toggle.setAttribute("aria-expanded", "false");
+      document.removeEventListener("keydown", onKeyDown);
+      if (lastFocused && typeof lastFocused.focus === "function") {
+        lastFocused.focus();
+      }
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    };
+
+    toggle.addEventListener("click", () => {
+      const isOpen = !overlay.classList.contains("hidden");
+      isOpen ? closeMenu() : openMenu();
+    });
+
+    closeBtn?.addEventListener("click", closeMenu);
+
+    overlay.addEventListener("click", (event) => {
+      if (!drawer.contains(event.target)) {
+        closeMenu();
+      }
+    });
+  })();
 </script>

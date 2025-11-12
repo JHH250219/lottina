@@ -4,18 +4,18 @@
 {% block content %}
 
 <!-- Hero -->
-<section class="relative overflow-hidden bg-lottina-background text-lottina-primary">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
-  <div class="relative z-10 max-w-6xl mx-auto pt-20 px-6 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-12 gap-12 items-center">
+  <div class="relative z-10 mt-20 max-w-6xl mx-auto pt-20 px-6 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-12 gap-12 items-center">
     <div class="lg:col-span-7 space-y-6">
-      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-sm font-semibold tracking-wide uppercase">
-        <span class="h-2 w-2 rounded-full bg-lottina-highlight"></span>
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-sm font-semibold tracking-wide uppercase">
+        <span class="h-2 w-2 rounded-full bg-lottina-accent"></span>
         Sichtbar werden
       </span>
-      <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
+      <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg text-white">
         Mach dein Angebot für Familien sichtbar – ohne zusätzlichen Aufwand.
       </h1>
-      <p class="text-lg text-lottina-primary/80 max-w-2xl">
+      <p class="text-lg text-white/80 max-w-2xl">
         lottina bringt dein Angebot dorthin, wo Familien suchen: ins Netz, auf die Karte und in personalisierte Übersichten.
         Lade Poster hoch, nutze unser OCR und werde sichtbar, weil dein Angebot es verdeint hat.
       </p>
@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="lg:col-span-5 space-y-6">
-      <div class="rounded-3xl bg-lottina-highlight/25 border border-lottina-primary/12 backdrop-blur-sm shadow-2xl px-6 py-6 flex flex-col items-center gap-6">
+      <div class="rounded-3xl bg-white/15 border border-white/25 backdrop-blur-sm shadow-2xl px-6 py-6 flex flex-col items-center gap-6 text-white">
         <div class="w-full flex justify-center">
           <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_poster-upload.json"
                          background="transparent"
@@ -37,13 +37,13 @@
                          autoplay></lottie-player>
         </div>
         <a href="{{ url_for('event_erstellen') }}"
-           class="inline-flex items-center justify-center gap-3 w-full px-6 py-4 rounded-2xl bg-white text-lottina-primary font-semibold shadow-lg text-lg hover:translate-y-[-1px] transition">
+           class="inline-flex items-center justify-center gap-3 w-full px-6 py-4 rounded-2xl bg-lottina-accent text-white font-semibold shadow-lg text-lg hover:translate-y-[-1px] transition">
           OCR ausprobieren
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
           </svg>
         </a>
-        <p class="text-base text-lottina-primary/85 text-center">
+        <p class="text-base text-white/80 text-center">
           Wie könnte dein Angebot aussehen.
         </p>
       </div>
@@ -52,7 +52,7 @@
 </section>
 
 <!-- Mission section -->
-<section class="bg-lottina-background py-16">
+<section class="py-16 bg-gradient-to-b from-[#f4fdf8] via-lottina-background to-[#eefbf4]">
   <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center space-y-6">
     <h2 class="text-3xl font-bold text-lottina-primary leading-tight">Warum lottina deine Bühne ist</h2>
     <p class="text-base text-lottina-primary/75 leading-relaxed">
@@ -99,7 +99,7 @@
 </section>
 
 <!-- CTA -->
-<section class="bg-lottina-background text-lottina-primary py-16">
+<section class="py-16 text-lottina-primary bg-gradient-to-b from-[#eefbf4] via-lottina-background to-[#f6fef9]">
   <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-8">
     <div class="grid lg:grid-cols-2 gap-10 items-center">
       <div class="space-y-4">
@@ -109,11 +109,11 @@
         </p>
         <div class="flex flex-wrap gap-3">
           <a href="{{ url_for('event_erstellen') }}"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-lottina-accent text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
             Jetzt Event einreichen
           </a>
           <a href="/kontakt"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold hover:bg-lottina-highlight/25 transition">
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold hover:bg-lottina-highlight/30 transition">
             Kontakt aufnehmen
           </a>
         </div>

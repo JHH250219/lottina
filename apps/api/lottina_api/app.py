@@ -4,13 +4,13 @@ from flask import (
     abort, send_file
 )
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func, and_, or_, create_engine
 from flask_migrate import Migrate
-from .models import db, Offer, Location, User, Category
+from .models import db, Offer, Location, User, Category, OfferType
 from jinja2 import TemplateNotFound
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
 from flask_login import (
     LoginManager, login_user, logout_user,
     login_required, current_user
@@ -26,6 +26,7 @@ from .utils import (
     confidence_stats,
     extract_addr_city_from_text,
 )
+from .utils.mistral_agent import enrich_fields_with_mistral, merge_fields
 
 # ---------------------------------------------------------------------------
 # Konfiguration
@@ -40,13 +41,35 @@ app = Flask(
 )
 
 # Datenbank-Setup
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+PRIMARY_DB_URI   = os.getenv("DATABASE_URL")
+FALLBACK_DB_URI  = os.getenv("FALLBACK_DATABASE_URL")
+if not FALLBACK_DB_URI:
+    FALLBACK_DB_URI = f"sqlite:///{Path(__file__).resolve().parent / 'lottina_local.sqlite3'}"
+
+resolved_db_uri = PRIMARY_DB_URI or FALLBACK_DB_URI
+fallback_in_use = False
+if PRIMARY_DB_URI:
+    try:
+        with create_engine(PRIMARY_DB_URI, future=True).connect():
+            pass
+    except Exception as exc:  # OperationalError, etc.
+        app.logger.warning("Primary database unavailable (%s). Falling back to %s", exc, FALLBACK_DB_URI)
+        resolved_db_uri = FALLBACK_DB_URI
+        fallback_in_use = True
+else:
+    fallback_in_use = True
+
+app.config["SQLALCHEMY_DATABASE_URI"] = resolved_db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
 
 # DB + Migrationssystem initialisieren
 db.init_app(app)
 migrate = Migrate(app, db)
+
+if fallback_in_use and resolved_db_uri.startswith("sqlite"):
+    with app.app_context():
+        db.create_all()
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_FOLDER = BASE_DIR / "uploads"
@@ -74,6 +97,15 @@ MAX_LOC_NAME     = 160
 MAX_LOC_ADDR     = 160
 MAX_CITY_LEN     = 120
 
+def _has_value(value):
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, tuple, set, dict)):
+        return bool(value)
+    return True
+
 # ---------------------------------------------------------------------------
 # Globale Template-Variablen
 # ---------------------------------------------------------------------------
@@ -92,38 +124,56 @@ def inject_globals():
 def healthz():
     return {"ok": True}, 200
 
+@app.get("/_debug/db")
+def _debug_db():
+    try:
+        db.session.execute(db.text("SELECT 1"))
+        return {"db": "ok"}, 200
+    except Exception as exc:
+        app.logger.exception("DB check failed")
+        return {"db": "fail", "error": str(exc)}, 500
+
 # ---------------------------------------------------------------------------
 # Kernrouten
 # ---------------------------------------------------------------------------
 @app.route("/")
 def index():
-    events = (
-        db.session.query(Offer)
-        .order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
-        .limit(9)
-        .all()
-    )
+    try:
+        events = (
+            db.session.query(Offer)
+            .order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
+            .limit(9)
+            .all()
+        )
 
-   # helper für slug (ä->ae etc.)
-    _AUML = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
-    def _slugify(s: str) -> str:
-        import re
-        s = (s or "").strip().lower()
-        for a, b in _AUML.items():
-            s = s.replace(a, b)
-        s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
-        return s or "kategorie"
+        rows = (
+            db.session.query(Category.name, Category.slug)
+            .distinct()
+            .order_by(Category.name.asc())
+            .limit(40)
+            .all()
+        )
 
-    # hole name + slug aus DB; fallback: slugify(name), falls slug NULL ist
-    rows = (
-        db.session.query(Category.name, Category.slug)
-        .distinct()
-        .order_by(Category.name.asc())
-        .limit(40)
-        .all()
-    )
-    categories = [{"label": name, "slug": (slug or _slugify(name))} for (name, slug) in rows]
+        _AUML = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
 
+        def _slugify(s: str) -> str:
+            import re
+
+            s = (s or "").strip().lower()
+            for a, b in _AUML.items():
+                s = s.replace(a, b)
+            return re.sub(r"[^a-z0-9]+", "-", s).strip("-") or "kategorie"
+
+        categories = [{"label": name, "slug": (slug or _slugify(name))} for (name, slug) in rows]
+    except (OperationalError, ProgrammingError):
+        app.logger.exception("DB not ready, rendering fallback.")
+        events = []
+        categories = [
+            {"label": "Outdoor", "slug": "outdoor"},
+            {"label": "Museen", "slug": "museen"},
+            {"label": "Kostenlos", "slug": "free"},
+            {"label": "Heute", "slug": "today"},
+        ]
 
     quick_filters = [
         {"label": "Heute", "href": url_for("suchergebnisse", date=datetime.now().strftime("%Y-%m-%d"))},
@@ -251,7 +301,21 @@ def results():
 
     # Koordinaten für die Map
     coords = []
+    playground_ids = set()
+    permanent_ids = set()
     for ev in events:
+        offer_type_value = getattr(ev.type, "value", ev.type)
+        is_permanent = offer_type_value == getattr(OfferType.permanent, "value", "permanent")
+        if is_permanent:
+            permanent_ids.add(str(ev.id))
+
+        has_playground_category = any(
+            ((c.slug or "").lower() == "playground") or ((c.name or "").lower() == "spielplatz")
+            for c in (ev.categories or [])
+        )
+        if has_playground_category:
+            playground_ids.add(str(ev.id))
+
         if ev.location and ev.location.lat is not None and ev.location.lon is not None:
             coords.append({
                 "id":    str(ev.id),
@@ -260,6 +324,12 @@ def results():
                 "lon":   ev.location.lon,
                 "date":  ev.dt_start.isoformat() if ev.dt_start else "",
                 "url":   url_for("event_detail", event_id=str(ev.id)),
+                "address": ev.location.address or ev.location.city or ev.location.name or "",
+                "location_name": ev.location.name or "",
+                "is_playground": has_playground_category,
+                "is_permanent": is_permanent,
+                "source": ev.source,
+                "offer_type": offer_type_value,
             })
 
     return render_template(
@@ -268,6 +338,97 @@ def results():
         coords=coords,
         categories=categories,
         date_filter=date_str or "",
+        playground_ids=playground_ids,
+        permanent_ids=permanent_ids,
+    )
+
+
+@app.get("/karte")
+def karte():
+    # Offers mit Koordinaten laden
+    offers = (
+        db.session.query(Offer)
+        .join(Location, Offer.location_id == Location.id)
+        .filter(Location.lat.isnot(None), Location.lon.isnot(None))
+        .order_by(Offer.updated_at.desc().nullslast(), Offer.id.desc())
+        .limit(400)
+        .all()
+    )
+
+    # Kategorien für Filter sammeln
+    base_categories = (
+        db.session.query(Category.slug, Category.name)
+        .distinct()
+        .order_by(Category.name.asc())
+        .all()
+    )
+
+    _AUML = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
+
+    def _slugify(value: str | None) -> str:
+        if not value:
+            return "kategorie"
+        s = value.strip().lower()
+        for a, b in _AUML.items():
+            s = s.replace(a, b)
+        s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+        return s or "kategorie"
+
+    category_lookup = {}
+    for slug, name in base_categories:
+        category_lookup[slug or _slugify(name)] = name
+
+    coords = []
+    for offer in offers:
+        location = offer.location
+        if not location:
+            continue
+
+        offer_type_value = getattr(offer.type, "value", offer.type)
+        is_permanent = offer_type_value == getattr(OfferType.permanent, "value", "permanent")
+        has_playground_category = any(
+            ((c.slug or "").lower() == "playground") or ((c.name or "").lower() == "spielplatz")
+            for c in (offer.categories or [])
+        )
+
+        categories = []
+        category_labels = []
+        for cat in (offer.categories or []):
+            slug = (cat.slug or "").strip() or _slugify(cat.name)
+            name = cat.name or slug
+            categories.append(slug)
+            category_labels.append(name)
+            category_lookup.setdefault(slug, name)
+
+        coords.append(
+            {
+                "id": str(offer.id),
+                "title": offer.title or "Ohne Titel",
+                "summary": offer.summary or offer.description or "",
+                "lat": location.lat,
+                "lon": location.lon,
+                "url": url_for("event_detail", event_id=str(offer.id)),
+                "address": location.address or location.city or "",
+                "location_name": location.name or "",
+                "categories": categories,
+                "category_labels": category_labels,
+                "is_playground": has_playground_category,
+                "is_permanent": is_permanent,
+                "source": offer.source,
+                "offer_type": offer_type_value,
+            }
+        )
+
+    category_filters = [
+        {"slug": slug, "name": name}
+        for slug, name in sorted(category_lookup.items(), key=lambda item: item[1].lower())
+    ]
+
+    return render_template(
+        "karte.html",
+        coords=coords,
+        category_filters=category_filters,
+        total=len(coords),
     )
 
 @app.get("/teaser")
@@ -468,9 +629,17 @@ def ocr_upload():
 
         full_text = "\n".join(texts).strip()
         fields = extract_fields(full_text)
+        ai_fields = enrich_fields_with_mistral(full_text, base_fields=fields)
+        fields = merge_fields(fields, ai_fields)
+        app.logger.info(
+            "OCR upload (pdf) mistral_enriched=%s keys=%s avg_conf=%.3f",
+            bool(ai_fields),
+            sorted(ai_fields.keys()) if ai_fields else [],
+            confidence_stats(confs_all).get("avg", 0.0),
+        )
 
-        found = [k for k, v in fields.items() if v not in (None, "")]
-        missing = [k for k in ("title", "date", "location") if not fields.get(k)]
+        found = [k for k, v in fields.items() if _has_value(v)]
+        missing = [k for k in ("title", "date", "location") if not _has_value(fields.get(k))]
 
         return jsonify({
             "ok": True,
@@ -499,10 +668,18 @@ def ocr_upload():
     text, confs, meta = ocr_image(img_rgb)
 
     fields = extract_fields(text)
+    ai_fields = enrich_fields_with_mistral(text, base_fields=fields)
+    fields = merge_fields(fields, ai_fields)
+    app.logger.info(
+        "OCR upload (image) mistral_enriched=%s keys=%s avg_conf=%.3f",
+        bool(ai_fields),
+        sorted(ai_fields.keys()) if ai_fields else [],
+        confidence_stats(confs).get("avg", 0.0),
+    )
     fields["image_url"] = rel_url
 
-    found = [k for k, v in fields.items() if v not in (None, "")]
-    missing = [k for k in ("title", "date", "location") if not fields.get(k)]
+    found = [k for k, v in fields.items() if _has_value(v)]
+    missing = [k for k in ("title", "date", "location") if not _has_value(fields.get(k))]
 
     return jsonify({
         "ok": True,

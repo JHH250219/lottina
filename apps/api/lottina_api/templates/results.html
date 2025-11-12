@@ -9,230 +9,146 @@
     or request.args.get('always') == '1'
     or request.args.get('q')
     or date_filter %}
+{% set summary = [] %}
+{% if request.args.get('date') %}
+  {% set _ = summary.append("am " ~ request.args.get('date')) %}
+{% endif %}
+{% if active_cats %}
+  {% set _ = summary.append(active_cats|join(", ")) %}
+{% endif %}
+{% if request.args.get('free') == '1' %}
+  {% set _ = summary.append("kostenlos") %}
+{% endif %}
+{% if request.args.get('outdoor') == '1' %}
+  {% set _ = summary.append("Outdoor") %}
+{% endif %}
+{% if request.args.get('always') == '1' %}
+  {% set _ = summary.append("immer offen") %}
+{% endif %}
 
-<div class="page-enter min-h-screen bg-lottina-background text-lottina-primary">
-  <div class="w-full px-4 sm:px-8 lg:px-12 py-10 lg:py-12 space-y-8" x-data="{drawer:false}">
-
-    <!-- Header -->
-    <header class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-      <div class="space-y-3">
-        <p class="text-xs uppercase tracking-[0.24em] text-lottina-primary/70 font-semibold">
-          Suchergebnisse
-        </p>
-        <h1 class="text-3xl font-lottina font-bold text-lottina-primary leading-tight drop-shadow">
-          {{ request.args.get('q') or "Alle Familien-Events" }}
-        </h1>
-        <p class="text-sm md:text-base text-lottina-primary/80 max-w-3xl">
-          Filtere nach Ort, Datum, Kategorien oder besonderen Merkmalen. Die Liste zeigt Treffer aus der lottina Datenbank,
-          rechts findest du die passende Karte.
-        </p>
+<div class="page-enter min-h-screen bg-[#f3f7f6] text-lottina-primary" x-data="{drawer:false}">
+  <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+    <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
+    <div class="relative z-10  mt-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-20 space-y-8">
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+        <div class="space-y-4">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs uppercase tracking-[0.24em] font-semibold">
+            <span class="h-2 w-2 rounded-full bg-lottina-accent"></span>
+            Suchergebnisse
+          </span>
+          <h1 class="text-3xl md:text-4xl font-lottina font-bold leading-tight drop-shadow-lg">
+            {{ request.args.get('q') or "Alle Familien-Events" }}
+          </h1>
+          <p class="text-sm md:text-base text-white/80 max-w-2xl">
+            Finde auf einen Blick passende Familienerlebnisse. Nutze Filter für Ort, Datum, Kategorien oder besondere Merkmale – die Karte hilft dir bei der Orientierung.
+          </p>
+        </div>
+        <div class="flex flex-col items-start lg:items-end gap-4">
+          <span class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/15 text-sm font-medium tracking-wide backdrop-blur-sm">
+            <span class="inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
+            {{ events|length }} Ergebnisse{% if summary %} · {{ summary|join(" · ") }}{% endif %}
+          </span>
+          <div class="flex flex-wrap gap-3">
+            <button type="button"
+                    @click="drawer = true"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 text-sm font-semibold tracking-wide backdrop-blur-sm hover:bg-white/25 transition lg:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10" />
+              </svg>
+              Filter öffnen
+            </button>
+            {% if has_active_filters %}
+              <a href="{{ url_for('suchergebnisse') }}"
+                 class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/40 text-sm font-semibold text-white/90 hover:bg-white/15 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m6 18 12-12m0 12L6 6" />
+                </svg>
+                Filter zurücksetzen
+              </a>
+            {% endif %}
+          </div>
+        </div>
       </div>
-      <div class="flex flex-wrap gap-3">
-        {% set summary = [] %}
+
+      {% if has_active_filters %}
+      <div class="flex flex-wrap gap-2">
+        {% for cat in active_cats %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold tracking-wide">
+            {{ cat }}
+          </span>
+        {% endfor %}
         {% if request.args.get('date') %}
-          {% set _ = summary.append("am " ~ request.args.get('date')) %}
-        {% endif %}
-        {% if active_cats %}
-          {% set _ = summary.append(active_cats|join(", ")) %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold tracking-wide">
+            {{ request.args.get('date') }}
+          </span>
         {% endif %}
         {% if request.args.get('free') == '1' %}
-          {% set _ = summary.append("kostenlos") %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold tracking-wide">
+            Kostenlos
+          </span>
         {% endif %}
         {% if request.args.get('outdoor') == '1' %}
-          {% set _ = summary.append("Outdoor") %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold tracking-wide">
+            Outdoor
+          </span>
         {% endif %}
         {% if request.args.get('always') == '1' %}
-          {% set _ = summary.append("immer offen") %}
-        {% endif %}
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-lottina-primary/10 text-sm text-lottina-primary shadow">
-          <span class="inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
-          {{ events|length }} Ergebnisse{% if summary %} · {{ summary|join(" · ") }}{% endif %}
-        </span>
-        {% if has_active_filters %}
-          <a href="{{ url_for('suchergebnisse') }}"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/20 text-sm text-lottina-primary/80 hover:bg-white transition">
-            Filter zurücksetzen
-          </a>
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold tracking-wide">
+            Immer offen
+          </span>
         {% endif %}
       </div>
-    </header>
+      {% endif %}
+    </div>
+  </section>
 
-    <!-- Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+  <section class="relative z-10 -mt-10 pb-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 space-y-6">
+      <div class="grid gap-6 lg:grid-cols-12">
 
-      <!-- Sidebar / Filter -->
-      <aside class="lg:col-span-1">
-        <!-- Mobile toggle -->
-        <div class="lg:hidden flex justify-between items-center mb-4">
-          <button @click="drawer = true"
-                  class="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 bg-white shadow">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            Filter
-          </button>
-          <a href="{{ url_for('suchergebnisse') }}" class="text-sm text-lottina-primary/80 underline">
-            Reset
-          </a>
-        </div>
-
-        <!-- Desktop form -->
-        <div class="hidden lg:block sticky top-4">
-          <form method="GET"
-                action="{{ url_for('suchergebnisse') }}"
-                class="bg-white border border-gray-200 shadow-sm rounded-2xl px-5 py-6 space-y-6">
-            <div>
-              <label class="block text-sm font-semibold text-lottina-primary mb-2">Ort oder Stichwort</label>
-              <input type="text" name="q" value="{{ request.args.get('q','') }}"
-                     placeholder="z. B. Aachen, Minigolf, Flohmarkt"
-                     class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-lottina-accent focus:border-lottina-accent/70 text-lottina-primary placeholder:text-lottina-primary/40">
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-lottina-primary mb-2">Datum</label>
-              <input type="date" name="date" value="{{ date_filter }}"
-                     class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-lottina-accent focus:border-lottina-accent/70 text-lottina-primary">
-            </div>
-
-            {% if categories %}
-            <div x-data="{open:true, query:''}">
-              <button type="button" @click="open = !open"
-                      class="w-full flex items-center justify-between text-sm font-semibold text-lottina-primary">
-                <span>Kategorien</span>
-                <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/>
-                </svg>
-              </button>
-              <div x-show="open" x-transition class="mt-3 space-y-2">
-                <input x-model="query" type="text" placeholder="Kategorie suchen…"
-                       class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-lottina-primary placeholder:text-lottina-primary/40">
-                <div class="max-h-48 overflow-y-auto pr-1 space-y-1">
-                  {% for cat in categories %}
-                  <label class="flex items-center gap-2 text-sm text-lottina-primary/90"
-                         x-show="{{ cat|tojson }}.toLowerCase().includes(query.toLowerCase())">
-                    <input type="checkbox" name="cats[]"
-                           value="{{ cat }}"
-                           {% if cat in active_cats %}checked{% endif %}
-                           class="rounded text-lottina-accent focus:ring-lottina-accent">
-                    <span>{{ cat }}</span>
-                  </label>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-            {% endif %}
-
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm text-lottina-primary/90">
-                <input type="checkbox" name="free" value="1"
-                       {% if request.args.get('free') == '1' %}checked{% endif %}
-                       class="rounded text-lottina-accent focus:ring-lottina-accent">
-                Kostenlos
-              </label>
-              <label class="flex items-center gap-2 text-sm text-lottina-primary/90">
-                <input type="checkbox" name="outdoor" value="1"
-                       {% if request.args.get('outdoor') == '1' %}checked{% endif %}
-                       class="rounded text-lottina-accent focus:ring-lottina-accent">
-                Outdoor
-              </label>
-              <label class="flex items-center gap-2 text-sm text-lottina-primary/90">
-                <input type="checkbox" name="always" value="1"
-                       {% if request.args.get('always') == '1' %}checked{% endif %}
-                       class="rounded text-lottina-accent focus:ring-lottina-accent">
-                Immer offen
-              </label>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-              <button type="submit"
-                      class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-lottina-accent text-lottina-primary font-semibold hover:bg-[#76d64a] transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-4.3-4.3m1.6-4.7a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/>
-                </svg>
-                Anwenden
-              </button>
-              <a href="{{ url_for('suchergebnisse') }}"
-                 class="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-xl border border-gray-300 text-sm font-semibold text-lottina-primary/70 hover:border-lottina-primary/40">
-                Reset
-              </a>
-            </div>
-
-            {% if has_active_filters %}
-            <div class="pt-4 border-t border-gray-100 space-y-2">
-              <p class="text-xs uppercase tracking-[0.22em] text-lottina-primary/60 font-semibold">Aktive Filter</p>
-              <div class="flex flex-wrap gap-2 text-xs">
-                {% for cat in active_cats %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-lottina-primary/10 text-lottina-primary">
-                    {{ cat }}
-                  </span>
-                {% endfor %}
-                {% if request.args.get('date') %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fda69b]/10 text-[#fda69b]">
-                    {{ request.args.get('date') }}
-                  </span>
-                {% endif %}
-                {% if request.args.get('free') == '1' %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700">
-                    Kostenlos
-                  </span>
-                {% endif %}
-                {% if request.args.get('outdoor') == '1' %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700">
-                    Outdoor
-                  </span>
-                {% endif %}
-                {% if request.args.get('always') == '1' %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700">
-                    Immer offen
-                  </span>
-                {% endif %}
-              </div>
-            </div>
-            {% endif %}
-          </form>
-        </div>
-
-        <!-- Mobile Drawer -->
-        <div x-show="drawer" class="fixed inset-0 z-40 lg:hidden">
-          <div class="absolute inset-0 bg-black/40" @click="drawer=false"></div>
-          <div class="absolute top-0 right-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl p-6 overflow-y-auto">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-semibold text-lottina-primary">Filter</h2>
-              <button @click="drawer=false" class="text-lottina-primary/60 hover:text-lottina-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <form method="GET" action="{{ url_for('suchergebnisse') }}" class="space-y-5">
+        <!-- Desktop Filter Column -->
+        <aside class="hidden lg:block lg:col-span-3">
+          <div class="sticky top-6 space-y-6">
+            <form method="GET"
+                  action="{{ url_for('suchergebnisse') }}"
+                  class="bg-white border border-white/60 shadow-xl rounded-3xl px-6 py-6 space-y-6">
               <div>
                 <label class="block text-sm font-semibold text-lottina-primary mb-1">Ort oder Stichwort</label>
                 <input type="text" name="q" value="{{ request.args.get('q','') }}"
-                       class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-lottina-accent text-lottina-primary">
+                       placeholder="z. B. Aachen, Minigolf, Flohmarkt"
+                       class="w-full px-3 py-2 rounded-xl border border-lottina-primary/15 focus:ring-2 focus:ring-lottina-accent focus:border-lottina-accent/70 text-lottina-primary placeholder:text-lottina-primary/40">
               </div>
+
               <div>
                 <label class="block text-sm font-semibold text-lottina-primary mb-1">Datum</label>
                 <input type="date" name="date" value="{{ date_filter }}"
-                       class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-lottina-accent text-lottina-primary">
+                       class="w-full px-3 py-2 rounded-xl border border-lottina-primary/15 focus:ring-2 focus:ring-lottina-accent focus:border-lottina-accent/70 text-lottina-primary">
               </div>
 
               {% if categories %}
-              <div x-data="{q:''}">
-                <p class="text-sm font-semibold text-lottina-primary mb-2">Kategorien</p>
-                <input x-model="q" type="text" placeholder="Kategorie suchen…"
-                       class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-lottina-primary mb-2">
-                <div class="max-h-64 overflow-y-auto pr-1 space-y-1">
-                  {% for cat in categories %}
-                  <label class="flex items-center gap-2 text-sm text-lottina-primary/90"
-                         x-show="{{ cat|tojson }}.toLowerCase().includes(q.toLowerCase())">
-                    <input type="checkbox" name="cats[]"
-                           value="{{ cat }}"
-                           {% if cat in active_cats %}checked{% endif %}
-                           class="rounded text-lottina-accent focus:ring-lottina-accent">
-                    <span>{{ cat }}</span>
-                  </label>
-                  {% endfor %}
+              <div x-data="{open:true, query:''}">
+                <button type="button" @click="open = !open"
+                        class="w-full flex items-center justify-between text-sm font-semibold text-lottina-primary">
+                  <span>Kategorien</span>
+                  <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z"/>
+                  </svg>
+                </button>
+                <div x-show="open" x-transition class="mt-3 space-y-3">
+                  <input x-model="query" type="text" placeholder="Kategorie suchen…"
+                         class="w-full px-3 py-2 rounded-xl border border-lottina-primary/15 text-sm text-lottina-primary placeholder:text-lottina-primary/40">
+                  <div class="max-h-48 overflow-y-auto pr-1 space-y-2">
+                    {% for cat in categories %}
+                    <label class="flex items-center gap-2 text-sm text-lottina-primary/90"
+                           x-show="{{ cat|tojson }}.toLowerCase().includes(query.toLowerCase())">
+                      <input type="checkbox" name="cats[]"
+                             value="{{ cat }}"
+                             {% if cat in active_cats %}checked{% endif %}
+                             class="rounded text-lottina-accent focus:ring-lottina-accent">
+                      <span>{{ cat }}</span>
+                    </label>
+                    {% endfor %}
+                  </div>
                 </div>
               </div>
               {% endif %}
@@ -260,146 +176,297 @@
 
               <div class="flex gap-2 pt-2">
                 <button type="submit"
-                        class="flex-1 py-2 px-4 rounded-xl bg-lottina-accent text-lottina-primary font-semibold">
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-lottina-accent text-white font-semibold shadow hover:bg-[#76d64a] transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-4.3-4.3m1.6-4.7a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/>
+                  </svg>
                   Anwenden
                 </button>
                 <a href="{{ url_for('suchergebnisse') }}"
-                   class="flex-1 text-center py-2 px-4 rounded-xl border border-gray-300 text-lottina-primary/70">
+                   class="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold text-lottina-primary/70 hover:border-lottina-primary/40 transition">
                   Reset
                 </a>
               </div>
-            </form>
 
-            {% if has_active_filters %}
-            <div class="mt-6">
-              <p class="text-xs uppercase font-semibold text-lottina-primary/60 mb-2 tracking-[0.22em]">Aktive Filter</p>
-              <div class="flex flex-wrap gap-2 text-xs">
-                {% for cat in active_cats %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-lottina-primary/10 text-lottina-primary">
-                    {{ cat }}
-                  </span>
-                {% endfor %}
-                {% if request.args.get('date') %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fda69b]/10 text-[#fda69b]">
-                    {{ request.args.get('date') }}
-                  </span>
-                {% endif %}
-                {% if request.args.get('free') == '1' %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700">
-                    Kostenlos
-                  </span>
-                {% endif %}
-                {% if request.args.get('outdoor') == '1' %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700">
-                    Outdoor
-                  </span>
-                {% endif %}
-                {% if request.args.get('always') == '1' %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700">
-                    Immer offen
-                  </span>
-                {% endif %}
-              </div>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </aside>
-
-      <!-- Ergebnisse -->
-      <section class="lg:col-span-3 space-y-5">
-        {% if events %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {% for event in events %}
-          <article class="group bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition focus-within:ring-2 focus-within:ring-lottina-accent">
-            <a href="{{ url_for('event_detail', event_id=event.id) }}"
-               class="block focus:outline-none focus:ring-0">
-              {% if event.image %}
-                <img src="{{ event.image }}" alt="{{ event.title }}" class="w-full h-44 object-cover">
-              {% else %}
-                <div class="w-full h-44 bg-gradient-to-br from-lottina-primary/10 to-lottina-accent/20 flex items-center justify-center text-lottina-primary/40 text-sm">
-                  Kein Bild hinterlegt
+              {% if has_active_filters %}
+              <div class="pt-4 border-t border-lottina-primary/10 space-y-2">
+                <p class="text-xs uppercase tracking-[0.22em] text-lottina-primary/60 font-semibold">Aktive Filter</p>
+                <div class="flex flex-wrap gap-2 text-xs">
+                  {% for cat in active_cats %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-lottina-primary/10 text-lottina-primary">
+                      {{ cat }}
+                    </span>
+                  {% endfor %}
+                  {% if request.args.get('date') %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fda69b]/15 text-[#f97362]">
+                      {{ request.args.get('date') }}
+                    </span>
+                  {% endif %}
+                  {% if request.args.get('free') == '1' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700">
+                      Kostenlos
+                    </span>
+                  {% endif %}
+                  {% if request.args.get('outdoor') == '1' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                      Outdoor
+                    </span>
+                  {% endif %}
+                  {% if request.args.get('always') == '1' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700">
+                      Immer offen
+                    </span>
+                  {% endif %}
                 </div>
+              </div>
               {% endif %}
-              <div class="p-5 space-y-3">
-                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-lottina-primary/60">
-                  <span>{{ event.dt_start | smartdate if event.dt_start else "Termin folgt" }}</span>
-                  {% if event.is_free %}
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700">Kostenlos</span>
-                  {% elif event.price_value %}
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-lottina-primary/10 text-lottina-primary">
-                      {{ event.price_value | euro }} €
-                    </span>
+            </form>
+          </div>
+        </aside>
+
+        <!-- Ergebnisse -->
+        <section class="lg:col-span-6 space-y-6">
+          {% if events %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {% for event in events %}
+            {% set event_id = event.id|string %}
+            <article class="group relative flex flex-col overflow-hidden rounded-3xl bg-white border border-lottina-primary/10 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl focus-within:ring-2 focus-within:ring-lottina-accent">
+              <a href="{{ url_for('event_detail', event_id=event.id) }}"
+                 class="block focus:outline-none focus:ring-0">
+                <div class="relative">
+                  {% if event.image %}
+                    <img src="{{ event.image }}" alt="{{ event.title }}" class="w-full h-44 object-cover">
+                  {% else %}
+                    <div class="w-full h-44 bg-gradient-to-br from-lottina-primary/15 via-white to-lottina-accent/30 flex items-center justify-center text-lottina-primary/40 text-sm">
+                      Kein Bild hinterlegt
+                    </div>
                   {% endif %}
-                </div>
-                <h3 class="text-lg font-semibold text-lottina-primary group-hover:text-lottina-accent transition">
-                  {{ event.title or "Event ohne Titel" }}
-                </h3>
-                <p class="text-sm text-lottina-primary/70 line-clamp-3">
-                  {{ event.summary or event.description or "Mehr Details über den Link." }}
-                </p>
-                <div class="flex flex-wrap gap-2 text-xs text-lottina-primary/70">
-                  {% if event.location %}
-                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
-                      {{ event.location.address or event.location.city or event.location.name or "Ort unbekannt" }}
-                    </span>
-                  {% endif %}
-                  {% if event.categories %}
-                    {% for c in event.categories[:2] %}
-                      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#fda69b]/10 text-[#fda69b] font-medium">
-                        {{ c.name }}
+                  <div class="absolute top-3 left-3 flex flex-wrap gap-2 text-xs">
+                    {% if event_id in permanent_ids %}
+                      <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-lottina-primary font-semibold shadow">Immer offen</span>
+                    {% elif event.dt_start %}
+                      <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-lottina-primary font-semibold shadow">
+                        {{ event.dt_start | smartdate }}
                       </span>
-                    {% endfor %}
-                  {% endif %}
+                    {% else %}
+                      <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-lottina-primary font-semibold shadow">
+                        Termin folgt
+                      </span>
+                    {% endif %}
+                    {% if event.is_free %}
+                      <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold shadow">
+                        Kostenlos
+                      </span>
+                    {% elif event.price_value %}
+                      <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-lottina-primary font-semibold shadow">
+                        {{ event.price_value | euro }} €
+                      </span>
+                    {% endif %}
+                  </div>
                 </div>
-                <span class="inline-flex items-center gap-2 text-sm font-semibold text-[#fda69b]">
-                  Details ansehen
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7" />
-                  </svg>
-                </span>
-              </div>
+                <div class="p-6 space-y-4">
+                  <h3 class="text-lg font-semibold text-lottina-primary leading-snug group-hover:text-lottina-accent transition">
+                    {{ event.title or "Event ohne Titel" }}
+                  </h3>
+                  <p class="text-sm text-lottina-primary/70 line-clamp-2">
+                    {{ event.summary or event.description or "Mehr Details über den Link." }}
+                  </p>
+                  <div class="flex flex-wrap gap-2 text-xs text-lottina-primary/70">
+                    {% if event.location %}
+                      <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+                        {{ event.location.address or event.location.city or event.location.name or "Ort unbekannt" }}
+                      </span>
+                    {% endif %}
+                    {% if event_id in playground_ids %}
+                      <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
+                        Spielplatz
+                      </span>
+                    {% endif %}
+                    {% if event.categories %}
+                      {% for c in event.categories[:2] %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fda69b]/15 text-[#f97362] font-medium">
+                          {{ c.name }}
+                        </span>
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                  <div class="flex items-center justify-between pt-2">
+                    <span class="inline-flex items-center gap-2 text-sm font-semibold text-[#f97362]">
+                      Details ansehen
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7" />
+                      </svg>
+                    </span>
+                    <span class="text-xs uppercase tracking-wide text-lottina-primary/50">
+                      {{ loop.index }} / {{ events|length }}
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </article>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="rounded-3xl border border-dashed border-lottina-primary/20 bg-white px-6 py-12 text-center text-lottina-primary/70 shadow-sm">
+            Keine Veranstaltungen gefunden. Passe deine Filter an oder entferne Einschränkungen.
+          </div>
+          {% endif %}
+
+          <div class="flex flex-wrap gap-3 pt-2">
+            <a href="{{ url_for('index') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/20 text-lottina-primary hover:bg-white transition">
+              Zur Startseite
             </a>
-          </article>
-          {% endfor %}
+            <a href="{{ url_for('event_erstellen') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-lottina-primary/15 text-lottina-primary font-semibold shadow hover:-translate-y-[1px] transition">
+              Event einreichen
+            </a>
+          </div>
+        </section>
+
+        <!-- Karte -->
+        <aside class="lg:col-span-3">
+          <div class="sticky top-6 space-y-4">
+            <div class="relative overflow-hidden rounded-3xl border border-lottina-primary/10 shadow-xl bg-white">
+              <div id="result-map" class="w-full h-[480px] rounded-3xl"></div>
+              <a href="{{ url_for('karte') }}"
+                 class="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/90 backdrop-blur border border-lottina-primary/10 shadow text-sm font-semibold text-lottina-primary hover:bg-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10.5V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h4.5M18 21v-6m0 0-2.25 2.25M18 15l2.25 2.25" />
+                </svg>
+                Große Karte
+              </a>
+            </div>
+            <script id="coords-data" type="application/json">
+  {{ coords | tojson | safe }}
+</script>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Mobile Drawer -->
+  <div x-show="drawer" x-transition.opacity class="fixed inset-0 z-40 lg:hidden">
+    <div class="absolute inset-0 bg-black/50" @click="drawer=false" aria-hidden="true"></div>
+    <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl p-6 overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-lottina-primary">Filter</h2>
+        <button @click="drawer=false" class="text-lottina-primary/60 hover:text-lottina-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form method="GET" action="{{ url_for('suchergebnisse') }}" class="space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-lottina-primary mb-1">Ort oder Stichwort</label>
+          <input type="text" name="q" value="{{ request.args.get('q','') }}"
+                 class="w-full px-3 py-2 rounded-xl border border-lottina-primary/15 focus:ring-2 focus:ring-lottina-accent text-lottina-primary">
         </div>
-        {% else %}
-        <div class="rounded-2xl border border-dashed border-lottina-primary/15 bg-white px-6 py-12 text-center text-lottina-primary/70">
-          Keine Veranstaltungen gefunden. Passe deine Filter an oder entferne Einschränkungen.
+        <div>
+          <label class="block text-sm font-semibold text-lottina-primary mb-1">Datum</label>
+          <input type="date" name="date" value="{{ date_filter }}"
+                 class="w-full px-3 py-2 rounded-xl border border-lottina-primary/15 focus:ring-2 focus:ring-lottina-accent text-lottina-primary">
+        </div>
+
+        {% if categories %}
+        <div x-data="{q:''}">
+          <p class="text-sm font-semibold text-lottina-primary mb-2">Kategorien</p>
+          <input x-model="q" type="text" placeholder="Kategorie suchen…"
+                 class="w-full px-3 py-2 rounded-xl border border-lottina-primary/15 text-sm text-lottina-primary mb-2">
+          <div class="max-h-64 overflow-y-auto pr-1 space-y-2">
+            {% for cat in categories %}
+            <label class="flex items-center gap-2 text-sm text-lottina-primary/90"
+                   x-show="{{ cat|tojson }}.toLowerCase().includes(q.toLowerCase())">
+              <input type="checkbox" name="cats[]"
+                     value="{{ cat }}"
+                     {% if cat in active_cats %}checked{% endif %}
+                     class="rounded text-lottina-accent focus:ring-lottina-accent">
+              <span>{{ cat }}</span>
+            </label>
+            {% endfor %}
+          </div>
         </div>
         {% endif %}
 
-        <div class="flex flex-wrap gap-3 pt-2">
-          <a href="{{ url_for('index') }}"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-lottina-primary hover:bg-white/70 transition">
-            Zur Startseite
-          </a>
-          <a href="{{ url_for('event_erstellen') }}"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-lottina-primary/10 text-lottina-primary font-semibold hover:bg-white transition">
-            Event einreichen
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-sm text-lottina-primary/90">
+            <input type="checkbox" name="free" value="1"
+                   {% if request.args.get('free') == '1' %}checked{% endif %}
+                   class="rounded text-lottina-accent focus:ring-lottina-accent">
+            Kostenlos
+          </label>
+          <label class="flex items-center gap-2 text-sm text-lottina-primary/90">
+            <input type="checkbox" name="outdoor" value="1"
+                   {% if request.args.get('outdoor') == '1' %}checked{% endif %}
+                   class="rounded text-lottina-accent focus:ring-lottina-accent">
+            Outdoor
+          </label>
+          <label class="flex items-center gap-2 text-sm text-lottina-primary/90">
+            <input type="checkbox" name="always" value="1"
+                   {% if request.args.get('always') == '1' %}checked{% endif %}
+                   class="rounded text-lottina-accent focus:ring-lottina-accent">
+            Immer offen
+          </label>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit"
+                  class="flex-1 py-2 px-4 rounded-xl bg-lottina-accent text-white font-semibold shadow">
+            Anwenden
+          </button>
+          <a href="{{ url_for('suchergebnisse') }}"
+             class="flex-1 text-center py-2 px-4 rounded-xl border border-lottina-primary/20 text-lottina-primary/70">
+            Reset
           </a>
         </div>
-      </section>
+      </form>
 
-      <!-- Map -->
-      <aside class="lg:col-span-1">
-        <div class="sticky top-4">
-          <div id="result-map" class="w-full h-[520px] rounded-2xl border border-lottina-primary/10 shadow-lg bg-white"></div>
-          <script id="coords-data" type="application/json">
-  {{ coords | tojson | safe }}
-</script>
+      {% if has_active_filters %}
+      <div class="mt-6">
+        <p class="text-xs uppercase font-semibold text-lottina-primary/60 mb-2 tracking-[0.22em]">Aktive Filter</p>
+        <div class="flex flex-wrap gap-2 text-xs">
+          {% for cat in active_cats %}
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-lottina-primary/10 text-lottina-primary">
+              {{ cat }}
+            </span>
+          {% endfor %}
+          {% if request.args.get('date') %}
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#fda69b]/10 text-[#f97362]">
+              {{ request.args.get('date') }}
+            </span>
+          {% endif %}
+          {% if request.args.get('free') == '1' %}
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700">
+              Kostenlos
+            </span>
+          {% endif %}
+          {% if request.args.get('outdoor') == '1' %}
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+              Outdoor
+            </span>
+          {% endif %}
+          {% if request.args.get('always') == '1' %}
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700">
+              Immer offen
+            </span>
+          {% endif %}
         </div>
-      </aside>
-
+      </div>
+      {% endif %}
     </div>
   </div>
+
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('result-map');
     const dataEl = document.getElementById('coords-data');
-    if (!el || !dataEl) return;
+    if (!el || !dataEl || typeof L === 'undefined') return;
 
     let points = [];
     try {
@@ -414,8 +481,26 @@
       maxZoom: 18,
     }).addTo(map);
 
-    const icon = L.icon({
+    const escapeHtml = (value) => {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
+    const defaultIcon = L.icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    });
+
+    const playgroundIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
@@ -426,14 +511,61 @@
     const markers = [];
     (points || []).forEach(ev => {
       if (typeof ev.lat !== 'number' || typeof ev.lon !== 'number') return;
-      const marker = L.marker([ev.lat, ev.lon], {icon}).addTo(map);
-      const date = ev.date ? new Date(ev.date).toLocaleString('de-DE', {dateStyle:'short', timeStyle:'short'}) : 'Termin folgt';
-      marker.bindPopup(`<strong>${ev.title}</strong><br>${date}<br><a href="${ev.url}" class="underline text-[#fda69b]">Details</a>`);
+      const isPlayground = !!ev.is_playground;
+      const markerIcon = isPlayground ? playgroundIcon : defaultIcon;
+      const marker = L.marker([ev.lat, ev.lon], { icon: markerIcon }).addTo(map);
+
+      const title = escapeHtml(ev.title || 'Ohne Titel');
+      const locationParts = [];
+      if (ev.location_name) {
+        locationParts.push(escapeHtml(ev.location_name));
+      }
+      if (ev.address) {
+        locationParts.push(escapeHtml(ev.address));
+      }
+      const address = locationParts.length
+        ? `<div style="margin-top:4px;font-size:0.85rem;color:#2f3e46;">${locationParts.join('<br>')}</div>`
+        : '';
+
+      const badges = [];
+      if (isPlayground) {
+        badges.push('<span style="display:inline-block;margin-bottom:6px;padding:2px 8px;border-radius:999px;background:#d1fae5;color:#047857;font-size:0.7rem;font-weight:600;">Spielplatz</span>');
+      }
+
+      let metaText = '';
+      if (ev.date) {
+        const parsed = new Date(ev.date);
+        if (!Number.isNaN(parsed.getTime())) {
+          metaText = parsed.toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' });
+        }
+      }
+      if (!metaText) {
+        metaText = ev.is_permanent ? 'Immer offen' : 'Termin folgt';
+      }
+
+      const popupHtml = `
+        <div style="min-width:200px;font-family:'Fredoka',sans-serif;">
+          ${badges.join('')}
+          <div style="font-weight:600;font-size:1rem;color:#102a43;">${title}</div>
+          ${address}
+          <div style="margin-top:6px;font-size:0.8rem;color:#4a5568;">${escapeHtml(metaText)}</div>
+          <a href="${ev.url}" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:#f97362;font-weight:600;text-decoration:none;">
+            Details ansehen
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml, { minWidth: 220 });
       markers.push(marker);
     });
 
-    if (markers.length) {
-      map.fitBounds(L.featureGroup(markers).getBounds(), {padding:[20,20]});
+    if (markers.length === 1) {
+      map.setView(markers[0].getLatLng(), 14);
+    } else if (markers.length > 1) {
+      map.fitBounds(L.featureGroup(markers).getBounds(), { padding: [20, 20] });
     }
   });
 </script>

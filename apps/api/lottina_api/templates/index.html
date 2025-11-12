@@ -6,22 +6,22 @@
 {% set testimonials = testimonials or [] %}
 
 <!-- Hero: Split Layout -->
-<section class="relative overflow-hidden pt-12 bg-lottina-background text-lottina-primary">
-  <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(8,65,78,0.15),_rgba(0,0,0,0))]"></div>
-  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-16 lg:py-24 grid lg:grid-cols-5 gap-12 items-center">
+<section class="relative overflow-hidden pt-12 bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+  <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
+  <div class="relative z-10 max-w-6xl mx-auto px-20 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-5 gap-12 items-center">
     <div class="lg:col-span-3 space-y-6">
-      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-highlight/30 text-sm font-semibold tracking-wide uppercase">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-sm font-semibold tracking-wide uppercase">
         <span class="h-2 w-2 rounded-full bg-lottina-accent"></span>
         Für Familien & Entdecker:innen
       </span>
-      <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight">
+      <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
         Freizeit erleben, ohne Suchexperimente.
       </h1>
-      <p class="text-lg text-lottina-primary/80 max-w-xl">
+      <p class="text-lg text-white/80 max-w-xl">
         lottina bündelt Erlebnisse, Workshops und Geheimtipps deiner Stadt – DSGVO-konform, werbefrei und immer aktuell. Plane dein nächstes Erlebnis in Sekunden.
       </p>
 
-      <form id="hero-search" class="bg-white text-lottina-primary rounded-2xl shadow-2xl border border-lottina-primary/10 flex flex-col sm:flex-row gap-3 px-4 py-3"
+      <form id="hero-search" class="bg-white text-lottina-primary rounded-2xl shadow-2xl border border-white/25 flex flex-col sm:flex-row gap-3 px-4 py-3"
             action="/results" method="GET" role="search" aria-label="Events durchsuchen">
         <div class="flex-1">
           <label for="hero-q" class="sr-only">Suche nach Erlebnissen</label>
@@ -30,7 +30,7 @@
                  class="w-full border-0 bg-transparent text-base text-lottina-primary placeholder:text-lottina-primary/50 focus:ring-0">
         </div>
         <button type="submit"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-lottina-accent text-lottina-primary font-semibold shadow-xl hover:translate-y-[-1px] transition"
+                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-lottina-accent text-white font-semibold shadow-xl hover:translate-y-[-1px] transition"
                 aria-label="Suche starten">
           <span>Suche</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -48,7 +48,7 @@
           Poster scannen (OCR)
         </a>
         <a href="/results"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-lottina-primary font-semibold hover:bg-white">
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
           Alle Erlebnisse anzeigen
         </a>
       </div>
@@ -60,11 +60,18 @@
         <a href="/results?cats[]=workshops" class="hero-chip">Workshops</a>
       </div>
     </div>
-  </div>
+
+    
 </section>
 
 <!-- Feature Cards -->
-<section class="bg-lottina-background py-16">
+<section class="relative bg-white py-16 overflow-hidden">
+  <!-- Hintergrundeffekt -->
+  <div class="absolute inset-0 -z-10">
+    <div class="absolute top-0 left-1/3 w-[400px] h-[400px] bg-lottina-primary/30 rounded-full blur-[120px] animate-float-slow"></div>
+    <div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-lottina-accent/20 rounded-full blur-[160px] animate-float-slower"></div>
+  </div>
+  <!--Inhalt-->
   <div class="max-w-6xl mx-auto px-6 lg:px-10">
     <div class="grid md:grid-cols-3 gap-6">
       <a href="/results" class="feature-card feature-card--primary">
@@ -101,79 +108,172 @@
   </div>
 </section>
 
-<!-- Event Highlights -->
-<section class="bg-lottina-background py-16">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10">
-    <div class="flex flex-wrap items-baseline gap-4 justify-between">
-      <div>
-        <h2 class="text-3xl font-bold text-lottina-primary">Für dieses Wochenende</h2>
-        <p class="text-sm text-lottina-primary/75">Frisch kuratierte Tipps – familienfreundlich und mit Liebe ausgewählt.</p>
-      </div>
-      <a href="/results?cats[]=today" class="inline-flex items-center gap-2 text-lottina-primary font-semibold hover:gap-3 transition-all">
-        Alles für heute anzeigen
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
-        </svg>
-      </a>
-    </div>
+{% set hobby_ns = namespace(items=[]) %}
+{% for event in events %}
+  {% set match = namespace(ok=false) %}
+  {% if event.categories %}
+    {% for c in event.categories %}
+      {% if c.name and c.name|lower == 'hobby' %}
+        {% set match.ok = true %}
+      {% elif c.slug and 'hobby' in c.slug|lower %}
+        {% set match.ok = true %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if match.ok %}
+    {% set hobby_ns.items = hobby_ns.items + [event] %}
+  {% endif %}
+{% endfor %}
+{% set hobby_events = hobby_ns.items %}
 
-    <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
-      {% for event in events %}
-        <article class="event-card group">
-          <div class="relative h-48 rounded-2xl overflow-hidden bg-gray-200">
-            <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.png') }}"
-                 alt="{{ event.title or 'Event Bild' }}"
-                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-            {% if event.dt_start %}
-              <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-white text-xs font-semibold text-lottina-primary shadow">
-                {{ event.dt_start.astimezone().strftime("%a, %d.%m.") }}
-              </div>
-            {% endif %}
+<!-- Hobby Finder -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] py-16 text-white">
+  <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.32),_rgba(0,0,0,0))]"></div>
+  <div class="max-w-6xl mx-auto px-6 lg:px-10">
+    <div class="relative z-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
+      <div class="space-y-6">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs uppercase tracking-[0.24em] font-semibold">
+          Für dieses Wochenende
+        </span>
+        <div class="space-y-4">
+          <h2 class="text-3xl md:text-4xl font-lottina font-bold leading-tight drop-shadow-lg">Finde das perfekte Hobby-Abenteuer</h2>
+          <p class="text-sm md:text-base text-white/80 max-w-2xl">
+            Durchstöbere unsere Hobby-Tipps für Familien: Workshops, Kurse und freie Angebote, die dich am Wochenende inspirieren.
+            Suche gezielt oder lass dich von unseren Vorschlägen leiten – alle Events tragen das Label <span class="font-semibold text-white">Hobby</span>.
+          </p>
+        </div>
+        <form action="/results" method="GET" class="bg-white/15 border border-white/20 rounded-3xl backdrop-blur-sm shadow-lg px-4 py-4 flex flex-col sm:flex-row gap-3">
+          <div class="flex-1">
+            <label for="hobby-search" class="sr-only">Nach Hobbys suchen</label>
+            <input id="hobby-search"
+                   name="q"
+                   type="text"
+                   placeholder="z. B. Keramik, Coding, Hip-Hop, Klettern …"
+                   class="w-full border-0 bg-transparent text-base text-white placeholder:text-white/60 focus:ring-0">
+            <input type="hidden" name="cats[]" value="Hobby">
           </div>
-          <div class="mt-4 space-y-3">
-            <h3 class="text-xl font-semibold text-lottina-primary leading-snug">
-              {{ event.title or "Event ohne Titel" }}
-            </h3>
-            <p class="text-sm text-lottina-primary/80 line-clamp-3">
-              {{ event.description or event.summary or "Mehr Details auf der Eventseite." }}
-            </p>
-            <div class="flex flex-wrap gap-2 text-xs text-lottina-primary/70">
-              {% if event.location %}
-                <span class="px-2 py-1 rounded-full bg-white shadow-sm">{{ event.location }}</span>
-              {% endif %}
-              {% if event.categories %}
-                {% for c in event.categories[:2] %}
-                  <span class="px-2 py-1 rounded-full bg-white border border-lottina-primary/15/50">{{ c.name }}</span>
-                {% endfor %}
-              {% endif %}
-            </div>
-            <a href="/event/{{ event.id }}"
-              class="inline-flex items-center gap-2 text-sm text-lottina-accent font-semibold group-hover:gap-3 transition-all">
-              Details ansehen
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
-              </svg>
+          <button type="submit"
+                  class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-lottina-accent text-white font-semibold shadow-lg hover:translate-y-[-1px] transition">
+            Finden
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-4.3-4.3m1.6-4.7a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/>
+            </svg>
+          </button>
+        </form>
+        <div class="flex flex-wrap gap-2 text-sm">
+          {% set hobby_suggestions = [
+            ('Kreativ-Werkstatt', 'Kreativ'),
+            ('Musik & Tanz', 'Musik'),
+            ('Outdoor-Abenteuer', 'Outdoor'),
+            ('Technik & Coding', 'Coding'),
+            ('Spiel & Brettspiele', 'Spiele')
+          ] %}
+          {% for label, query in hobby_suggestions %}
+            <a href="/results?cats[]=Hobby&q={{ query | urlencode }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 border border-white/25 text-xs font-semibold uppercase tracking-wide hover:bg-white/25 transition">
+              {{ label }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="relative z-10">
+        <div class="rounded-3xl bg-white/10 border border-white/15 backdrop-blur-xl shadow-2xl p-6 space-y-4 text-sm text-white/85">
+          <h3 class="text-lg font-semibold text-white">Schneller Überblick</h3>
+          <p class="leading-relaxed text-white/75">
+            Mit einem Klick bekommst du alle passenden Hobby-Angebote für das Wochenende auf der Karte oder in der Liste.
+            Unsere Redaktion markiert neue Favoriten sofort.
+          </p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <a href="/results?cats[]=Hobby" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white text-lottina-primary font-semibold shadow hover:translate-y-[-1px] transition">
+              Alles mit Hobby-Tag
+            </a>
+            <a href="/results?cats[]=Hobby&free=1" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/40 text-white/85 hover:bg-white/15 transition">
+              Kostenlose Hobbys
             </a>
           </div>
-        </article>
-      {% else %}
-        <div class="col-span-full rounded-2xl border border-dashed border-lottina-primary/20 bg-white/60 px-6 py-10 text-center text-lottina-primary/70">
-          Noch keine Events vorhanden – lade das erste Poster hoch!
         </div>
-      {% endfor %}
+      </div>
+    </div>
+
+    <div class="relative z-10 mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
+      {% if hobby_events %}
+        {% for event in hobby_events[:6] %}
+          <article class="group relative flex flex-col overflow-hidden rounded-3xl bg-white text-lottina-primary border border-white/40 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+            <a href="/event/{{ event.id }}" class="flex flex-col h-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lottina-accent">
+              <div class="relative h-48 overflow-hidden">
+                <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.png') }}"
+                     alt="{{ event.title or 'Event Bild' }}"
+                     class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                <div class="absolute top-3 left-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">
+                  {% if event.dt_start %}
+                    {{ event.dt_start.astimezone().strftime("%a, %d.%m.") }}
+                  {% else %}
+                    Termin folgt
+                  {% endif %}
+                </div>
+              </div>
+              <div class="p-6 space-y-3 flex-1 flex flex-col">
+                <div class="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-lottina-primary/60">
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-lottina-accent/15 text-lottina-primary font-semibold">
+                    Hobby
+                  </span>
+                  {% if event.duration %}
+                    <span>{{ event.duration }}</span>
+                  {% endif %}
+                </div>
+                <h3 class="text-lg font-semibold leading-snug group-hover:text-lottina-accent transition">
+                  {{ event.title or "Event ohne Titel" }}
+                </h3>
+                <p class="text-sm text-lottina-primary/70 line-clamp-3">
+                  {{ event.description or event.summary or "Mehr Details auf der Eventseite." }}
+                </p>
+                <div class="mt-auto flex flex-wrap gap-2 text-xs text-lottina-primary/70">
+                  {% if event.location %}
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+                      {{ event.location }}
+                    </span>
+                  {% endif %}
+                  {% if event.categories %}
+                    {% for c in event.categories[:2] %}
+                      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+                        {{ c.name }}
+                      </span>
+                    {% endfor %}
+                  {% endif %}
+                </div>
+              </div>
+              <div class="flex items-center justify-between px-6 pb-5 text-sm font-semibold text-lottina-accent">
+                <span class="inline-flex items-center gap-2">
+                  Details ansehen
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+                  </svg>
+                </span>
+                <span class="text-xs uppercase tracking-wide text-lottina-primary/50">
+                  {{ loop.index }} / {{ hobby_events|length }}
+                </span>
+              </div>
+            </a>
+          </article>
+        {% endfor %}
+      {% else %}
+        <div class="col-span-full rounded-3xl border border-dashed border-white/40 bg-white/10 px-6 py-10 text-center text-white/80">
+          Noch keine Hobby-Angebote markiert – lade dein erstes Event hoch oder melde dich bei uns für einen Tipp!
+        </div>
+      {% endif %}
     </div>
   </div>
 </section>
 
 <!-- Testimonials Feed -->
-<section class="bg-lottina-background py-16">
+<section class="bg-white py-16">
   <div class="max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row gap-10">
     <div class="lg:w-1/3 space-y-4">
       <h2 class="text-3xl font-bold text-lottina-primary">Was Familien erzählen</h2>
       <p class="text-sm text-lottina-primary/75">
         Echtes Feedback von Eltern, Veranstalter:innen und Kids, die mit lottina ihre Highlights gefunden haben.
       </p>
-      <a href="{{ url_for('ueber_uns') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-lottina-accent hover:text-lottina-primary hover:gap-3 transition-all">
+      <a href="{{ url_for('ueber_uns') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-lottina-accent hover:text-white hover:gap-3 transition-all">
         Mehr über lottina erfahren
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
@@ -186,14 +286,14 @@
           <div class="flex items-center gap-3">
             <img src="{{ url_for('static', filename=t.img) }}" alt="{{ t.name }}" class="h-12 w-12 rounded-full object-cover ring-2 ring-white/40">
             <div>
-              <p class="text-base font-semibold text-lottina-primary">{{ t.name }}</p>
-              <p class="text-xs uppercase tracking-wider text-lottina-primary/60">lottina Community</p>
+              <p class="text-base font-semibold text-white">{{ t.name }}</p>
+              <p class="text-xs uppercase tracking-wider text-white/70">lottina Community</p>
             </div>
           </div>
-          <p class="text-sm text-lottina-primary/75 leading-relaxed">“{{ t.text }}”</p>
+          <p class="text-sm text-white/85 leading-relaxed">“{{ t.text }}”</p>
         </article>
       {% else %}
-        <div class="testimonial-card text-sm text-lottina-primary/75">
+        <div class="testimonial-card text-sm text-white/85">
           Noch keine Testimonials – du kannst der oder die Erste sein! Schreib uns gern dein Feedback.
         </div>
       {% endfor %}
@@ -202,38 +302,35 @@
 </section>
 
 <!-- Map CTA -->
-<section class="relative overflow-hidden py-24 bg-lottina-background text-lottina-primary">
-  <div class="absolute inset-0 opacity-10 pointer-events-none bg-[url('data:image/svg+xml,%3Csvg width%3D%22100%25%22 height%3D%22100%25%22 xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Cdefs%3E%3Cpattern id%3D%22grid%22 width%3D%2240%22 height%3D%2240%22 patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath d%3D%22M 40 0 L 0 0 0 40%22 fill%3D%22none%22 stroke%3D%22rgba(8,65,78,0.2)%22 stroke-width%3D%220.35%22/%3E%3C/pattern%3E%3C/defs%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22url(%23grid)%22/%3E%3C/svg%3E')]"></div>
+<section class="relative overflow-hidden py-28 bg-gradient-to-r from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+  <div class="absolute inset-0 opacity-15 pointer-events-none bg-[url('data:image/svg+xml,%3Csvg width%3D%22100%25%22 height%3D%22100%25%22 xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Cdefs%3E%3Cpattern id%3D%22grid%22 width%3D%2240%22 height%3D%2240%22 patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath d%3D%22M 40 0 L 0 0 0 40%22 fill%3D%22none%22 stroke%3D%22white%22 stroke-width%3D%220.35%22/%3E%3C/pattern%3E%3C/defs%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22url(%23grid)%22/%3E%3C/svg%3E')]"></div>
   <div class="relative max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-10">
     <div class="lg:w-2/3 space-y-5">
-      <h2 class="text-3xl lg:text-4xl font-lottina font-bold drop-shadow-sm">Entdecke Events in deiner Nähe</h2>
-      <p class="text-base lg:text-lg text-lottina-primary/80 max-w-2xl">
+      <h2 class="text-3xl lg:text-4xl font-lottina font-bold drop-shadow-lg">Entdecke Events in deiner Nähe</h2>
+      <p class="text-base lg:text-lg text-white/80 max-w-2xl">
         Unsere interaktive Karte zeigt dir kinderfreundliche Highlights in ganz Deutschland. Filtere nach Outdoor-Aktivitäten, Altersgruppen, Kosten oder Datum – alles mit wenigen Klicks.
       </p>
       <div class="flex flex-wrap gap-3">
-        <button id="openMap"
-                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-lottina-accent text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
+        <a id="openMap"
+           href="{{ url_for('karte') }}"
+           class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
           Karte öffnen
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7.5 8 5l8 3 5-2M8 5v15m8-12v15"/>
           </svg>
-        </button>
-        <a href="/results" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-lottina-primary/20 text-lottina-primary font-semibold hover:bg-white">
+        </a>
+        <a href="/results" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
           Alle Events anzeigen
         </a>
       </div>
     </div>
-    <div class="lg:w-1/3 w-full rounded-3xl border border-lottina-primary/15 bg-white text-lottina-primary shadow-2xl overflow-hidden">
+    <div class="lg:w-1/3 w-full rounded-3xl border-2 border-white/60 bg-white/85 text-lottina-primary shadow-2xl overflow-hidden">
       <div class="h-60" id="map-preview"></div>
     </div>
   </div>
 </section>
 
 <script>
-  document.getElementById("openMap")?.addEventListener("click", () => {
-    window.location.href = "/results";
-  });
-
   window.addEventListener("load", () => {
     const mapTarget = document.getElementById("map-preview");
     if (!mapTarget) return;
