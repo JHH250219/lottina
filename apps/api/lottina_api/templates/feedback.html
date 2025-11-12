@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Feedback – lottina{% endblock %}
+
+{% block content %}
+<section class="min-h-screen bg-gradient-to-br from-[#0f2f2c] via-[#163f35] to-[#2c9677] text-white pt-36 pb-20">
+  <div class="max-w-2xl mx-auto px-6 space-y-6 text-lottina-primary">
+    <div class="space-y-3 text-center">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs uppercase tracking-[0.35em] font-semibold text-white/70">
+        Danke, dass du da bist
+      </span>
+      <h1 class="text-3xl font-lottina font-bold leading-tight text-white">
+        Oh nein, etwas klemmt? Oder du hast eine Idee?
+      </h1>
+      <p class="text-sm text-white/80">
+        Schreib uns kurz, was nervt, fehlt oder besser laufen könnte. Wir lesen alles, versprochen.
+        Kaffee kippen wir trotzdem nicht über die Tastatur.
+      </p>
+    </div>
+
+    <form action="mailto:hello@lottina.de" method="POST" enctype="text/plain" class="bg-white/10 rounded-3xl shadow-lg border border-white/20 p-6 space-y-4 text-white">
+      <div>
+        <label for="feedback-email" class="text-xs font-semibold uppercase tracking-[0.3em] text-white/70">E-Mail</label>
+        <input id="feedback-email"
+               name="E-Mail"
+               type="email"
+               placeholder="damit wir antworten können …"
+               class="mt-1 w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/60 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent"
+               required>
+      </div>
+      <div>
+        <label for="feedback-message" class="text-xs font-semibold uppercase tracking-[0.3em] text-white/70">Was ist los?</label>
+        <textarea id="feedback-message"
+                  name="Nachricht"
+                  rows="6"
+                  placeholder="Sag uns alles. Bugs, Ideen, Wünsche – wir freuen uns über jede Zeile."
+                  class="mt-1 w-full rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/60 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent"
+                  required></textarea>
+      </div>
+      <button type="submit"
+              class="inline-flex items-center justify-center gap-2 w-full rounded-2xl bg-white text-lottina-primary font-semibold px-4 py-3 text-sm shadow-lg hover:-translate-y-0.5 transition">
+        Abschicken & Karma sammeln
+      </button>
+    </form>
+
+    <p class="text-center text-xs text-white/70">
+      Lieber klassisch? Schreib uns direkt an <a href="mailto:hello@lottina.de" class="font-semibold text-white">hello@lottina.de</a>.
+    </p>
+  </div>
+</section>
+{% endblock %}

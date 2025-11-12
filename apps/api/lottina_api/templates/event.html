@@ -2,340 +2,120 @@
 {% block title %}{{ event.title or "Event" }} – lottina{% endblock %}
 
 {% block content %}
-<main class="mx-auto px-4 pt-6 pb-28 sm:pb-36">
+{% set location = event.location %}
+{% set categories = event.categories or [] %}
 
-  {# 📸 Headerbild #}
-  {% if event.image_url %}
-  <div class="w-full rounded-xl overflow-hidden border dark:border-gray-700 mb-6">
-    <div class="aspect-[21/9] w-full">
-      <img src="{{ event.image_url }}" alt="{{ event.title }}" class="h-full w-full object-cover">
-    </div>
-  </div>
-{% else %}
-  <div class="w-full h-64 md:h-96 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-xl border dark:border-gray-700 mb-6">
-    Kein Bild verfügbar
-  </div>
-{% endif %}
-
-
-  {% if event.is_always_open and event.opening_hours %}
-<section class="mb-8">
-  <h2 class="text-xl font-semibold">Öffnungszeiten</h2>
-  <table class="w-full border rounded-lg overflow-hidden">
-    {% for day, hours in event.opening_hours.items() %}
-    <tr class="border-b">
-      <td class="px-3 py-2 font-medium capitalize">{{ day }}</td>
-      <td class="px-3 py-2">{{ hours }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-</section>
-{% endif %}
-
-  {# 🧾 Titel + Datum #}
-  <div class="mb-3">
-    <h1 class="text-3xl font-bold text-lottina-primary dark:text-white">{{ event.title }}</h1>
-    <p class="text-gray-500">
-      {{ event.date | smartdate }}
-    </p>
-  </div>
-
-  {# 🔖 Chips/Kurzinfo #}
-  <div class="flex flex-wrap gap-2 text-sm mb-8">
-    {% if event.is_free %}
-      <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Kostenlos</span>
-    {% elif event.price %}
-      <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">{{ event.price|euro }} €</span>
-    {% endif %}
-    {% if event.category %}
-      {% for cat in event.category.split(',') %}
-        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">{{ cat.strip() }}</span>
-      {% endfor %}
-    {% endif %}
-    {% if event.age_group %}
-      <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">{{ event.age_group }}</span>
-    {% endif %}
-    {% if event.is_outdoor %}
-      <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Draußen</span>
-    {% endif %}
-  </div>
-
-  {# 🧭 2-Spalten: Details / Veranstaltungsort #}
-  <section class="mb-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
-      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Details</h2>
-      <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
-        <dt class="font-medium text-gray-500 dark:text-gray-400">Datum</dt>
-        <dd class="sm:col-span-2 text-gray-900 dark:text-gray-100">
-          {{ event.date | smartdate }}
-        </dd>
-
-        <dt class="font-medium text-gray-500 dark:text-gray-400">Zeit</dt>
-        <dd class="sm:col-span-2 text-gray-900 dark:text-gray-100">
-          {{ event.date | smartdate }}
-          {# Falls du später end_dt hast:  bis {{ event.end_dt | smartdate }} #}
-        </dd>
-
-        {% if event.is_free %}
-          <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Kostenlos</span>
-        {% elif event.price is not none %}
-          <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">
-        {{ event.price | euro }} €
+<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white pt-32 pb-16">
+  <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
+  <div class="relative z-10 max-w-5xl mx-auto px-6 lg:px-10 space-y-6">
+    <a href="{{ url_for('suchergebnisse') }}" class="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white">
+      ← Zurück zur Übersicht
+    </a>
+    <div class="space-y-4">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs uppercase tracking-[0.3em] font-semibold">
+        Familien-Event
+      </span>
+      <h1 class="text-3xl md:text-4xl font-lottina font-bold leading-tight drop-shadow">
+        {{ event.title or "Event ohne Titel" }}
+      </h1>
+      <div class="flex flex-wrap gap-3 text-sm text-white/85">
+        {% if event.dt_start %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30">
+            {{ event.dt_start | smartdate }}
           </span>
         {% endif %}
-        {% if event.price is not none or event.is_free is not none or event.signup_required is not none or event.meeting_point or event.notes %}
-          <div class="event-callout">
-          <h3>Kosten & Hinweise</h3>
-        <ul>
-          {% if event.price is not none %}
-            <li>Kosten: {{ "%.2f"|format(event.price) }} €{% if "zzgl" in (event.category or "").lower() %} (zzgl. Eintritt){% endif %}</li>
-          {% elif event.is_free %}
-            <li>Kosten: kostenlos</li>
-          {% endif %}
-          {% if event.signup_required is not none %}
-            <li>Anmeldung: {{ "erforderlich" if event.signup_required else "nicht erforderlich" }}</li>
-          {% endif %}
-          {% if event.meeting_point %}
-            <li>Treffpunkt: {{ event.meeting_point }}</li>
-          {% endif %}
-          {% if event.notes %}
-          <li>{{ event.notes }}</li>
-          {% endif %}
-        </ul>
+        {% if event.dt_end and event.dt_end.date() != event.dt_start.date() %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30">
+            bis {{ event.dt_end | smartdate }}
+          </span>
+        {% endif %}
+        {% if event.is_free %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30 text-white">
+            Kostenlos
+          </span>
+        {% elif event.price_value %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30">
+            {{ "%.2f"|format(event.price_value or 0) }} {{ event.currency or "EUR" }}
+          </span>
+        {% endif %}
+        {% if event.source_url %}
+          <a href="{{ event.source_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30 hover:bg-white/10 transition text-white">
+            Zur Veranstalterseite
+          </a>
+        {% endif %}
       </div>
-      {% endif %}
-
-
-
-
-        {% if event.category %}
-          <dt class="font-medium text-gray-500 dark:text-gray-400">Kategorien</dt>
-          <dd class="sm:col-span-2 text-gray-900 dark:text-gray-100">
-            {{ event.category }}
-          </dd>
-        {% endif %}
-
-        {% if event.source_name or event.source_url %}
-          <dt class="font-medium text-gray-500 dark:text-gray-400">Quelle</dt>
-          <dd class="sm:col-span-2 text-gray-900 dark:text-gray-100">
-            {{ event.source_name }}
-            {% if event.source_url %}
-              · <a class="underline text-lottina-primary" href="{{ event.source_url }}" target="_blank" rel="noopener">Original ansehen</a>
-            {% endif %}
-          </dd>
-        {% endif %}
-      </dl>
-    </div>
-
-    <div class="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
-      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Veranstaltungsort</h2>
-      <p class="text-gray-900 dark:text-gray-100 font-medium mb-1">
-        {{ event.location or 'Ort unbekannt' }}
-      </p>
-
-{% if event.lat and event.lon %}
-  <section class="mb-12">
-    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Anfahrt</h2>
-
-    {# Leaflet CSS/JS (nur auf dieser Seite laden) #}
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin=""
-    />
-    <div id="map"
-         class="w-full h-64 rounded-xl border dark:border-gray-700 shadow"
-         data-lat="{{ event.lat }}"
-         data-lon="{{ event.lon }}"
-         data-title="{{ event.title | e }}"
-         data-location="{{ event.location | default('', true) | e }}">
-    </div>
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin="">
-    </script>
-
-    <script>
-      (function () {
-        // Sanity: Leaflet vorhanden?
-        if (typeof L === 'undefined') {
-          console.error('Leaflet nicht geladen');
-          return;
-        }
-        var mapEl = document.getElementById('map');
-        if (!mapEl) return;
-
-        var lat = parseFloat(mapEl.dataset.lat);
-        var lon = parseFloat(mapEl.dataset.lon);
-        var titleText = mapEl.dataset.title || '';
-        var locationText = mapEl.dataset.location || '';
-
-        if (!isFinite(lat) || !isFinite(lon)) {
-          console.error('Koordinaten fehlen/ungültig:', lat, lon);
-          return;
-        }
-
-        // Map erzeugen
-        var map = L.map(mapEl).setView([lat, lon], 14);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap-Mitwirkende',
-          maxZoom: 19
-        }).addTo(map);
-
-        // Custom Icon (Violett)
-var lottinaIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-var marker = L.marker([lat, lon], { icon: lottinaIcon }).addTo(map);
-      })();
-    </script>
-  </section>
-{% elif event.maps_url %}
-  <section class="mb-12">
-    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Anfahrt</h2>
-    <iframe
-      src="{{ event.maps_url }}"
-      class="w-full h-64 rounded-xl border dark:border-gray-700 shadow"
-      allowfullscreen
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
-  </section>
-{% endif %}
-
-
-  {# 📝 Beschreibung #}
-  {% if event.description %}
-    <section class="mb-12 rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
-      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Beschreibung</h2>
-      <p class="text-gray-800 dark:text-gray-200">
-        {{ event.description | striptags | replace('\n', ' ') | replace('  ', ' ') | trim }}
-      </p>
-    </section>
-  {% endif %}
-
-</main>
-
-{# 📅 Floating Calendar FAB #}
-<div class="fixed bottom-6 right-6 z-[2000] print:hidden">
-  <!-- FAB -->
-  <button id="calFab"
-          class="w-14 h-14 rounded-full shadow-lg bg-lottina-accent text-lottina-primary flex items-center justify-center
-                 hover:bg-lottina-highlight transition focus:outline-none focus:ring-4 focus:ring-lottina-accent/30"
-          aria-haspopup="true" aria-expanded="false" aria-controls="calMenu">
-    <!-- simple calendar icon -->
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/>
-    </svg>
-  </button>
-
-  <!-- Menu -->
-  <div id="calMenu"
-       class="absolute bottom-20 right-0 w-60 origin-bottom-right scale-95 opacity-0 pointer-events-none
-              bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl
-              transition transform duration-200 ease-out">
-    <div class="py-2">
-      <a href="/event/{{ event.id }}/download.ics"
-         class="flex items-center gap-3 px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
-         role="menuitem">
-        <span class="inline-flex w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center">
-          📥
-        </span>
-        <div>
-          <div class="font-medium">iCal / Outlook</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">.ics Datei herunterladen</div>
-        </div>
-      </a>
-
-      <a href="{{ google_calendar_url }}" target="_blank" rel="noopener"
-         class="flex items-center gap-3 px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
-         role="menuitem">
-        <span class="inline-flex w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center">
-          🗓️
-        </span>
-        <div>
-          <div class="font-medium">Google Kalender</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">In Google hinzufügen</div>
-        </div>
-      </a>
-
-      {% if event.maps_url %}
-      <a href="{{ event.maps_url }}" target="_blank" rel="noopener"
-         class="flex items-center gap-3 px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
-         role="menuitem">
-        <span class="inline-flex w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center">
-          📍
-        </span>
-        <div>
-          <div class="font-medium">Route in Maps</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">Google Maps öffnen</div>
-        </div>
-      </a>
-      {% endif %}
     </div>
   </div>
-</div>
+</section>
 
+<section class="bg-[#f6fbf8]">
+  <div class="max-w-6xl mx-auto px-6 lg:px-10 py-12 grid gap-8 lg:grid-cols-[minmax(0,2fr)_1fr]">
+    <div class="space-y-6">
+      {% if event.image %}
+        <div class="rounded-3xl overflow-hidden border border-lottina-primary/10 shadow">
+          <img src="{{ event.image }}" alt="{{ event.title }}" class="w-full h-72 object-cover">
+        </div>
+      {% endif %}
 
-<script>
-  (function () {
-    var toggleBtn = document.getElementById('calendarDropdownButton');
-    var dropdown = document.getElementById('calendarDropdown');
-    if (!toggleBtn || !dropdown) return;
-    toggleBtn.addEventListener('click', function () {
-      dropdown.classList.toggle('hidden');
-    });
-    document.addEventListener('click', function (e) {
-      if (!toggleBtn.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.classList.add('hidden');
-      }
-    });
-  })();
-</script>
-{% block scripts %}
-<script>
-  (function () {
-    var fab = document.getElementById('calFab');
-    var menu = document.getElementById('calMenu');
-    if (!fab || !menu) return;
+      {% if categories %}
+        <div class="flex flex-wrap gap-2 text-xs text-lottina-primary">
+          {% for cat in categories %}
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/15">
+              {{ cat.name }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
 
-    function openMenu() {
-      fab.setAttribute('aria-expanded', 'true');
-      menu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-      menu.classList.add('opacity-100', 'scale-100');
-    }
-    function closeMenu() {
-      fab.setAttribute('aria-expanded', 'false');
-      menu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-      menu.classList.remove('opacity-100', 'scale-100');
-    }
-    // init closed
-    closeMenu();
+      {% if event.description %}
+        <article class="rounded-3xl border border-lottina-primary/10 bg-white p-6 shadow text-sm leading-relaxed text-lottina-primary/80">
+          {{ event.description | safe }}
+        </article>
+      {% endif %}
+    </div>
 
-    fab.addEventListener('click', function () {
-      var expanded = fab.getAttribute('aria-expanded') === 'true';
-      expanded ? closeMenu() : openMenu();
-    });
-
-    document.addEventListener('click', function (e) {
-      if (!menu.contains(e.target) && !fab.contains(e.target)) closeMenu();
-    });
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeMenu();
-    });
-  })();
-</script>
-{% endblock %}
-
+    <aside class="space-y-5">
+      <div class="rounded-3xl border border-lottina-primary/10 bg-white p-5 shadow space-y-4 text-sm text-lottina-primary">
+        <h2 class="text-lg font-semibold text-lottina-primary">Kurzinfo</h2>
+        <dl class="space-y-3">
+          {% if event.dt_start %}
+            <div>
+              <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Datum</dt>
+              <dd class="font-semibold">{{ event.dt_start | smartdate }}</dd>
+            </div>
+          {% endif %}
+          {% if event.dt_start and event.dt_end %}
+            <div>
+              <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Zeit</dt>
+              <dd>{{ event.dt_start.strftime("%H:%M") }} – {{ event.dt_end.strftime("%H:%M") }}</dd>
+            </div>
+          {% endif %}
+          {% if location %}
+            <div>
+              <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Ort</dt>
+              <dd class="font-semibold">{{ location.name or "Ort folgt" }}</dd>
+              {% if location.address %}
+                <p class="text-xs text-lottina-primary/60">{{ location.address }}</p>
+              {% endif %}
+              {% if location.city %}
+                <p class="text-xs text-lottina-primary/60">{{ location.city }}</p>
+              {% endif %}
+            </div>
+          {% endif %}
+          {% if event.price_value %}
+            <div>
+              <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Preis</dt>
+              <dd>{{ "%.2f"|format(event.price_value or 0) }} {{ event.currency or "EUR" }}</dd>
+            </div>
+          {% elif event.is_free %}
+            <div>
+              <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Preis</dt>
+              <dd>Kostenlos</dd>
+            </div>
+          {% endif %}
+        </dl>
+      </div>
+    </aside>
+  </div>
+</section>
 {% endblock %}

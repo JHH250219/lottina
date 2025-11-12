@@ -18,6 +18,7 @@ from flask_login import (
 import os, re, uuid
 from pathlib import Path
 import mimetypes
+import click
 from werkzeug.utils import secure_filename
 from .utils import (
     allowed,
@@ -474,6 +475,10 @@ def ueber_uns():
     ]
     return render_template("ueber_uns.html", team=team, values=values)
 
+@app.get("/feedback")
+def feedback():
+    return render_template("feedback.html")
+
 @app.post("/notify")
 def notify():
     # Honeypot: echte Nutzer lassen 'website' leer
@@ -495,6 +500,32 @@ def notify():
 @app.route("/preise", methods=["GET"], endpoint="preise")
 def preise():
     return render_template("preise.html")
+
+@app.cli.command("crawl-external")
+def crawl_external():
+    """Hole Events über hinterlegte Crawler."""
+    from .crawlers import run_all_crawlers
+
+    results = run_all_crawlers()
+    click.echo(f"Crawler abgeschlossen: {results}")
+
+@app.cli.command("cleanup-events")
+@click.option("--days", default=1, show_default=True, help="Wie viele Tage sollen behalten werden?")
+def cleanup_events(days: int):
+    """Löscht Events, deren Datum in der Vergangenheit liegt."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    deleted = (
+        Offer.query.filter(
+            (
+                (Offer.dt_end.isnot(None)) & (Offer.dt_end < cutoff)
+            ) | (
+                (Offer.dt_end.is_(None)) & (Offer.dt_start.isnot(None)) & (Offer.dt_start < cutoff)
+            )
+        )
+        .delete(synchronize_session=False)
+    )
+    db.session.commit()
+    click.echo(f"{deleted} Events bereinigt (älter als {days} Tag(e)).")
 
 # ---------------------------------------------------------------------------
 # Account / Auth
