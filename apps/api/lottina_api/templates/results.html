@@ -26,7 +26,6 @@
     <div class="space-y-2">
       <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/60">
         <span>Kategorien</span>
-        <span class="text-[0.6rem] text-lottina-primary/40">Mehrfach möglich</span>
       </div>
       <div class="rounded-3xl border border-lottina-primary/10 bg-white p-3 max-h-48 overflow-y-auto space-y-2">
         {% for cat in categories %}
@@ -107,7 +106,7 @@
 
 <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
-  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-20 space-y-8">
+  <div class="relative z-10 max-w-6xl mx-auto pt-20 px-4 sm:px-6 lg:px-10 lg:pt-40 pb-20 space-y-8">
     <div class="space-y-4">
       <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs uppercase tracking-[0.3em] font-semibold">
         Suchergebnisse
@@ -172,7 +171,7 @@
 </section>
 
 <div class="bg-[#f6fbf8] py-12">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10 grid gap-8 lg:grid-cols-[280px,1fr]">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 grid gap-8 lg:grid-cols-[280px,1fr]">
     <aside class="hidden lg:block">
       <div class="rounded-3xl border border-lottina-primary/10 bg-white p-6 shadow-lg">
         {{ filter_panel() }}
@@ -191,7 +190,7 @@
                        class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
                   <div class="absolute top-3 left-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">
                     {% if event.dt_start %}
-                      {{ event.dt_start.astimezone().strftime("%a, %d.%m.") }}
+                      {{ event.dt_start | shortdate }}
                     {% else %}
                       Termin folgt
                     {% endif %}

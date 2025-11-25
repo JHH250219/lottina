@@ -4,6 +4,19 @@
 {% block content %}
 {% set location = event.location %}
 {% set categories = event.categories or [] %}
+{% set location_parts = [] %}
+{% if location %}
+  {% if location.name %}
+    {% set _ = location_parts.append(location.name) %}
+  {% endif %}
+  {% if location.address %}
+    {% set _ = location_parts.append(location.address) %}
+  {% endif %}
+  {% if location.city %}
+    {% set _ = location_parts.append(location.city) %}
+  {% endif %}
+{% endif %}
+{% set location_text = location_parts|join(", ") %}
 
 <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white pt-32 pb-16">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
@@ -50,31 +63,7 @@
 
 <section class="bg-[#f6fbf8]">
   <div class="max-w-6xl mx-auto px-6 lg:px-10 py-12 grid gap-8 lg:grid-cols-[minmax(0,2fr)_1fr]">
-    <div class="space-y-6">
-      {% if event.image %}
-        <div class="rounded-3xl overflow-hidden border border-lottina-primary/10 shadow">
-          <img src="{{ event.image }}" alt="{{ event.title }}" class="w-full h-72 object-cover">
-        </div>
-      {% endif %}
-
-      {% if categories %}
-        <div class="flex flex-wrap gap-2 text-xs text-lottina-primary">
-          {% for cat in categories %}
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/15">
-              {{ cat.name }}
-            </span>
-          {% endfor %}
-        </div>
-      {% endif %}
-
-      {% if event.description %}
-        <article class="rounded-3xl border border-lottina-primary/10 bg-white p-6 shadow text-sm leading-relaxed text-lottina-primary/80">
-          {{ event.description | safe }}
-        </article>
-      {% endif %}
-    </div>
-
-    <aside class="space-y-5">
+    <aside class="order-1 lg:order-2 space-y-5">
       <div class="rounded-3xl border border-lottina-primary/10 bg-white p-5 shadow space-y-4 text-sm text-lottina-primary">
         <h2 class="text-lg font-semibold text-lottina-primary">Kurzinfo</h2>
         <dl class="space-y-3">
@@ -116,6 +105,84 @@
         </dl>
       </div>
     </aside>
+
+    <div class="order-2 lg:order-1 space-y-6">
+      {% if event.image %}
+        <div class="rounded-3xl overflow-hidden border border-lottina-primary/10 shadow">
+          <img src="{{ event.image }}" alt="{{ event.title }}" class="w-full h-72 object-cover">
+        </div>
+      {% endif %}
+
+      {% if categories %}
+        <div class="flex flex-wrap gap-2 text-xs text-lottina-primary">
+          {% for cat in categories %}
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/15">
+              {{ cat.name }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if event.description %}
+        <article class="rounded-3xl border border-lottina-primary/10 bg-white p-6 shadow text-sm leading-relaxed text-lottina-primary/80">
+          {{ event.description | safe }}
+        </article>
+      {% endif %}
+    </div>
   </div>
 </section>
+
+<!-- Event map -->
+{% set has_location_coords = location and location.lat and location.lon %}
+{% set has_map_embed = event.maps_url or location_text %}
+{% if has_location_coords or has_map_embed %}
+<section class="bg-white border-t border-lottina-primary/10">
+  <div class="max-w-5xl mx-auto px-6 lg:px-10 py-12 space-y-4">
+    <div class="space-y-2 text-center lg:text-left">
+      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/60">Anfahrt</p>
+      <h2 class="text-2xl font-lottina font-bold text-lottina-primary">Hier findet das Event statt</h2>
+      {% if location_text %}
+        <p class="text-sm text-lottina-primary/70">{{ location_text }}</p>
+      {% endif %}
+    </div>
+    {% if has_location_coords %}
+      <div id="event-map"
+           data-lat="{{ location.lat }}"
+           data-lon="{{ location.lon }}"
+           class="h-80 rounded-3xl border border-lottina-primary/10 shadow overflow-hidden"></div>
+    {% else %}
+      {% set embed_url = event.maps_url or ("https://www.google.com/maps?q=" ~ (location_text|urlencode) ~ "&output=embed") %}
+      <div class="rounded-3xl border border-lottina-primary/10 shadow overflow-hidden">
+        <iframe src="{{ embed_url }}"
+                class="w-full h-80 border-0"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen>
+        </iframe>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{% if has_location_coords %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const mapEl = document.getElementById("event-map");
+    if (!mapEl || typeof L === "undefined") return;
+    const lat = parseFloat(mapEl.dataset.lat);
+    const lon = parseFloat(mapEl.dataset.lon);
+    if (Number.isNaN(lat) || Number.isNaN(lon)) return;
+    const map = L.map(mapEl, {
+      zoomControl: true,
+      scrollWheelZoom: false
+    }).setView([lat, lon], 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap-Mitwirkende"
+    }).addTo(map);
+    L.marker([lat, lon]).addTo(map);
+  });
+</script>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,8 @@
+Hallo {{ user.username or 'Entdecker:in' }},
+
+dein lottina Konto ist aktiviert. Du kannst dich jetzt einloggen, Events speichern, Poster hochladen und entspannt neue Highlights finden.
+
+Einloggen: {{ url_for('login', _external=True) }}
+
+Danke, dass du Teil der Community bist!
+– das lottina Team

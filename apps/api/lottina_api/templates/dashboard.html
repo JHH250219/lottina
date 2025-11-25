@@ -50,6 +50,15 @@
             </a>
           </div>
         {% endif %}
+        <div class="pt-4">
+          <button id="deleteAccountTrigger"
+                  class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-100">
+            Konto löschen
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6m0 12L6 6" />
+            </svg>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -67,4 +76,40 @@
 
   </div>
 </div>
+
+<div id="deleteAccountModal" class="fixed inset-0 z-[80] hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div class="relative mx-auto mt-32 w-[90%] max-w-md rounded-3xl border border-red-100 bg-white p-6 shadow-2xl">
+    <div class="space-y-3 text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6m0 12L6 6" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-lottina-primary">Konto wirklich löschen?</h3>
+      <p class="text-sm text-lottina-primary/70">Dieser Schritt entfernt dein Profil dauerhaft. Gespeicherte Events und Einstellungen können nicht wiederhergestellt werden.</p>
+    </div>
+    <form action="{{ url_for('delete_account') }}" method="post" class="mt-6 flex flex-col gap-3 sm:flex-row">
+      <button type="button" data-delete-close class="flex-1 rounded-full bg-lottina-primary px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-lottina-primary/90 transition">Doch lieber bleiben</button>
+      <button type="submit" class="flex-1 rounded-full border border-red-200 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition">Ja, löschen</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const trigger = document.getElementById("deleteAccountTrigger");
+    const modal = document.getElementById("deleteAccountModal");
+    const backdrop = modal?.querySelector("div");
+    const closers = modal?.querySelectorAll("[data-delete-close]");
+    if (!trigger || !modal || !backdrop) return;
+
+    const openModal = () => modal.classList.remove("hidden");
+    const closeModal = () => modal.classList.add("hidden");
+
+    trigger.addEventListener("click", openModal);
+    backdrop.addEventListener("click", closeModal);
+    closers?.forEach((btn) => btn.addEventListener("click", closeModal));
+  })();
+</script>
 {% endblock %}

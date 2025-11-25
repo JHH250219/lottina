@@ -1,11 +1,12 @@
 from flask import (
     Flask, render_template, request, jsonify,
     redirect, url_for, flash, send_from_directory,
-    abort, send_file
+    abort, send_file, session
 )
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, and_, or_, create_engine
 from flask_migrate import Migrate
+import stripe
 from .models import db, Offer, Location, User, Category, OfferType
 from jinja2 import TemplateNotFound
 from datetime import datetime, timedelta, timezone
@@ -15,6 +16,9 @@ from flask_login import (
     LoginManager, login_user, logout_user,
     login_required, current_user
 )
+from flask_mail import Mail, Message
+from decimal import Decimal, ROUND_HALF_UP
+
 import os, re, uuid
 from pathlib import Path
 import mimetypes
@@ -63,10 +67,62 @@ else:
 app.config["SQLALCHEMY_DATABASE_URI"] = resolved_db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
+app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
+app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 25))
+app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "0") == "1"
+app.config["MAIL_USE_SSL"] = os.getenv("MAIL_USE_SSL", "0") == "1"
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
+app.config["STRIPE_PRICE_MONTHLY"] = os.getenv("STRIPE_PRICE_MONTHLY", "price_1SWGRFRx44l32FoJFoHNqcvO")
+app.config["STRIPE_PRICE_YEARLY"] = os.getenv("STRIPE_PRICE_YEARLY", "price_1SWvVERx44l32FoJ2ZTdOJXy")
 
 # DB + Migrationssystem initialisieren
 db.init_app(app)
 migrate = Migrate(app, db)
+mail = Mail(app)
+MONTHLY_PRICE_EUR = Decimal(os.getenv("MEMBERSHIP_PRICE_MONTHLY_EUR", "1.99"))
+YEARLY_PRICE_EUR = Decimal(os.getenv("MEMBERSHIP_PRICE_YEARLY_EUR", "19.99"))
+
+
+def send_templated_email(subject, template, recipients, **context):
+    if not recipients or not app.config.get("MAIL_SERVER"):
+        return
+    try:
+        msg = Message(subject=subject, recipients=recipients)
+        try:
+            msg.body = render_template(f"emails/{template}.txt", **context)
+        except TemplateNotFound:
+            msg.body = ""
+        try:
+            msg.html = render_template(f"emails/{template}.html", **context)
+        except TemplateNotFound:
+            msg.html = msg.body
+        mail.send(msg)
+    except Exception:
+        app.logger.exception("E-Mail Versand fehlgeschlagen: %s", subject)
+
+
+def send_welcome_email(user):
+    if not user or not user.email:
+        return
+    send_templated_email(
+        subject="Willkommen bei lottina 🌿",
+        template="welcome",
+        recipients=[user.email],
+        user=user,
+    )
+
+
+def send_membership_email(user):
+    if not user or not user.email:
+        return
+    send_templated_email(
+        subject="Dein lottina+ Abo ist aktiv 💚",
+        template="membership",
+        recipients=[user.email],
+        user=user,
+    )
 
 if fallback_in_use and resolved_db_uri.startswith("sqlite"):
     with app.app_context():
@@ -106,6 +162,10 @@ def _has_value(value):
     if isinstance(value, (list, tuple, set, dict)):
         return bool(value)
     return True
+
+
+# Stripe config
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 # ---------------------------------------------------------------------------
 # Globale Template-Variablen
@@ -224,11 +284,29 @@ def index():
         testimonials=testimonials,
     )
 
+WEEKDAY_ABBR_DE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+
+
+def _format_weekday(dt):
+    localized = dt.astimezone()
+    day_name = WEEKDAY_ABBR_DE[localized.weekday()]
+    return localized, day_name
+
+
 @app.template_filter("smartdate")
 def smartdate(dt):
     if not dt:
         return ""
-    return dt.astimezone().strftime("%a, %d.%m. %H:%M")
+    localized, day_name = _format_weekday(dt)
+    return f"{day_name}, {localized.strftime('%d.%m. %H:%M')}"
+
+
+@app.template_filter("shortdate")
+def shortdate(dt):
+    if not dt:
+        return ""
+    localized, day_name = _format_weekday(dt)
+    return f"{day_name}, {localized.strftime('%d.%m.')}"
 
 @app.template_filter("euro")
 def euro(v):
@@ -499,7 +577,34 @@ def notify():
 
 @app.route("/preise", methods=["GET"], endpoint="preise")
 def preise():
-    return render_template("preise.html")
+    annual_base = MONTHLY_PRICE_EUR * Decimal(12)
+    savings_value = annual_base - YEARLY_PRICE_EUR
+    if savings_value < Decimal("0"):
+        savings_value = Decimal("0.00")
+    savings_value = savings_value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    savings_percent = Decimal("0.0")
+    if annual_base:
+        savings_percent = (
+            (savings_value / annual_base) * Decimal(100)
+        ).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+    return render_template(
+        "preise.html",
+        stripe_price_monthly=app.config["STRIPE_PRICE_MONTHLY"],
+        stripe_price_yearly=app.config.get("STRIPE_PRICE_YEARLY"),
+        monthly_price_eur=MONTHLY_PRICE_EUR,
+        yearly_price_eur=YEARLY_PRICE_EUR,
+        annual_savings_eur=savings_value,
+        annual_savings_percent=savings_percent,
+    )
+
+
+@app.get("/checkout/success", endpoint="checkout_success")
+def checkout_success():
+    if current_user.is_authenticated and not session.get("membership_mail_sent"):
+        send_membership_email(current_user)
+        session["membership_mail_sent"] = True
+    return render_template("success.html")
 
 @app.cli.command("crawl-external")
 def crawl_external():
@@ -581,6 +686,7 @@ def register():
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
+            send_welcome_email(user)
             flash("Konto angelegt. Du kannst dich jetzt einloggen.", "success")
             return redirect(url_for("login"))
         except IntegrityError:
@@ -592,7 +698,23 @@ def register():
 
 @app.get("/profil")
 def profil():
-    return render_template("profil.html")
+    return render_template("dashboard.html")
+
+
+@app.post("/account/delete")
+@login_required
+def delete_account():
+    user = current_user
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        logout_user()
+        flash("Dein Konto wurde gelöscht.", "success")
+        return redirect(url_for("index"))
+    except Exception:
+        db.session.rollback()
+        flash("Konto konnte nicht entfernt werden. Bitte versuch es später erneut.", "danger")
+        return redirect(url_for("profil")), 500
 
 # ---------------------------------------------------------------------------
 # Anbieter / Events erstellen
@@ -929,6 +1051,30 @@ def server_error(e):
         return render_template("500.html"), 500
     except TemplateNotFound:
         return "Interner Serverfehler", 500
+    
+
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    price = request.form.get("priceId")
+    # Hier würde der Checkout-Prozess gestartet werden
+    session = stripe.checkout.Session.create(
+    success_url='http://localhost:5000/success.html?session_id={CHECKOUT_SESSION_ID}',
+    mode='subscription',
+    line_items=[{
+        'price': price,
+        # For usage-based billing, don't pass quantity
+        'quantity': 1
+    }],
+    subscription_data={
+        'billing_mode': {
+            'type': 'flexible'
+        }
+    }
+)
+
+# Redirect to the URL returned on the session
+    return redirect(session.url, code=303)
+
 
 # ---------------------------------------------------------------------------
 # Lokaler Dev-Start

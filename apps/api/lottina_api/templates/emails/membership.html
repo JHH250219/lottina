@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>lottina+ aktiviert</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f2fff6;font-family:'Inter',Arial,sans-serif;color:#0f2f2c;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2fff6;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#0f2f2c;border-radius:28px;padding:40px 36px;color:#ffffff;box-shadow:0 45px 110px rgba(6,14,12,0.4);background-image:linear-gradient(135deg,#12352d,#0f2f2c,#1f6d5c);">
+          <tr>
+            <td align="center" style="padding-bottom:20px;">
+              <img src="{{ url_for('static', filename='img/check.png', _external=True) }}" width="96" alt="Check" style="display:block;margin:0 auto 12px auto;">
+              <p style="letter-spacing:0.35em;text-transform:uppercase;font-size:11px;color:#8be84f;margin:0;">lottina+</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size:16px;line-height:1.7;">
+              <h1 style="font-size:28px;margin:0 0 16px 0;color:#fdfefb;">Danke, {{ user.username or 'Entdecker:in' }}!</h1>
+              <p style="margin:0 0 12px 0;color:#f1fff4;">Deine lottina+ Mitgliedschaft läuft. Wir reservieren für dich neue Features, persönliche Empfehlungen und Goodies aus der Community.</p>
+              <p style="margin:0 0 12px 0;color:#d9f9e4;">Sobald neue Extras live gehen, erhältst du ein Update. Bis dahin kannst du jederzeit im Profil prüfen, welche Vorteile aktiv sind.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 0;">
+              <a href="{{ url_for('preise', _external=True) }}" style="display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:999px;background:#8be84f;color:#0f2f2c;text-decoration:none;font-weight:600;">Vorteile ansehen →</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size:13px;line-height:1.5;color:#ccefdc;">
+              <p style="margin:0 0 8px 0;">Fragen zum Abo? Schreib uns einfach an hello@lottina.de – wir antworten persönlich.</p>
+              <p style="margin:0;">Bis gleich auf lottina.de!<br>– Anne Sophie & Jan</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

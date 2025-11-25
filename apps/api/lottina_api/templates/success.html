@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Mitgliedschaft bestätigt – lottina{% endblock %}
+
+{% block content %}
+<section class="relative overflow-hidden bg-gradient-to-b from-[#f2fff6] via-white to-[#d8f8d3] py-24 px-4">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="mx-auto mt-12 h-64 w-64 rounded-full bg-white/80 blur-[120px]"></div>
+  </div>
+  <div class="relative z-10 mx-auto max-w-3xl text-center space-y-10">
+    <div class="flex justify-center">
+      <img src="{{ url_for('static', filename='img/check.png') }}" alt="Bestätigung" class="h-32 w-32 object-contain drop-shadow-xl" loading="lazy">
+    </div>
+    <div class="space-y-6">
+      <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/80">Yay, geschaffft!</p>
+      <h1 class="text-3xl md:text-5xl font-semibold text-lottina-primary leading-tight">Deine lottina Mitgliedschaft ist jetzt aktiv.</h1>
+      <p class="text-base md:text-lg text-lottina-primary/80">
+        Wir freuen uns riesig, dass du dabei bist. Ab sofort stehst du auf unserer Priority-Liste für neue Funktionen,
+        handverlesene Empfehlungen und exklusive Experimente, die wir Schritt für Schritt live schalten.
+      </p>
+    </div>
+    <div class="grid gap-6 rounded-3xl bg-white/90 p-8 text-left shadow-2xl">
+      <div>
+        <h2 class="text-xl font-semibold text-lottina-primary">Was passiert als Nächstes?</h2>
+        <ul class="mt-4 space-y-3 text-lottina-primary/85">
+          <li>• Wir bestätigen dir die Zahlung per E-Mail und halten dich zu allen Releases auf dem Laufenden.</li>
+          <li>• Feature-Wünsche? Schreib uns einfach – Mitglieder bestimmen die Roadmap mit.</li>
+          <li>• Sobald neue Goodies freigeschaltet sind, siehst du sie automatisch in deinem Konto.</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border border-lottina-primary/10 bg-gradient-to-r from-[#e7ffe7] to-[#f6fff0] p-4">
+        <p class="font-semibold text-lottina-primary">Danke für dein Vertrauen!</p>
+        <p class="mt-1 text-sm text-lottina-primary/80">
+          Mit deinem Beitrag hilfst du uns, Events sichtbarer zu machen und Familien sowie Initiativen zu unterstützen.
+        </p>
+      </div>
+    </div>
+    <div class="pt-6">
+      <a href="{{ url_for('index') }}" class="inline-flex items-center gap-2 rounded-full bg-lottina-accent px-6 py-3 text-lottina-primary font-semibold shadow-lg hover:-translate-y-0.5 transition">
+        Zurück zur Startseite
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

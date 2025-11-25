@@ -6,22 +6,22 @@
 {% set testimonials = testimonials or [] %}
 
 <!-- Hero: Split Layout -->
-<section class="relative overflow-hidden pt-12 bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+<section class="relative overflow-hidden pt-12 pb-10 sm:pb-14 bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
-  <div class="relative z-10 max-w-6xl mx-auto px-20 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-5 gap-12 items-center">
-    <div class="lg:col-span-3 space-y-6">
-      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-sm font-semibold tracking-wide uppercase">
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 lg:px-10 xl:px-20 py-16 sm:py-20 lg:py-28 grid gap-10 lg:gap-12 lg:grid-cols-5 items-center">
+    <div class="lg:col-span-3 space-y-6 text-center lg:text-left">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs sm:text-sm font-semibold tracking-wide uppercase mx-auto lg:mx-0">
         <span class="h-2 w-2 rounded-full bg-lottina-accent"></span>
         Für Familien & Entdecker:innen
       </span>
-      <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
         Freizeit erleben, ohne Suchexperimente.
       </h1>
-      <p class="text-lg text-white/80 max-w-xl">
+      <p class="text-base sm:text-lg text-white/80 max-w-2xl mx-auto lg:mx-0">
         lottina bündelt Erlebnisse, Workshops und Geheimtipps deiner Stadt – DSGVO-konform, werbefrei und immer aktuell. Plane dein nächstes Erlebnis in Sekunden.
       </p>
 
-      <form id="hero-search" class="bg-white text-lottina-primary rounded-2xl shadow-2xl border border-white/25 flex flex-col sm:flex-row gap-3 px-4 py-3"
+      <form id="hero-search" class="bg-white text-lottina-primary rounded-2xl shadow-2xl border border-white/25 flex flex-col sm:flex-row gap-3 px-4 py-3 w-full max-w-2xl mx-auto lg:mx-0"
             action="/results" method="GET" role="search" aria-label="Events durchsuchen">
         <div class="flex-1">
           <label for="hero-q" class="sr-only">Suche nach Erlebnissen</label>
@@ -30,7 +30,7 @@
                  class="w-full border-0 bg-transparent text-base text-lottina-primary placeholder:text-lottina-primary/50 focus:ring-0">
         </div>
         <button type="submit"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-lottina-accent text-white font-semibold shadow-xl hover:translate-y-[-1px] transition"
+                class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-xl bg-lottina-accent text-white font-semibold shadow-xl hover:translate-y-[-1px] transition"
                 aria-label="Suche starten">
           <span>Suche</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -39,21 +39,21 @@
         </button>
       </form>
 
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full max-w-2xl mx-auto lg:mx-0">
         <a href="/event-erstellen"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
+           class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
           </svg>
           Poster scannen (OCR)
         </a>
         <a href="/results"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
+           class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
           Alle Erlebnisse anzeigen
         </a>
       </div>
 
-      <div class="flex flex-wrap gap-2 text-sm">
+      <div class="flex flex-wrap justify-center lg:justify-start gap-2 text-sm w-full max-w-2xl mx-auto lg:mx-0">
         <a href="/results?free=1" class="hero-chip">Kostenlos</a>
         <a href="/results?outdoor=1" class="hero-chip">Outdoor</a>
         <a href="/results?cats[]=today" class="hero-chip">Heute</a>
@@ -106,15 +106,15 @@
 </style>
 
 <!-- Feature Cards -->
-<section class="relative bg-white py-16 overflow-hidden">
+<section class="relative bg-white py-12 sm:py-16 overflow-hidden">
   <!-- Hintergrundeffekt -->
   <div class="absolute inset-0 -z-10">
     <div class="absolute top-0 left-1/3 w-[400px] h-[400px] bg-lottina-primary/30 rounded-full blur-[120px] animate-float-slow"></div>
     <div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-lottina-accent/20 rounded-full blur-[160px] animate-float-slower"></div>
   </div>
   <!--Inhalt-->
-  <div class="max-w-6xl mx-auto px-6 lg:px-10">
-    <div class="grid md:grid-cols-3 gap-6">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       <a href="/results" class="feature-card feature-card--primary">
         <img src="{{ url_for('static', filename='img/echtzeit.png') }}" alt="Echtzeit" class="h-24 w-24 object-contain drop-shadow-[0_30px_50px_rgba(8,20,18,0.45)]">
         <h3>Erlebnisse in Echtzeit</h3>
@@ -138,14 +138,14 @@
 </section>
 
 <!-- lottina+ Membership -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#163f35] to-[#2c9677] py-16 text-white">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#163f35] to-[#2c9677] py-14 sm:py-16 text-white">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_rgba(0,0,0,0))]"></div>
-  <div class="max-w-6xl mx-auto px-6 lg:px-10">
-    <div class="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_420px] items-center">
-      <div class="space-y-5">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
+    <div class="relative z-10 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1fr)_420px] items-center">
+      <div class="space-y-5 text-center lg:text-left">
         <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-white/30 bg-white/10 text-xs font-semibold uppercase tracking-[0.3em]">
           lottina+
-          <span class="text-white/70">0,99 €/Monat</span>
+          <span class="text-white/70">1,99 €/Monat</span>
         </div>
         <div class="space-y-3">
           <h2 class="text-3xl md:text-[2.6rem] font-lottina font-bold leading-tight drop-shadow-lg">
@@ -170,21 +170,21 @@
             Premium-Filter & Kartenlayer für deine Stadt
           </li>
         </ul>
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3 justify-center lg:justify-start">
           <a href="{{ url_for('preise') }}"
-             class="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-lottina-primary font-semibold shadow-lg transition hover:-translate-y-0.5">
+             class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-lottina-primary font-semibold shadow-lg transition hover:-translate-y-0.5">
             Mehr zu lottina+
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
             </svg>
           </a>
           <a href="{{ url_for('register') }}"
-             class="inline-flex items-center gap-2 rounded-2xl border border-white/40 px-5 py-3 text-sm font-semibold text-white/90 hover:bg-white/10 transition">
+             class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl border border-white/40 px-5 py-3 text-sm font-semibold text-white/90 hover:bg-white/10 transition">
             Account anlegen
           </a>
         </div>
       </div>
-      <div class="relative z-10 flex justify-center">
+      <div class="relative z-10 flex justify-center mt-6 lg:mt-0">
         <img src="{{ url_for('static', filename='img/plus.png') }}"
              alt="lottina+ Illustration"
              class="w-full max-w-sm object-contain drop-shadow-[0_35px_80px_rgba(4,15,12,0.55)]">
@@ -194,30 +194,39 @@
 </section>
 
 <!-- Flow -->
-<section class="bg-white py-14">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-6">
+<section class="bg-white py-12 sm:py-14">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 space-y-6">
     <div class="text-center space-y-1">
       <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/70">
-        Poster → Lieblingsliste
+        Für Veranstalter:innen
       </span>
-      <h2 class="text-3xl font-lottina font-bold text-lottina-primary">3 Schritte. Fertig.</h2>
+      <h2 class="text-3xl font-lottina font-bold text-lottina-primary">So wirst du in 3 Schritten sichtbar.</h2>
+      <p class="text-sm text-lottina-primary/70 max-w-2xl mx-auto">Von deinem Poster direkt in Karten, Filter und Lieblingslisten. lottina macht deine Events auffindbar – ohne digitales Know-How</p>
     </div>
-    <div class="grid gap-3 md:grid-cols-3 text-center">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 text-center">
       <article class="rounded-3xl border border-lottina-primary/10 bg-white px-5 py-6 shadow flex flex-col gap-2">
         <p class="text-xs font-semibold uppercase tracking-[0.4em] text-lottina-primary/60">1</p>
-        <h3 class="text-lg font-semibold text-lottina-primary">Entdecken</h3>
-        <p class="text-sm text-lottina-primary/60">Filter + Karte</p>
+        <h3 class="text-lg font-semibold text-lottina-primary">Event einreichen</h3>
+        <p class="text-sm text-lottina-primary/60">Poster hochladen, Beschreibung ergänzen, fertig.</p>
       </article>
       <article class="rounded-3xl border border-lottina-primary/10 bg-white px-5 py-6 shadow flex flex-col gap-2">
         <p class="text-xs font-semibold uppercase tracking-[0.4em] text-lottina-primary/60">2</p>
-        <h3 class="text-lg font-semibold text-lottina-primary">Poster hochladen</h3>
-        <p class="text-sm text-lottina-primary/60">OCR liest Details</p>
+        <h3 class="text-lg font-semibold text-lottina-primary">lottina kuratiert</h3>
+        <p class="text-sm text-lottina-primary/60">Wir lesen alle Details via OCR, ordnen Kategorien zu und platzieren dich in Feed, Karte und Newsletter.</p>
       </article>
       <article class="rounded-3xl border border-lottina-primary/10 bg-white px-5 py-6 shadow flex flex-col gap-2">
         <p class="text-xs font-semibold uppercase tracking-[0.4em] text-lottina-primary/60">3</p>
-        <h3 class="text-lg font-semibold text-lottina-primary">Merken & erinnern</h3>
-        <p class="text-sm text-lottina-primary/60">Mit lottina+</p>
+        <h3 class="text-lg font-semibold text-lottina-primary">Mehr Besucher:innen</h3>
+        <p class="text-sm text-lottina-primary/60">Merkliste, Erinnerungen & lottina+ sorgen für Tickets statt toter Plakate.</p>
       </article>
+    </div>
+    <div class="text-center pt-2">
+      <a href="/event-erstellen" class="inline-flex items-center gap-2 rounded-2xl bg-lottina-primary px-5 py-3 text-white font-semibold shadow-lg hover:-translate-y-0.5 transition">
+        Jetzt Event sichtbar machen
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+        </svg>
+      </a>
     </div>
   </div>
 </section>
@@ -241,11 +250,11 @@
 {% set hobby_events = hobby_ns.items %}
 
 <!-- Hobby Finder -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] py-16 text-white">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] py-14 sm:py-16 text-white">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.32),_rgba(0,0,0,0))]"></div>
-  <div class="max-w-6xl mx-auto px-6 lg:px-10">
-    <div class="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_420px] items-center">
-      <div class="space-y-5">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
+    <div class="relative z-10 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1fr)_420px] items-center">
+      <div class="space-y-5 text-center lg:text-left">
         <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs uppercase tracking-[0.24em] font-semibold">
           Lieblingshobby finden
         </span>
@@ -265,21 +274,21 @@
             Speichere Favoriten, lass dich erinnern und entdecke neue Kurse, sobald Plätze frei werden.
           </p>
         </div>
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3 justify-center lg:justify-start">
           <a href="/results?cats[]=Hobby"
-             class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
+             class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
             Zum Hobby-Feed
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
             </svg>
           </a>
           <a href="/results?cats[]=Hobby&free=1"
-             class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl border border-white/40 text-white font-semibold hover:bg-white/10 transition">
+             class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-white/40 text-white font-semibold hover:bg-white/10 transition">
             Kostenlose Angebote
           </a>
         </div>
       </div>
-      <div class="relative z-10">
+      <div class="relative z-10 mt-6 lg:mt-0">
         <div class="hobby-collage">
           <div class="hobby-collage__glow"></div>
           <img src="{{ url_for('static', filename='img/gitarre.png') }}" alt="Gitarren-Session" class="hobby-collage__img hobby-collage__img--one">
@@ -290,7 +299,7 @@
       </div>
     </div>
 
-    <div class="relative z-10 mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
+    <div class="relative z-10 mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
       {% if hobby_events %}
         {% for event in hobby_events[:6] %}
           <article class="group relative flex flex-col overflow-hidden rounded-3xl bg-white text-lottina-primary border border-white/40 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
@@ -301,7 +310,7 @@
                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                 <div class="absolute top-3 left-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">
                   {% if event.dt_start %}
-                    {{ event.dt_start.astimezone().strftime("%a, %d.%m.") }}
+                    {{ event.dt_start | shortdate }}
                   {% else %}
                     Termin folgt
                   {% endif %}
@@ -361,21 +370,21 @@
 </section>
 
 <!-- Testimonials Feed -->
-<section class="bg-white py-16">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row gap-10">
-    <div class="lg:w-1/3 space-y-4">
+<section class="bg-white py-14">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col lg:flex-row gap-10">
+    <div class="lg:w-1/3 space-y-4 text-center lg:text-left">
       <h2 class="text-3xl font-bold text-lottina-primary">Was Familien erzählen</h2>
       <p class="text-sm text-lottina-primary/75">
         Echtes Feedback von Eltern, Veranstalter:innen und Kids, die mit lottina ihre Highlights gefunden haben.
       </p>
-      <a href="{{ url_for('ueber_uns') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-lottina-accent hover:text-white hover:gap-3 transition-all">
+      <a href="{{ url_for('ueber_uns') }}" class="inline-flex items-center justify-center gap-2 text-sm font-semibold text-lottina-accent hover:text-lottina-primary/80 hover:gap-3 transition-all">
         Mehr über lottina erfahren
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
         </svg>
       </a>
     </div>
-    <div class="lg:w-2/3 grid md:grid-cols-2 gap-6">
+    <div class="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-6">
       {% for t in testimonials %}
         <article class="testimonial-card">
           <div class="flex items-center gap-3">
@@ -397,24 +406,24 @@
 </section>
 
 <!-- Map CTA -->
-<section class="relative overflow-hidden py-28 bg-gradient-to-r from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+<section class="relative overflow-hidden py-20 sm:py-24 lg:py-28 bg-gradient-to-r from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
   <div class="absolute inset-0 opacity-15 pointer-events-none bg-[url('data:image/svg+xml,%3Csvg width%3D%22100%25%22 height%3D%22100%25%22 xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Cdefs%3E%3Cpattern id%3D%22grid%22 width%3D%2240%22 height%3D%2240%22 patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath d%3D%22M 40 0 L 0 0 0 40%22 fill%3D%22none%22 stroke%3D%22white%22 stroke-width%3D%220.35%22/%3E%3C/pattern%3E%3C/defs%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22url(%23grid)%22/%3E%3C/svg%3E')]"></div>
-  <div class="relative max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-10">
+  <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-10 text-center lg:text-left">
     <div class="lg:w-2/3 space-y-5">
-      <h2 class="text-3xl lg:text-4xl font-lottina font-bold drop-shadow-lg">Entdecke Events in deiner Nähe</h2>
-      <p class="text-base lg:text-lg text-white/80 max-w-2xl">
+      <h2 class="text-3xl sm:text-4xl lg:text-4xl font-lottina font-bold drop-shadow-lg">Entdecke Events in deiner Nähe</h2>
+      <p class="text-base sm:text-lg text-white/80 max-w-2xl mx-auto lg:mx-0">
         Unsere interaktive Karte zeigt dir kinderfreundliche Highlights in ganz Deutschland. Filtere nach Outdoor-Aktivitäten, Altersgruppen, Kosten oder Datum – alles mit wenigen Klicks.
       </p>
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-col sm:flex-row flex-wrap gap-3 justify-center lg:justify-start">
         <a id="openMap"
            href="{{ url_for('karte') }}"
-           class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
+           class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-lottina-primary font-semibold shadow-lg hover:translate-y-[-1px] transition">
           Karte öffnen
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7.5 8 5l8 3 5-2M8 5v15m8-12v15"/>
           </svg>
         </a>
-        <a href="/results" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
+        <a href="/results" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10">
           Alle Events anzeigen
         </a>
       </div>

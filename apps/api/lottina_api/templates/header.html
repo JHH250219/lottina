@@ -33,19 +33,6 @@
           </button>
         </div>
       </div>
-
-      <!-- Suche -->
-      {% if request.path != '/' %}
-        <form action="{{ url_for('suchergebnisse') }}" method="get"
-              class="hidden sm:block sm:mt-2 w-full md:flex-1 md:min-w-[220px]">
-          <label for="header-q" class="sr-only">Suche</label>
-          <input id="header-q" type="text" name="q" value="{{ query if query else '' }}"
-                 placeholder="Suche nach Ort oder Begriff"
-                 class="w-full px-4 py-2 rounded-xl border border-white/20 bg-white/15 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-[#8be84f]/60">
-        </form>
-      {% else %}
-        <div class="hidden sm:flex flex-1"></div>
-      {% endif %}
     </div>
   </div>
 </header>
