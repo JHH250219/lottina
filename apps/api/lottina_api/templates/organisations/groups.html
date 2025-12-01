@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ organisation.name }} – Gruppen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-10">
+    <header class="space-y-3 text-center">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+        Gruppen
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Teams & Bereiche verwalten</h1>
+      <p class="text-sm sm:text-base text-white/80">Lege Gruppen für Standorte, Angebote oder Zielgruppen an und verknüpfe Events sowie Mitglieder.</p>
+    </header>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      {% include "organisations/_tabs.html" %}
+      {% if errors %}
+        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+          <p class="font-semibold">Bitte prüfe deine Eingaben:</p>
+          <ul class="list-disc list-inside space-y-1">
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      <div class="grid gap-6 md:grid-cols-2">
+        <form method="post" class="rounded-[32px] border border-white/15 bg-white/5 p-5 space-y-4">
+          <input type="hidden" name="action" value="create">
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Neue Gruppe</p>
+          <label class="wizard-label text-white">
+            Name
+            <input type="text" name="name" class="wizard-input" placeholder="z. B. Kinderturnen" required>
+          </label>
+          <label class="wizard-label text-white">
+            Beschreibung
+            <textarea name="description" rows="3" class="wizard-textarea" placeholder="Optional"></textarea>
+          </label>
+          <button type="submit" class="wizard-btn wizard-btn--primary w-full">Gruppe anlegen</button>
+        </form>
+        <div class="rounded-[32px] border border-white/15 bg-white/5 p-5 text-sm text-white/75 space-y-2">
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Tipp</p>
+          <p>Gruppen helfen dir, Events nach Teams oder Standorten zu strukturieren. Auf der Detailseite kannst du Mitglieder und Termine zuweisen.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Bestehende Gruppen</p>
+          <h2 class="text-2xl font-semibold">Übersicht</h2>
+        </div>
+      </div>
+      {% if groups %}
+        <div class="space-y-4">
+          {% for group in groups %}
+            <article class="rounded-[32px] border border-white/15 bg-white/5 p-5 flex flex-col gap-4">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h3 class="text-lg font-semibold">{{ group.name }}</h3>
+                  <p class="text-xs text-white/70">
+                    {{ group.members.count() }} Mitglieder · {{ group.events.count() }} Events
+                  </p>
+                </div>
+                <div class="flex gap-2">
+                  <a href="{{ url_for('organisations.organisation_group_detail', slug=organisation.slug, group_slug=group.slug) }}"
+                     class="inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-xs font-semibold hover:bg-white/10">
+                    Details
+                  </a>
+                  <form method="post" onsubmit="return confirm('Gruppe wirklich löschen?');">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="group_id" value="{{ group.id }}">
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-xs font-semibold text-red-200 hover:bg-white/10">
+                      Löschen
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <p class="text-sm text-white/70">{{ group.description or 'Keine Beschreibung hinterlegt.' }}</p>
+              <form method="post" class="grid gap-3 md:grid-cols-[2fr,auto]">
+                <input type="hidden" name="action" value="rename">
+                <input type="hidden" name="group_id" value="{{ group.id }}">
+                <input type="text" name="name" value="{{ group.name }}" class="wizard-input" placeholder="Neuer Name">
+                <button type="submit" class="inline-flex items-center justify-center rounded-full border border-white/30 px-4 py-2 text-xs font-semibold hover:bg-white/10">
+                  Umbenennen
+                </button>
+              </form>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="rounded-3xl border border-dashed border-white/30 bg-white/5 px-6 py-10 text-center text-sm text-white/70">
+          Noch keine Gruppen angelegt. Starte mit deinem ersten Bereich.
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .wizard-label input,
+  .wizard-label textarea,
+  .wizard-input,
+  .wizard-textarea {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.9);
+    color: #0f2f2c;
+  }
+  .wizard-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 0.85rem 1.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .wizard-btn--primary {
+    background: linear-gradient(135deg, #0f2f2c, #1f6d5c, #8be84f);
+    color: #fff;
+  }
+</style>
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Registrieren – lottina{% endblock %}
+{% block title %}Registrieren – lottina Familienkonto anlegen{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-lottina-background text-lottina-primary">
@@ -26,59 +26,149 @@
 
       <div>
         <div class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-lottina-primary/15 px-6 sm:px-8 py-8 space-y-6">
-          <div>
-            <h2 class="text-2xl font-semibold">Registrieren</h2>
+          <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Wie möchtest du starten?</h2>
             <p class="text-sm text-lottina-primary/70">
-              Wir schicken dir eine Bestätigung per E-Mail.
+              Wähle, ob du dich als Privatperson anmeldest oder direkt mit dem Organisations-Onboarding beginnst.
             </p>
           </div>
 
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              <div class="space-y-3">
-                {% for category, message in messages %}
-                  <div class="px-4 py-3 rounded-2xl text-sm font-medium text-lottina-primary
-                              {{ 'bg-lottina-accent' if category == 'danger' else 'bg-lottina-primary' }}">
-                    {{ message }}
-                  </div>
-                {% endfor %}
-              </div>
-            {% endif %}
-          {% endwith %}
-
-          <form method="POST" class="space-y-4">
-            <div>
-              <label for="username" class="block text-sm font-semibold text-lottina-primary/80 mb-1">Name / Organisation</label>
-              <input id="username" name="username" type="text" autocomplete="name" required
-                     class="w-full px-4 py-3 rounded-2xl border border-lottina-primary/20 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/70 placeholder:text-lottina-primary/40" />
-            </div>
-
-            <div>
-              <label for="email" class="block text-sm font-semibold text-lottina-primary/80 mb-1">E-Mail</label>
-              <input id="email" name="email" type="email" autocomplete="email" required
-                     class="w-full px-4 py-3 rounded-2xl border border-lottina-primary/20 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/70 placeholder:text-lottina-primary/40" />
-            </div>
-
-            <div>
-              <label for="password" class="block text-sm font-semibold text-lottina-primary/80 mb-1">Passwort</label>
-              <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8"
-                     class="w-full px-4 py-3 rounded-2xl border border-lottina-primary/20 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/70 placeholder:text-lottina-primary/40" />
-              <p class="mt-1 text-xs text-lottina-primary/60">Mindestens 8 Zeichen, Zahlen und Sonderzeichen.</p>
-            </div>
-
-            <button type="submit"
-                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-lottina-accent text-lottina-primary font-semibold shadow-lg hover:bg-lottina-highlight/80 transition">
-              Konto erstellen
+          <div class="rounded-2xl bg-lottina-primary/5 border border-lottina-primary/10 p-1 flex gap-2" role="group" aria-label="Registrierungsart wählen">
+            <button type="button"
+                    class="flex-1 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                    data-register-type="person"
+                    aria-pressed="true">
+              Privatperson
             </button>
-          </form>
+            <button type="button"
+                    class="flex-1 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                    data-register-type="organisation"
+                    aria-pressed="false">
+              Organisation
+            </button>
+          </div>
 
-          <p class="text-xs text-lottina-primary/60">
-            Mit der Registrierung akzeptierst du unsere Datenschutzbestimmungen.
-          </p>
+          <div id="register-panel-person" class="space-y-6">
+            <div>
+              <h3 class="text-xl font-semibold">Registrieren</h3>
+              <p class="text-sm text-lottina-primary/70">
+                Wir schicken dir eine Bestätigung per E-Mail.
+              </p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="space-y-3">
+                  {% for category, message in messages %}
+                    <div class="px-4 py-3 rounded-2xl text-sm font-medium text-lottina-primary
+                                {{ 'bg-lottina-accent' if category == 'danger' else 'bg-lottina-primary' }}">
+                      {{ message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="space-y-4">
+              <div>
+                <label for="username" class="block text-sm font-semibold text-lottina-primary/80 mb-1">Name / Organisation</label>
+                <input id="username" name="username" type="text" autocomplete="name" required
+                       class="w-full px-4 py-3 rounded-2xl border border-lottina-primary/20 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/70 placeholder:text-lottina-primary/40" />
+              </div>
+
+              <div>
+                <label for="email" class="block text-sm font-semibold text-lottina-primary/80 mb-1">E-Mail</label>
+                <input id="email" name="email" type="email" autocomplete="email" required
+                       class="w-full px-4 py-3 rounded-2xl border border-lottina-primary/20 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/70 placeholder:text-lottina-primary/40" />
+              </div>
+
+              <div>
+                <label for="password" class="block text-sm font-semibold text-lottina-primary/80 mb-1">Passwort</label>
+                <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8"
+                       class="w-full px-4 py-3 rounded-2xl border border-lottina-primary/20 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/70 placeholder:text-lottina-primary/40" />
+                <p class="mt-1 text-xs text-lottina-primary/60">Mindestens 8 Zeichen, Zahlen und Sonderzeichen.</p>
+              </div>
+
+              <button type="submit"
+                      class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-lottina-accent text-lottina-primary font-semibold shadow-lg hover:bg-lottina-highlight/80 transition">
+                Konto erstellen
+              </button>
+            </form>
+
+            <p class="text-xs text-lottina-primary/60">
+              Mit der Registrierung akzeptierst du unsere Datenschutzbestimmungen.
+            </p>
+          </div>
+
+          <div id="register-panel-organisation" class="hidden space-y-4">
+            <div class="space-y-2">
+              <h3 class="text-xl font-semibold">Onboarding für Organisationen</h3>
+              <p class="text-sm text-lottina-primary/70">
+                Wir begleiten Kommunen, Vereine und Kulturhäuser Schritt für Schritt beim Einrichten ihrer Präsenz.
+              </p>
+            </div>
+            <ul class="space-y-2 text-sm text-lottina-primary/75">
+              <li class="flex items-start gap-2">
+                <span class="mt-1 inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
+                Gemeinsames Setup mit Logo, Beschreibung und Standorten
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-1 inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
+                Gruppen & Teams anlegen, Einladungen verschicken
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-1 inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
+                Unterstützung bei Datenimport und ersten Veranstaltungen
+              </li>
+            </ul>
+            <a href="{{ url_for('organisation_onboarding', wizard=1) }}"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-lottina-primary px-4 py-3 text-white font-semibold shadow hover:-translate-y-0.5 transition">
+              Onboarding starten
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+              </svg>
+            </a>
+            <p class="text-xs text-lottina-primary/60">
+              Du wirst zum Onboarding-Assistenten weitergeleitet und kannst dort alle Angaben speichern.
+            </p>
+          </div>
         </div>
       </div>
 
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggles = document.querySelectorAll("[data-register-type]");
+    const personPanel = document.getElementById("register-panel-person");
+    const organisationPanel = document.getElementById("register-panel-organisation");
+
+    const setMode = (mode) => {
+      toggles.forEach((btn) => {
+        const isActive = btn.dataset.registerType === mode;
+        btn.classList.toggle("bg-lottina-primary", isActive);
+        btn.classList.toggle("text-white", isActive);
+        btn.classList.toggle("shadow-lg", isActive);
+        btn.classList.toggle("bg-white", !isActive);
+        btn.classList.toggle("text-lottina-primary/70", !isActive);
+        btn.setAttribute("aria-pressed", String(isActive));
+      });
+      if (mode === "organisation") {
+        personPanel.classList.add("hidden");
+        organisationPanel.classList.remove("hidden");
+      } else {
+        organisationPanel.classList.add("hidden");
+        personPanel.classList.remove("hidden");
+      }
+    };
+
+    toggles.forEach((btn) => {
+      btn.addEventListener("click", () => setMode(btn.dataset.registerType));
+    });
+
+    setMode("person");
+  });
+</script>
 {% endblock %}

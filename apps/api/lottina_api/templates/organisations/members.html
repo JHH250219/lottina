@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}{{ organisation.name }} – Mitglieder{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-10">
+    <header class="space-y-3 text-center">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+        Team
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Mitglieder & Rollen</h1>
+      <p class="text-sm sm:text-base text-white/80">Verwalte Zugänge zur Organisation, verschicke Einladungen und lege Admin-Rechte fest.</p>
+    </header>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      {% include "organisations/_tabs.html" %}
+      {% if errors %}
+        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+          <p class="font-semibold">Bitte prüfe deine Angaben:</p>
+          <ul class="list-disc list-inside space-y-1">
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      <div class="rounded-[34px] border border-white/15 bg-white/5 p-5 space-y-4">
+        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Mitglied einladen</p>
+        <form method="post" class="flex flex-wrap items-center gap-3">
+          <input type="hidden" name="action" value="invite">
+          <input type="email" name="email" class="wizard-input flex-1 min-w-[220px]" placeholder="E-Mail-Adresse" required>
+          <button type="submit" class="wizard-btn wizard-btn--primary">Einladung senden</button>
+        </form>
+        <p class="text-xs text-white/60">Die Person erhält eine E-Mail mit einem Link zum Registrieren.</p>
+      </div>
+    </section>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Aktive Mitglieder</p>
+          <h2 class="text-2xl font-semibold">Teamübersicht</h2>
+        </div>
+      </div>
+      {% if members %}
+        <div class="space-y-4">
+          {% for item in members %}
+            {% set member = item.user %}
+            {% set role = item.role %}
+            <article class="flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-white/15 bg-white/5 px-5 py-4">
+              <div>
+                <p class="font-semibold">{{ member.firstname or member.username }} {{ member.lastname }}</p>
+                <p class="text-xs text-white/60">{{ member.email }}</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ 'border-emerald-200 text-emerald-100' if role == 'organisation_admin' else 'border-white/30 text-white/70' }}">
+                  {{ 'Admin' if role == 'organisation_admin' else 'Mitglied' }}
+                </span>
+                {% if role != 'organisation_admin' %}
+                  <form method="post">
+                    <input type="hidden" name="action" value="make_admin">
+                    <input type="hidden" name="user_id" value="{{ member.id }}">
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                      Admin vergeben
+                    </button>
+                  </form>
+                {% else %}
+                  <form method="post">
+                    <input type="hidden" name="action" value="remove_admin">
+                    <input type="hidden" name="user_id" value="{{ member.id }}">
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                      Admin entziehen
+                    </button>
+                  </form>
+                {% endif %}
+                <form method="post" onsubmit="return confirm('Mitglied wirklich entfernen?');">
+                  <input type="hidden" name="action" value="remove_member">
+                  <input type="hidden" name="user_id" value="{{ member.id }}">
+                  <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-3 py-1 text-xs font-semibold text-red-200 hover:bg-white/10">
+                    Entfernen
+                  </button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/70">Noch keine Mitglieder hinzugefügt.</p>
+      {% endif %}
+    </section>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div>
+        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Ausstehende Einladungen</p>
+        <h2 class="text-2xl font-semibold">Status</h2>
+      </div>
+      {% if invitations %}
+        <div class="space-y-3">
+          {% for invite in invitations %}
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-white/15 bg-white/5 px-4 py-3">
+              <div>
+                <p class="font-semibold">{{ invite.email }}</p>
+                <p class="text-xs text-white/60">Status: {{ invite.status }}</p>
+              </div>
+              {% if invite.status == 'pending' %}
+                <form method="post">
+                  <input type="hidden" name="action" value="cancel_invite">
+                  <input type="hidden" name="invite_id" value="{{ invite.id }}">
+                  <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                    Zurückziehen
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/70">Keine offenen Einladungen.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .wizard-input {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.95);
+    color: #0f2f2c;
+    padding: 0.85rem 1rem;
+  }
+  .wizard-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 0.85rem 1.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .wizard-btn--primary {
+    background: linear-gradient(135deg, #0f2f2c, #1f6d5c, #8be84f);
+    color: #fff;
+  }
+</style>
+{% endblock %}

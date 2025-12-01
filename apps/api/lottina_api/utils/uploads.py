@@ -2,13 +2,13 @@ from pathlib import Path
 from werkzeug.utils import secure_filename
 import uuid
 
-ALLOWED_IMG = {"png","jpg","jpeg","webp"}
-ALLOWED_PDF = {"pdf"}
+ALLOWED_IMG = {"png", "jpg", "jpeg", "webp"}
 
 def allowed(filename: str) -> bool:
-    if not filename or "." not in filename: return False
-    ext = filename.rsplit(".",1)[-1].lower()
-    return ext in (ALLOWED_IMG | ALLOWED_PDF)
+    if not filename or "." not in filename:
+        return False
+    ext = filename.rsplit(".", 1)[-1].lower()
+    return ext in ALLOWED_IMG
 
 def save_upload(file_storage, subdir: Path) -> Path:
     subdir.mkdir(parents=True, exist_ok=True)

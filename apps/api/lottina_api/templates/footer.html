@@ -3,16 +3,14 @@
     <div class="grid gap-10 md:grid-cols-4">
       <div class="space-y-4">
         <a href="/" class="inline-flex items-center gap-2 text-2xl font-lottina tracking-wide">
-          <img src="{{ url_for('static', filename='img/lottina_logo_weiß.png') }}" alt="lottina Logo" class="h-10 w-auto">
+          <img src="{{ url_for('static', filename='img/lottina_logo.png') }}" alt="lottina Logo" class="h-10 w-auto">
         </a>
         <p class="text-sm text-white/70 leading-relaxed">
           Dein kuratierter Freizeit-Finder für Familien. Poster scannen, Events entdecken, Momente teilen.
         </p>
         <div class="flex gap-3">
           {% set socials = [
-            ("https://facebook.com", "Facebook", "M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"),
-            ("https://instagram.com", "Instagram", "M12 2c2.7 0 3 .01 4.05.06 1.05.05 1.75.22 2.41.48a4.9 4.9 0 0 1 1.77 1.16 4.9 4.9 0 0 1 1.16 1.77c.26.66.43 1.36.48 2.41.05 1.05.06 1.35.06 4.05s-.01 3-.06 4.05c-.05 1.05-.22 1.75-.48 2.41a4.9 4.9 0 0 1-1.17 1.77 4.9 4.9 0 0 1-1.77 1.16c-.66.26-1.36.43-2.41.48-1.05.05-1.35.06-4.05.06s-3-.01-4.05-.06c-1.05-.05-1.75-.22-2.41-.48a4.9 4.9 0 0 1-1.77-1.16 4.9 4.9 0 0 1-1.16-1.77c-.26-.66-.43-1.36-.48-2.41C2.01 15 2 14.7 2 12c0-2.7.01-3 .06-4.05.05-1.05.22-1.75.48-2.41a4.9 4.9 0 0 1 1.16-1.77 4.9 4.9 0 0 1 1.77-1.16c.66-.26 1.36-.43 2.41-.48C9 2.01 9.3 2 12 2Z M12 7.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Zm6.3-.8a1.12 1.12 0 1 0 0-2.24 1.12 1.12 0 0 0 0 2.24Z"),
-            ("https://linkedin.com", "LinkedIn", "M4 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm.5 5H7v13H4.5zM10 8h2.4v1.9h.04c.33-.63 1.14-1.3 2.36-1.3 2.52 0 2.99 1.66 2.99 3.82V21H15v-6.1c0-1.45-.03-3.32-2.03-3.32-2.04 0-2.35 1.59-2.35 3.22V21H10z")
+            ("https://www.instagram.com/lottina.de?igsh=MWNqbmRsN3Q5MzBibw==", "Instagram", "M12 2c2.7 0 3 .01 4.05.06 1.05.05 1.75.22 2.41.48a4.9 4.9 0 0 1 1.77 1.16 4.9 4.9 0 0 1 1.16 1.77c.26.66.43 1.36.48 2.41.05 1.05.06 1.35.06 4.05s-.01 3-.06 4.05c-.05 1.05-.22 1.75-.48 2.41a4.9 4.9 0 0 1-1.17 1.77 4.9 4.9 0 0 1-1.77 1.16c-.66.26-1.36.43-2.41.48-1.05.05-1.35.06-4.05.06s-3-.01-4.05-.06c-1.05-.05-1.75-.22-2.41-.48a4.9 4.9 0 0 1-1.77-1.16 4.9 4.9 0 0 1-1.16-1.77c-.26-.66-.43-1.36-.48-2.41C2.01 15 2 14.7 2 12c0-2.7.01-3 .06-4.05.05-1.05.22-1.75.48-2.41a4.9 4.9 0 0 1 1.16-1.77 4.9 4.9 0 0 1 1.77-1.16c.66-.26 1.36-.43 2.41-.48C9 2.01 9.3 2 12 2Z M12 7.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Zm6.3-.8a1.12 1.12 0 1 0 0-2.24 1.12 1.12 0 0 0 0 2.24Z"),
           ] %}
           {% for url, label, path in socials %}
             <a href="{{ url }}" target="_blank" rel="noopener" class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 border border-white/20 text-white/80 hover:bg-white/20 hover:text-white transition">

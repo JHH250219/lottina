@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} – {{ organisation.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-8">
+    <a href="{{ url_for('organisations.organisation_groups', slug=organisation.slug) }}"
+       class="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white">
+      ← Zurück zu den Gruppen
+    </a>
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      {% include "organisations/_tabs.html" %}
+      {% if errors %}
+        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+          <p class="font-semibold">Aktion fehlgeschlagen:</p>
+          <ul class="list-disc list-inside space-y-1">
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      <div class="rounded-[34px] border border-white/15 bg-white/5 p-5 space-y-4">
+        <form method="post" class="grid gap-4 md:grid-cols-2">
+          <input type="hidden" name="action" value="update_meta">
+          <label class="wizard-label text-white">
+            Name
+            <input type="text" name="name" value="{{ group.name }}" class="wizard-input" required>
+          </label>
+          <label class="wizard-label text-white">
+            Beschreibung
+            <textarea name="description" rows="3" class="wizard-textarea" placeholder="Beschreibung">{{ group.description or '' }}</textarea>
+          </label>
+          <div class="md:col-span-2 flex justify-end">
+            <button type="submit" class="wizard-btn wizard-btn--primary">Gruppe speichern</button>
+          </div>
+        </form>
+        <p class="text-xs text-white/60">Erstellt am {{ group.created_at.strftime('%d.%m.%Y') if group.created_at else '—' }}</p>
+      </div>
+    </section>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Mitglieder</p>
+          <h2 class="text-2xl font-semibold">Team dieser Gruppe</h2>
+        </div>
+        {% if available_members %}
+          <form method="post" class="flex flex-wrap items-center gap-2">
+            <input type="hidden" name="action" value="add_member">
+            <select name="user_id" class="wizard-input bg-white/90 text-[#0f2f2c]" required>
+              <option value="">Mitglied auswählen</option>
+              {% for member in available_members %}
+                <option value="{{ member.id }}">{{ member.username }}{% if member.firstname %} – {{ member.firstname }}{% endif %}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="wizard-btn wizard-btn--primary">Hinzufügen</button>
+          </form>
+        {% endif %}
+      </div>
+      {% if group_members %}
+        <div class="space-y-3">
+          {% for member in group_members %}
+            <div class="flex flex-wrap items-center justify-between rounded-[28px] border border-white/15 bg-white/5 px-4 py-3">
+              <div>
+                <p class="font-semibold">{{ member.firstname or member.username }} {{ member.lastname }}</p>
+                <p class="text-xs text-white/70">{{ member.email }}</p>
+              </div>
+              <form method="post">
+                <input type="hidden" name="action" value="remove_member">
+                <input type="hidden" name="user_id" value="{{ member.id }}">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold hover:bg-white/10">
+                  Entfernen
+                </button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/70">Noch keine Mitglieder zugeordnet.</p>
+      {% endif %}
+    </section>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Events</p>
+          <h2 class="text-2xl font-semibold">Termine dieser Gruppe</h2>
+        </div>
+        {% if available_events %}
+          <form method="post" class="flex flex-wrap items-center gap-2">
+            <input type="hidden" name="action" value="add_event">
+            <select name="event_id" class="wizard-input bg-white/90 text-[#0f2f2c]" required>
+              <option value="">Event auswählen</option>
+              {% for event in available_events %}
+                <option value="{{ event.id }}">{{ event.title }} – {% if event.dt_start %}{{ event.dt_start|smartdate }}{% else %}Termin folgt{% endif %}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="wizard-btn wizard-btn--primary">Hinzufügen</button>
+          </form>
+        {% endif %}
+      </div>
+      {% if group_events %}
+        <div class="space-y-3">
+          {% for event in group_events %}
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-white/15 bg-white/5 px-4 py-3">
+              <div>
+                <p class="font-semibold">{{ event.title }}</p>
+                <p class="text-xs text-white/70">
+                  {% if event.dt_start %}
+                    {{ event.dt_start|smartdate }}
+                  {% else %}
+                    Termin folgt
+                  {% endif %}
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                <a href="{{ url_for('organisations.organisation_event_detail', slug=organisation.slug, event_id=event.id) }}"
+                   class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold hover:bg-white/10">
+                  Details
+                </a>
+                <form method="post">
+                  <input type="hidden" name="action" value="remove_event">
+                  <input type="hidden" name="event_id" value="{{ event.id }}">
+                  <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold hover:bg-white/10">
+                    Entfernen
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/70">Noch keine Events zugeordnet.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .wizard-label input,
+  .wizard-label textarea,
+  .wizard-input,
+  .wizard-textarea {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.9);
+    color: #0f2f2c;
+  }
+  .wizard-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 0.85rem 1.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .wizard-btn--primary {
+    background: linear-gradient(135deg, #0f2f2c, #1f6d5c, #8be84f);
+    color: #fff;
+  }
+</style>
+{% endblock %}

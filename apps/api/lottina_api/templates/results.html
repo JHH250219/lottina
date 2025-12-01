@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Ergebnisse – lottina{% endblock %}
+{% block title %}Suchergebnisse – Familien-Events & Freizeitideen | lottina{% endblock %}
 
 {% macro filter_panel() %}
   <form method="get" class="space-y-6">
@@ -20,6 +20,26 @@
              value="{{ request.args.get('date','') }}"
              type="date"
              class="w-full rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
+    </div>
+
+    <div class="space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/70">Alter der Kinder</p>
+      <div class="grid grid-cols-2 gap-3">
+        <input type="number"
+               name="age_min"
+               min="0"
+               max="18"
+               value="{{ request.args.get('age_min','') }}"
+               placeholder="Min"
+               class="rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
+        <input type="number"
+               name="age_max"
+               min="0"
+               max="18"
+               value="{{ request.args.get('age_max','') }}"
+               placeholder="Max"
+               class="rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
+      </div>
     </div>
 
     {% if categories %}
@@ -85,6 +105,8 @@
     or request.args.get('free') == '1'
     or request.args.get('outdoor') == '1'
     or request.args.get('always') == '1'
+    or request.args.get('age_min')
+    or request.args.get('age_max')
     or request.args.get('q')
     or request.args.get('date') %}
 {% set summary = [] %}
@@ -102,6 +124,15 @@
 {% endif %}
 {% if request.args.get('always') == '1' %}
   {% set _ = summary.append("immer offen") %}
+{% endif %}
+{% if request.args.get('age_min') or request.args.get('age_max') %}
+  {% if request.args.get('age_min') and request.args.get('age_max') %}
+    {% set _ = summary.append("Alter " ~ request.args.get('age_min') ~ "–" ~ request.args.get('age_max')) %}
+  {% elif request.args.get('age_min') %}
+    {% set _ = summary.append("ab " ~ request.args.get('age_min') ~ " Jahren") %}
+  {% else %}
+    {% set _ = summary.append("bis " ~ request.args.get('age_max') ~ " Jahre") %}
+  {% endif %}
 {% endif %}
 
 <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white">
@@ -165,10 +196,38 @@
             Immer offen
           </span>
         {% endif %}
+        {% if request.args.get('age_min') or request.args.get('age_max') %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-white/85">
+            {% if request.args.get('age_min') and request.args.get('age_max') %}
+              Alter {{ request.args.get('age_min') }}–{{ request.args.get('age_max') }}
+            {% elif request.args.get('age_min') %}
+              ab {{ request.args.get('age_min') }} Jahren
+            {% else %}
+              bis {{ request.args.get('age_max') }} Jahre
+            {% endif %}
+          </span>
+        {% endif %}
       </div>
     {% endif %}
   </div>
 </section>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="bg-[#f6fbf8]">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 pt-6">
+        <div class="space-y-3">
+          {% for category, message in messages %}
+            <div class="rounded-2xl px-4 py-3 text-sm font-medium
+                        {% if category == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-100{% elif category == 'danger' %}bg-red-50 text-red-800 border border-red-100{% else %}bg-white border border-lottina-primary/10 text-lottina-primary{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}
 
 <div class="bg-[#f6fbf8] py-12">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 grid gap-8 lg:grid-cols-[280px,1fr]">
@@ -183,7 +242,8 @@
         <div class="grid gap-6 md:grid-cols-2">
           {% for event in events %}
             <article class="relative flex flex-col overflow-hidden rounded-3xl border border-lottina-primary/10 bg-white shadow-lg">
-              <a href="/event/{{ event.id }}" class="flex flex-col h-full">
+              <a href="{{ url_for('event_detail', event_id=event.id) }}" class="flex flex-col h-full">
+                {% set is_favorite = (favorite_offer_ids and (event.id|string in favorite_offer_ids)) %}
                 <div class="relative h-48 overflow-hidden">
                   <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.png') }}"
                        alt="{{ event.title or 'Event Bild' }}"
@@ -195,6 +255,20 @@
                       Termin folgt
                     {% endif %}
                   </div>
+                  <button type="button"
+                          class="favorite-toggle absolute top-3 right-3 inline-flex items-center justify-center rounded-full border border-white/70 bg-white/80 text-lottina-primary/70 p-2 shadow transition hover:text-red-500 {% if is_favorite %}favorite-toggle--active{% endif %}"
+                          data-favorite-toggle
+                          data-event-id="{{ event.id }}"
+                          data-authenticated="{{ 1 if current_user.is_authenticated else 0 }}"
+                          data-login-url="{{ url_for('login', next=request.full_path or request.path) }}"
+                          data-endpoint="{{ url_for('favorite_offer_add', offer_id=event.id) }}"
+                          aria-pressed="{{ 'true' if is_favorite else 'false' }}"
+                          title="Event speichern">
+                    <span class="sr-only">Event speichern</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                      <path d="M12 21s-6-3.35-8.5-7.05C1.5 11.25 1.25 7.5 3.75 5.5 5.75 4 8 4.75 9 6c1-1.25 3.25-2 5.25-.5 2.5 2 2.25 5.75.25 8.45C18 17.65 12 21 12 21Z" stroke="currentColor" fill="currentColor"/>
+                    </svg>
+                  </button>
                 </div>
                 <div class="p-5 space-y-3 flex-1 flex flex-col">
                   <div class="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.18em] text-lottina-primary/60">
@@ -214,7 +288,7 @@
                   <div class="mt-auto flex flex-wrap gap-2 text-xs text-lottina-primary/70">
                     {% if event.location %}
                       <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
-                        {{ event.location }}
+                        {{ event.location.name or event.location.address or event.location.city or "Ort folgt" }}
                       </span>
                     {% endif %}
                     {% if event.categories %}
@@ -231,7 +305,7 @@
           {% endfor %}
         </div>
       {% else %}
-        <div class="rounded-3xl border border-lottina-primary/10 bg-white p-8 text-center shadow">
+        <div class="rounded-3xl border border-lottina-primary/10 bg-white p-8 text-center shadow space-y-6">
           <p class="text-lg font-semibold text-lottina-primary">Keine Ergebnisse gefunden.</p>
           <p class="text-sm text-lottina-primary/70 mt-2">Probier andere Filterkombinationen oder lade ein neues Event hoch.</p>
           <div class="mt-4 flex flex-wrap gap-3 justify-center text-sm">
@@ -242,11 +316,46 @@
               Neues Event einreichen
             </a>
           </div>
+          <div class="pt-4 border-t border-dashed border-lottina-primary/15 text-left">
+            <p class="text-sm font-semibold text-lottina-primary mb-2">Welche Stadt oder welches Angebot fehlt?</p>
+            <form method="POST" action="{{ url_for('submit_feedback') }}" class="space-y-3 text-left">
+              <input type="hidden" name="kind" value="{{ FEEDBACK_KIND_CITY }}">
+              <input type="hidden" name="source" value="results_empty">
+              <input type="hidden" name="redirect" value="{{ request.full_path or request.path }}">
+              <label class="block text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/60">
+                Stadt
+                <input type="text" name="city" class="mt-1 w-full rounded-2xl border border-lottina-primary/20 px-3 py-2 text-sm" placeholder="z. B. Köln oder Lüneburg">
+              </label>
+              <label class="block text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/60">
+                Aktivität / Wunsch
+                <textarea name="message" rows="3" class="mt-1 w-full rounded-2xl border border-lottina-primary/20 px-3 py-2 text-sm" placeholder="Was genau suchst du?" required></textarea>
+              </label>
+              <label class="block text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/60">
+                E-Mail (optional)
+                <input type="email" name="email" class="mt-1 w-full rounded-2xl border border-lottina-primary/20 px-3 py-2 text-sm" placeholder="Damit wir dir schreiben können">
+              </label>
+              <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-lottina-primary px-4 py-2 text-white font-semibold shadow">
+                Wunsch abschicken
+              </button>
+            </form>
+          </div>
         </div>
       {% endif %}
     </section>
   </div>
 </div>
+
+<style>
+  .favorite-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+  .favorite-toggle--active {
+    color: #dc2626;
+    border-color: rgba(248, 113, 113, 0.5);
+    background: rgba(255, 255, 255, 0.9);
+  }
+</style>
 
 <!-- Mobile Drawer -->
 <div id="mobileFilterDrawer" class="fixed inset-0 z-[70] hidden lg:hidden">
@@ -276,5 +385,53 @@
     closeBtn?.addEventListener("click", closeDrawer);
     backdrop?.addEventListener("click", closeDrawer);
   })();
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const favoriteButtons = document.querySelectorAll("[data-favorite-toggle]");
+    favoriteButtons.forEach((button) => {
+      const endpoint = button.dataset.endpoint;
+      const loginUrl = button.dataset.loginUrl || "{{ url_for('login') }}";
+      const isAuthenticated = button.dataset.authenticated === "1";
+
+      const setState = (active) => {
+        if (active) {
+          button.classList.add("favorite-toggle--active");
+          button.setAttribute("aria-pressed", "true");
+        } else {
+          button.classList.remove("favorite-toggle--active");
+          button.setAttribute("aria-pressed", "false");
+        }
+      };
+
+      button.addEventListener("click", async () => {
+        if (!endpoint) return;
+        if (!isAuthenticated) {
+          window.location.href = loginUrl;
+          return;
+        }
+
+        const active = button.classList.contains("favorite-toggle--active");
+        const method = active ? "DELETE" : "POST";
+        try {
+          const response = await fetch(endpoint, {
+            method,
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+            },
+          });
+          if (!response.ok) {
+            console.error("Favorite toggle failed", await response.text());
+            return;
+          }
+          setState(!active);
+        } catch (error) {
+          console.error("Favorite toggle error", error);
+        }
+      });
+    });
+  });
 </script>
 {% endblock %}

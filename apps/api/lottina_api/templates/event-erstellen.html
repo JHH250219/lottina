@@ -1,1163 +1,754 @@
 {% extends "base.html" %}
-{% block title %}Event erstellen – lottina{% endblock %}
+{% block title %}Event einreichen – Lottina Familien-Freizeitkalender{% endblock %}
 
 {% block content %}
-<div class="page-enter bg-[#f3f7f6] text-lottina-primary">
-  <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
-    <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
-    <div class="relative z-10 max-w-6xl mx-auto pt-32 pb-16 px-4 sm:px-8 lg:px-12">
-      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-        <div class="space-y-4 max-w-3xl">
-          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold uppercase tracking-[0.24em]">
-            Event einreichen
-          </span>
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg text-white">
-            Mach dein Familien-Event sichtbar
-          </h1>
-          <p class="text-base sm:text-lg text-white/80">
-            Lege dein Angebot Schritt für Schritt an oder lade ein Poster hoch und lasse unsere OCR die wichtigsten Daten
-            für dich erkennen. Danach veredelst du die Details und veröffentlichst mit wenigen Klicks.
-          </p>
-        </div>
-        <div class="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/15 border border-white/30 shadow text-sm text-white/85 backdrop-blur-sm">
-          <span class="inline-flex h-2.5 w-2.5 rounded-full bg-lottina-accent"></span>
-          <div class="space-y-0.5">
-            <p class="font-semibold text-white">Import-Assistent</p>
-            <p class="text-xs text-white/70">OCR, Kategorien &amp; Geodaten in wenigen Minuten</p>
+{% set form_data = form_data or {} %}
+<section class="relative overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="absolute inset-0 opacity-25 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_rgba(0,0,0,0))]"></div>
+  <div class="relative z-10 max-w-5xl mx-auto px-5 sm:px-10 pt-40 pb-24 space-y-8 text-center">
+    <p class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.3em] mx-auto">
+      Erlebnis einreichen
+    </p>
+    <h1 class="text-4xl sm:text-5xl font-lottina font-bold leading-tight drop-shadow-xl">
+      Mach dein Familien-Erlebnis sichtbar
+    </h1>
+    <p class="text-base sm:text-lg text-white/80 max-w-3xl mx-auto">
+      Wähle „Manuell erstellen“ und beantworte Schritt für Schritt alle Fragen. Poster-OCR ist in Arbeit – bald kannst du Flyer einfach fotografieren.
+    </p>
+    {% if submission_error %}
+      <div class="mx-auto max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        {{ submission_error }}
+      </div>
+    {% endif %}
+    <div class="grid grid-cols-1 gap-4 pt-6 lg:grid-cols-2">
+      <button type="button"
+              class="choice-card bg-white text-lottina-primary flex flex-col gap-4 items-start"
+              data-open-manual>
+        <div class="flex items-start gap-4">
+          <img src="{{ url_for('static', filename='img/typing.png') }}"
+               alt="Manuell erstellen"
+               class="hidden sm:block h-24 w-24 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.35)]">
+          <div class="space-y-2 text-left">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+              Schritt für Schritt
+            </span>
+            <h2 class="text-2xl font-semibold">Manuell erstellen</h2>
+            <p class="text-sm text-lottina-primary/70">
+              Beantworte ein paar Fragen, füge ein Bild hinzu und reiche dein Erlebnis zur Prüfung ein.
+            </p>
           </div>
         </div>
+      </button>
+      <button type="button"
+              class="choice-card bg-gradient-to-br from-[#12352d] via-[#0f2f2c] to-[#1f6d5c] text-white flex flex-col gap-4 items-start"
+              data-open-ocr>
+        <div class="flex items-start gap-4">
+          <img src="{{ url_for('static', filename='img/ocr-search.png') }}"
+               alt="Poster scannen"
+               class="hidden sm:block h-24 w-24 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.45)]">
+          <div class="space-y-2 text-left">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-wide text-white">
+              Bald verfügbar
+            </span>
+            <h2 class="text-2xl font-semibold">Poster scannen (OCR)</h2>
+            <p class="text-sm text-white/80">
+              Lade ein Foto hoch und lass die wichtigsten Infos automatisch ausgelesen werden – in Kürze verfügbar.
+            </p>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- OCR Soon Modal -->
+<div id="ocr-modal" class="wizard-modal" hidden>
+  <div class="wizard-modal__backdrop" data-modal-close></div>
+  <div class="wizard-modal__dialog">
+    <h2 class="wizard-modal__title">OCR kommt bald</h2>
+    <p class="wizard-modal__text">Wir arbeiten mit Hochdruck daran, Poster automatisch auszulesen. Trag dein Event solange manuell ein – es dauert nur ein paar Fragen.</p>
+    <button type="button" class="wizard-modal__button" data-modal-close>Verstanden</button>
+  </div>
+</div>
+
+<!-- Manual Wizard -->
+<div id="manual-wizard" class="wizard-overlay" hidden>
+  <div class="wizard-panel">
+    <div class="wizard-progress">
+      <div class="wizard-progress__label">Fortschritt</div>
+      <div class="wizard-progress__bar">
+        <div class="wizard-progress__value" data-progress style="width: 0%;"></div>
       </div>
     </div>
-  </section>
+    <button type="button" class="wizard-close" data-wizard-close aria-label="Schließen">×</button>
 
-  <div class="relative z-10 max-w-6xl mx-auto -mt-12 px-4 sm:px-8 lg:px-12 pb-16 space-y-8">
-      <div id="choiceBox" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <button id="startManual" type="button"
-                class="group relative overflow-hidden rounded-[28px] border border-lottina-primary/10 bg-white px-6 py-7 text-left shadow-xl transition transform hover:-translate-y-1 hover:shadow-2xl">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-3">
-              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-background text-xs font-semibold text-lottina-accent uppercase tracking-wide">
-                Schritt für Schritt
-              </span>
-              <h2 class="text-xl font-semibold text-lottina-primary">Manuell anlegen</h2>
-              <p class="text-sm text-lottina-primary/70 max-w-xs">
-                Für alle, die jedes Detail selbst bestimmen möchten – inklusive Beschreibung, Medien und Kontakt.
-              </p>
-              <ul class="text-xs text-lottina-primary/60 space-y-1.5">
-                <li class="flex items-center gap-2">
-                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-lottina-accent/80"></span>
-                  Mehrstufiger Assistent mit Vorschau
-                </li>
-                <li class="flex items-center gap-2">
-                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-lottina-accent/80"></span>
-                  Orte & Kategorien auswählbar
-                </li>
-              </ul>
-            </div>
-            <div class="flex h-20 w-24 items-center justify-center overflow-visible">
-              <img src="{{ url_for('static', filename='img/typing.png') }}"
-                   alt="Manuelles Anlegen"
-                   class="h-full w-full object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.45)]">
-            </div>
-          </div>
-          <div class="absolute inset-0 -z-10 bg-gradient-to-br from-white via-white to-lottina-background opacity-0 transition group-hover:opacity-100"></div>
-        </button>
+    <form id="wizard-form"
+          method="post"
+          action="{{ url_for('create_event') }}"
+          enctype="multipart/form-data"
+          class="wizard-form">
+      <input type="hidden" name="form_mode" value="manual">
+      <input type="hidden" name="interactive" value="1">
+      <input type="hidden" name="image_url" id="wizard-image-url" value="{{ form_data.get('image_url', '') }}">
 
-        <label for="ocrUpload"
-               class="group relative overflow-hidden rounded-[28px] border border-[#1e4c3d]/40 bg-gradient-to-br from-[#12352d] via-[#0f2f2c] to-[#1f6d5c] px-6 py-7 text-left text-white shadow-[0_35px_120px_rgba(15,47,44,0.55)] cursor-pointer transition transform hover:-translate-y-1 hover:shadow-[0_40px_150px_rgba(15,47,44,0.65)]">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-3">
-              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-wide text-white">
-                OCR · Beta
-              </span>
-              <h2 class="text-xl font-semibold text-white">Poster hochladen & scannen</h2>
-              <p class="text-sm text-white/80 max-w-xs">
-                Lade ein Foto oder PDF deiner Veranstaltung hoch – wir extrahieren Datum, Zeiten, Ort und Kontakt automatisch.
-              </p>
-              <ul class="text-xs text-white/75 space-y-1.5">
-                <li class="flex items-center gap-2">
-                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-white/70"></span>
-                  Intelligente Felderkennung für deutschsprachige Inhalte
-                </li>
-                <li class="flex items-center gap-2">
-                  <span class="inline-flex h-1.5 w-1.5 rounded-full bg-white/70"></span>
-                  Danach frei bearbeitbar
-                </li>
-              </ul>
-            </div>
-            <div class="flex h-20 w-24 items-center justify-center overflow-visible">
-              <img src="{{ url_for('static', filename='img/ocr-search.png') }}"
-                   alt="Poster OCR Vorschau"
-                   class="h-full w-full object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.45)]">
-            </div>
-          </div>
-          <input type="file" id="ocrUpload" accept="image/*,application/pdf" class="hidden" />
-          <div class="absolute inset-0 -z-10 bg-gradient-to-br from-white/15 via-transparent to-transparent opacity-0 transition group-hover:opacity-80"></div>
+      <div class="wizard-step" data-step="0">
+        <p class="wizard-step__eyebrow">Frage 1</p>
+        <h3 class="wizard-step__title">Wie heißt dein Erlebnis?</h3>
+        <input type="text" name="title" value="{{ form_data.get('title', '') }}" class="wizard-input" placeholder="Titel eingeben" required>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="1">
+        <p class="wizard-step__eyebrow">Frage 2</p>
+        <h3 class="wizard-step__title">Beschreibe es in einem Satz.</h3>
+        <input type="text" name="summary" value="{{ form_data.get('summary', '') }}" class="wizard-input" placeholder="Kurzbeschreibung">
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="2">
+        <p class="wizard-step__eyebrow">Frage 3</p>
+        <h3 class="wizard-step__title">Was erwartet Familien?</h3>
+        <textarea name="description" rows="6" class="wizard-textarea" placeholder="Beschreibe euer Angebot.">{{ form_data.get('description', '') }}</textarea>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="3">
+        <p class="wizard-step__eyebrow">Frage 4</p>
+        <h3 class="wizard-step__title">Wann findet es statt?</h3>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Datum
+            <input type="date" name="date" value="{{ form_data.get('date', '') }}" class="wizard-input">
+          </label>
+          <label class="wizard-label">
+            Startzeit
+            <input type="time" name="time" value="{{ form_data.get('time', '') }}" class="wizard-input">
+          </label>
+          <label class="wizard-label">
+            Endzeit
+            <input type="time" name="time_end" value="{{ form_data.get('time_end', '') }}" class="wizard-input">
+          </label>
+        </div>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="4">
+        <p class="wizard-step__eyebrow">Frage 5</p>
+        <h3 class="wizard-step__title">Wo findet es statt?</h3>
+        <label class="wizard-label">
+          Ort oder Adresse
+          <input type="text" name="location" value="{{ form_data.get('location', '') }}" class="wizard-input" placeholder="z. B. Stadtpark, Museum">
         </label>
-      </div>
-
-      <div class="grid gap-3 sm:grid-cols-3 text-sm text-lottina-primary/70">
-        <div class="flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-lottina-accent/70"></span>
-          Poster & PDFs bis 12&nbsp;MB
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-lottina-accent/70"></span>
-          OCR für deutschsprachige Inhalte optimiert
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-lottina-accent/70"></span>
-          Manuelle Korrektur jederzeit möglich
+        <label class="wizard-label">
+          Maps-Link (optional)
+          <input type="url" name="maps_url" value="{{ form_data.get('maps_url', '') }}" class="wizard-input">
+        </label>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-20 space-y-8">
-    <div class="rounded-3xl border border-lottina-primary/10 bg-white/80 backdrop-blur shadow-lg px-5 sm:px-7 py-6 flex flex-wrap items-center justify-between gap-3 text-sm text-lottina-primary/65">
-      <div class="flex items-center gap-3">
-        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-lottina-accent/20 text-lottina-primary shadow-inner">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </span>
-        <div>
-          <p class="font-semibold text-lottina-primary">Tipp</p>
-          <p class="text-xs sm:text-sm text-lottina-primary/60">Speichere als Entwurf und bearbeite später weiter – alles bleibt für dich gesichert.</p>
+      <div class="wizard-step" data-step="5">
+        <p class="wizard-step__eyebrow">Frage 6</p>
+        <h3 class="wizard-step__title">Was kostet das Erlebnis?</h3>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Preis (€)
+            <input type="number" step="0.01" name="price" value="{{ form_data.get('price', '') }}" class="wizard-input">
+          </label>
+          <label class="wizard-label">
+            Preisinfo
+            <input type="text" name="price_info" value="{{ form_data.get('price_info', '') }}" class="wizard-input" placeholder="z. B. Spende, Erwachsene 5€">
+          </label>
+          <label class="wizard-label">
+            Kostenlos?
+            <select name="is_free" class="wizard-input">
+              <option value="" {% if not form_data.get('is_free') %}selected{% endif %}>Automatisch</option>
+              <option value="true" {% if form_data.get('is_free') == 'true' %}selected{% endif %}>Ja</option>
+              <option value="false" {% if form_data.get('is_free') == 'false' %}selected{% endif %}>Nein</option>
+            </select>
+          </label>
+        </div>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
         </div>
       </div>
-      <a href="{{ url_for('suchergebnisse') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 bg-white text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5 transition">
-        Beispiele ansehen
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7" />
-        </svg>
-      </a>
-    </div>
-    
-    <div id="ocrPanel" class="hidden rounded-3xl border border-lottina-accent/20 bg-lottina-background/85 backdrop-blur px-6 py-5 shadow-lg">
-      <div class="flex items-center justify-between gap-3">
-        <div class="text-sm font-semibold uppercase tracking-[0.18em] text-lottina-primary/70">OCR-Ergebnis</div>
-        <div id="ocrConf" class="text-xs text-lottina-primary/60"></div>
+
+      <div class="wizard-step" data-step="6">
+        <p class="wizard-step__eyebrow">Frage 7</p>
+        <h3 class="wizard-step__title">Wie erreichen wir euch?</h3>
+        <label class="wizard-label">
+          Kontakt (E-Mail, Telefon)
+          <input type="text" name="contact" value="{{ form_data.get('contact', '') }}" class="wizard-input">
+        </label>
+        <label class="wizard-label">
+          Anmeldung erforderlich?
+          <input type="text" name="registration" value="{{ form_data.get('registration', '') }}" class="wizard-input" placeholder="Ja/Nein + Details">
+        </label>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
       </div>
-      <div id="ocrStatus" class="mt-2 text-sm text-lottina-primary/85"></div>
-    </div>
 
-    <form id="eventForm" method="POST" action="/event-erstellen" enctype="multipart/form-data" class="text-lottina-primary hidden space-y-10">
-
-        <div class="step space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="1">
-          <div>
-            <label class="block text-lottina-primary font-semibold mb-2">Event-Titel</label>
-            <input type="text" id="title" name="title" required class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="z. B. Familien-Flohmarkt im Stadtpark">
-          </div>
-          <div>
-            <label class="block text-lottina-primary font-semibold mb-2">Beschreibung (optional)</label>
-            <textarea id="description" name="description" rows="4" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="Kurzbeschreibung …"></textarea>
-          </div>
+      <div class="wizard-step" data-step="7">
+        <p class="wizard-step__eyebrow">Frage 8</p>
+        <h3 class="wizard-step__title">Füge ein Bild hinzu.</h3>
+        <div class="wizard-image">
+          <label class="wizard-btn wizard-btn--primary cursor-pointer w-full text-center">
+            Bild hochladen
+            <input type="file" name="poster_file" accept="image/*" class="sr-only">
+          </label>
+          <p class="text-xs text-white/70">Bitte lade ein Bild hoch (JPG, PNG, WebP).</p>
         </div>
-
-        <div class="step hidden space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="2">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Datum</label>
-              <input type="date" id="date" name="date" required class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40">
-            </div>
-            <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Startzeit (optional)</label>
-              <input type="time" id="time" name="time" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40">
-            </div>
-            <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Endzeit (optional)</label>
-              <input type="time" id="time_end" name="time_end" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40">
-            </div>
-          </div>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
         </div>
+      </div>
 
-        <div class="step hidden space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="3">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="wizard-step" data-step="8">
+        <p class="wizard-step__eyebrow">Zusammenfassung</p>
+        <h3 class="wizard-step__title">Passt alles?</h3>
+        <div class="wizard-summary">
+          <dl>
             <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Ort</label>
-              <input type="text" id="location" name="location" required class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="z. B. Stadtpark, Musterstadt">
+              <dt>Titel</dt>
+              <dd data-summary="title">–</dd>
             </div>
             <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Maps-URL (optional)</label>
-              <input type="url" id="maps_url" name="maps_url" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="https://maps.google.com/...">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Kategorie</label>
-              <input type="text" id="category" name="category" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="z. B. Konzert, Theater, Familie">
-              <div id="categorySuggestions" class="hidden mt-2 text-xs sm:text-sm text-lottina-primary/70 flex flex-wrap gap-2"></div>
+              <dt>Kurzbeschreibung</dt>
+              <dd data-summary="summary">–</dd>
             </div>
             <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Altersgruppe</label>
-              <input type="text" id="age_group" name="age_group" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="z. B. ab 6 Jahren">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Kontakt (E-Mail, optional)</label>
-              <input type="email" id="contact" name="contact" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="kontakt@example.de">
+              <dt>Beschreibung</dt>
+              <dd data-summary="description">–</dd>
             </div>
             <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Anmeldung erforderlich?</label>
-              <select id="registration" name="registration" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40">
-                <option value="">–</option>
-                <option value="ja">Ja</option>
-                <option value="nein">Nein</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Generelle Öffnungszeiten (optional)</label>
-              <textarea id="opening_hours" name="opening_hours" rows="3" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="z. B. Mo-Fr 10-18 Uhr, Sa 12-16 Uhr"></textarea>
+              <dt>Datum & Zeit</dt>
+              <dd><span data-summary="date">–</span> · <span data-summary="time">–</span></dd>
             </div>
             <div>
-              <label class="block text-lottina-primary font-semibold mb-2">Preis / Hinweis (optional)</label>
-              <input type="text" id="price_info" name="price_info" class="w-full p-3 rounded-lg border border-lottina-primary/15 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent/40" placeholder="z. B. 5 € p.P. / kostenlos zzgl. Eintritt">
+              <dt>Ort</dt>
+              <dd data-summary="location">–</dd>
             </div>
-          </div>
+            <div>
+              <dt>Preisinfo</dt>
+              <dd><span data-summary="price">–</span> · <span data-summary="price_info">–</span></dd>
+            </div>
+            <div>
+              <dt>Kontakt</dt>
+              <dd data-summary="contact">–</dd>
+            </div>
+            <div>
+              <dt>Bild</dt>
+              <dd><span data-summary="image_url">Kein Bild</span></dd>
+            </div>
+          </dl>
         </div>
-
-        <div class="step hidden space-y-6 bg-white/95 border border-lottina-primary/10 rounded-[28px] shadow-xl p-6 sm:p-8" data-step="4">
-          <div id="ocrReview" class="hidden mb-2 p-4 rounded-2xl border border-lottina-accent/25 bg-white shadow-sm">
-            <div class="flex items-center justify-between gap-3">
-              <div class="text-lottina-primary font-semibold">Autofill-Übersicht</div>
-              <div class="text-xs text-gray-500" data-review-stats></div>
-            </div>
-            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3" id="ocrReviewGrid"></div>
-          </div>
-
-          <div id="ocrImagePreview" class="hidden">
-            <div class="text-sm font-semibold text-lottina-primary mb-2">Bildvorschau</div>
-            <div class="preview-img-wrap mx-0 shadow border border-lottina-primary/15">
-              <div class="preview-ar">
-                <img id="ocrImagePreviewImg" src="" alt="Vorschau" class="w-full h-full object-contain" />
-              </div>
-            </div>
-          </div>
-
-          <input type="hidden" id="image_url" name="image_url">
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Nochmals prüfen</button>
+          <button type="submit" class="wizard-btn wizard-btn--primary">Event speichern</button>
         </div>
-
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 bg-white/95 border border-lottina-primary/10 rounded-[24px] shadow-lg p-5">
-          <button type="button" id="prevStep" class="px-4 py-2 rounded-xl border border-lottina-primary/15 bg-white text-lottina-primary font-semibold shadow-sm w-full sm:w-auto hover:bg-lottina-primary/5 transition">Zurück</button>
-          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button type="button" id="previewBtn" class="px-4 py-2 rounded-xl bg-lottina-primary text-lottina-background font-semibold shadow hover:bg-lottina-primary/80 transition w-full sm:w-auto">Vorschau</button>
-            <button type="button" id="nextStep" class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#34d399] to-[#6ee7b7] text-lottina-primary font-semibold shadow-lg hover:from-[#059669] hover:to-[#34d399] hover:shadow-xl transition w-full sm:w-auto">Weiter</button>
-            <button type="submit" id="submitEvent" class="hidden px-4 py-2 rounded-xl bg-gradient-to-r from-[#34d399] to-[#6ee7b7] text-lottina-primary font-semibold shadow-lg hover:from-[#059669] hover:to-[#34d399] hover:shadow-xl transition w-full sm:w-auto">Event speichern</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-<!-- Vorschau-Modal -->
-<div id="previewModal" class="hidden fixed inset-0 z-50">
-  <div class="absolute inset-0 bg-black/50"></div>
-  <div class="relative max-w-3xl mx-auto my-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
-    <div class="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-lottina-primary">Vorschau</h3>
-      <button id="closePreview" class="px-3 py-1 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">Schließen</button>
-    </div>
-
-    <div id="previewBody" class="p-6">
-      <!-- Dynamisch gefüllt -->
-    </div>
+      </div>
+    </form>
   </div>
 </div>
 
-<!-- Review-Editor Modal -->
-<div id="reviewEditModal" class="hidden fixed inset-0 z-[1100]">
-  <div class="absolute inset-0 bg-black/50"></div>
-  <div class="relative h-full flex items-center justify-center px-4">
-    <div class="pointer-events-auto w-full max-w-lg bg-white rounded-2xl shadow-2xl">
-      <div class="flex items-center justify-between border-b px-5 py-3">
-        <h3 id="reviewEditTitle" class="text-lg font-semibold text-lottina-primary">Feld bearbeiten</h3>
-        <button type="button" id="reviewEditClose" class="text-sm text-gray-500 hover:text-gray-800">Schließen</button>
-      </div>
-      <div class="px-5 py-4 space-y-3 text-lottina-primary" id="reviewEditBody"></div>
-      <div class="flex justify-end gap-2 border-t px-5 py-3 bg-gray-50">
-        <button type="button" id="reviewEditCancel" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">Abbrechen</button>
-        <button type="button" id="reviewEditSave" class="px-4 py-2 rounded-lg bg-lottina-primary text-lottina-background hover:bg-lottina-accent">Übernehmen</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- OCR Overlay -->
-<div id="ocrOverlay" class="fixed inset-0 z-[1000] hidden">
-  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-  <div class="relative h-full flex items-center justify-center pointer-events-none">
-    <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8 flex flex-col items-center gap-4">
-      <div class="bubble-loader" aria-hidden="true">
-        <span></span><span></span><span></span><span></span><span></span><span></span>
-      </div>
-      <p id="ocrOverlayMsg" class="text-lottina-primary font-semibold text-center">Erkenne Text…</p>
-      <div class="mt-1 h-1 w-48 bg-gray-200 rounded-full overflow-hidden">
-        <div class="h-full w-1/3 bg-lottina-primary animate-progress"></div>
-      </div>
-      <button type="button" id="cancelOcr" class="mt-2 text-xs text-gray-600 hover:text-gray-900 underline">Abbrechen</button>
-    </div>
+<!-- Submission Success -->
+<div id="submission-modal" class="wizard-modal" {% if not submission_success %}hidden{% endif %}>
+  <div class="wizard-modal__backdrop" data-submission-close></div>
+  <div class="wizard-modal__dialog">
+    <h2 class="wizard-modal__title">Danke dir! 🙌</h2>
+    <p class="wizard-modal__text">
+      Wir prüfen "{{ submitted_title or 'dein Event' }}" und schalten es frei, damit die Community nur wertvolle Angebote sieht.
+    </p>
+    <a href="{{ url_for('index') }}" class="wizard-modal__button" data-submission-close>Verstanden</a>
   </div>
 </div>
 
 <style>
-.dots::after { content: "…"; animation: dots 1.2s steps(4,end) infinite; }
-@keyframes dots { 0% {content:""} 25% {content:"."} 50% {content:".."} 75% {content:"..."} 100% {content:""} }
-@keyframes progress { 0% {transform: translateX(-120%)} 100% {transform: translateX(300%)} }
-.animate-progress { animation: progress 1.2s linear infinite; }
-@keyframes lupe { 0% { transform: rotate(0deg) translate(0,0) }
-  25% { transform: rotate(8deg) translate(-3px,-2px) }
-  50% { transform: rotate(-6deg) translate(2px,1px) }
-  75% { transform: rotate(10deg) translate(-2px,2px) }
-  100% { transform: rotate(0deg) translate(0,0) } }
-.animate-lupe { color: #0ea5e9; animation: lupe 1.4s ease-in-out infinite; }
-.preview-img-wrap {
-  width: 100%;
-  max-width: 360px;
-  margin-left: auto;
-  margin-right: auto;
-  background: #f3f4f6;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.4);
-}
-.preview-ar { aspect-ratio: 9 / 16; }
-@supports not (aspect-ratio: 1 / 1) {
-  .preview-ar { position: relative; }
-  .preview-ar::before {
-    content: "";
+  .choice-card {
     display: block;
-    padding-top: 177.78%;
+    width: 100%;
+    text-align: left;
+    border-radius: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 2rem;
+    box-shadow: 0 35px 80px rgba(8, 20, 18, 0.35);
+    text-decoration: none;
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease;
+    cursor: pointer;
   }
-  .preview-ar > img {
-    position: absolute; inset: 0;
+  .choice-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 55px 120px rgba(8, 20, 18, 0.45);
+    border-color: rgba(255, 255, 255, 0.4);
   }
-}
-.bubble-loader{ display:flex; gap:.6rem; align-items:center; justify-content:center; height:70px; }
-.bubble-loader span{
-  width:14px; height:14px; border-radius:999px; background:#34d399;
-  opacity:.35; animation:bubble 1.2s ease-in-out infinite;
-}
-.bubble-loader span:nth-child(2){ animation-delay:.1s }
-.bubble-loader span:nth-child(3){ animation-delay:.2s }
-.bubble-loader span:nth-child(4){ animation-delay:.3s }
-.bubble-loader span:nth-child(5){ animation-delay:.4s }
-.bubble-loader span:nth-child(6){ animation-delay:.5s }
-@keyframes bubble{
-  0%,100%{ transform: translateY(6px) scale(.95); opacity:.35 }
-  50%    { transform: translateY(-6px) scale(1.05); opacity:1 }
-}
+  .wizard-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+  }
+  .wizard-modal[hidden] { display: none; }
+  .wizard-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 20, 19, 0.65);
+    backdrop-filter: blur(6px);
+  }
+  .wizard-modal__dialog {
+    position: relative;
+    max-width: 400px;
+    margin: 15vh auto;
+    padding: 2rem;
+    border-radius: 32px;
+    background: linear-gradient(145deg, #0f2f2c, #1f6d5c);
+    color: white;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(4, 15, 12, 0.6);
+  }
+  .wizard-modal__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  .wizard-modal__text {
+    margin: 1rem 0 1.5rem;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.85);
+  }
+  .wizard-modal__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border-radius: 999px;
+    padding: 0.9rem 1rem;
+    background: white;
+    color: #0f2f2c;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .wizard-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(5,20,15,0.96), rgba(6,35,28,0.96));
+    color: white;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wizard-overlay[hidden] { display: none; }
+  .wizard-panel {
+    position: relative;
+    width: min(900px, 90vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 40px;
+    padding: 2.5rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  .wizard-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: white;
+    font-size: 1.5rem;
+  }
+  .wizard-progress {
+    position: absolute;
+    top: 1.5rem;
+    right: 5rem;
+    width: 140px;
+    text-align: right;
+  }
+  .wizard-progress__label {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+  }
+  .wizard-progress__bar {
+    margin-top: 0.4rem;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.2);
+  }
+  .wizard-progress__value {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #9ef17a, #2dd4bf);
+    transition: width 0.3s ease;
+  }
+  .wizard-form {
+    margin-top: 3rem;
+  }
+  .wizard-step {
+    display: none;
+  }
+  .wizard-step.active {
+    display: block;
+  }
+  .wizard-step__eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 0.5rem;
+  }
+  .wizard-step__title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .wizard-input,
+  .wizard-textarea {
+    width: 100%;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.05);
+    padding: 0.9rem 1.1rem;
+    color: white;
+    font-size: 1rem;
+  }
+  .wizard-textarea {
+    min-height: 180px;
+  }
+  .wizard-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+  }
+  .wizard-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  }
+  .wizard-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+  }
+  .wizard-btn {
+    border-radius: 999px;
+    padding: 0.85rem 1.7rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .wizard-btn--primary {
+    background: white;
+    color: #0f2f2c;
+  }
+  .wizard-btn--secondary {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.25);
+    color: white;
+  }
+  .wizard-btn--ghost {
+    background: transparent;
+    border-color: rgba(255,255,255,0.2);
+    color: white;
+  }
+  .wizard-image {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .wizard-image__preview {
+    width: 100%;
+    height: 220px;
+    border-radius: 28px;
+    border: 1px dashed rgba(255,255,255,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .wizard-image__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .wizard-summary dl {
+    display: grid;
+    gap: 0.8rem;
+  }
+  .wizard-summary dt {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+  .wizard-summary dd {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .media-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+  }
+  .media-modal[hidden] { display: none; }
+  .media-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+  }
+  .media-modal__dialog {
+    position: relative;
+    margin: 10vh auto;
+    width: min(900px, 90vw);
+    border-radius: 34px;
+    padding: 2rem;
+    background: rgba(4,12,10,0.95);
+    color: white;
+  }
+  .media-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .media-modal__title {
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  .media-modal__close {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: white;
+  }
+  .media-modal__body {
+    margin-top: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .media-tile {
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    text-align: left;
+    color: white;
+  }
 </style>
 
 <script>
-const choiceBox   = document.getElementById("choiceBox");
-const form        = document.getElementById("eventForm");
-const steps       = form.querySelectorAll(".step");
-const ocrPanel    = document.getElementById("ocrPanel");
-const ocrStatus   = document.getElementById("ocrStatus");
-const ocrConf     = document.getElementById("ocrConf");
-const reviewBox   = document.getElementById("ocrReview");
-const reviewGrid  = document.getElementById("ocrReviewGrid");
-const reviewStats = document.querySelector("[data-review-stats]");
-const categorySuggestions = document.getElementById("categorySuggestions");
-const reviewEditModal = document.getElementById("reviewEditModal");
-const reviewEditTitle = document.getElementById("reviewEditTitle");
-const reviewEditBody  = document.getElementById("reviewEditBody");
-const reviewEditSave  = document.getElementById("reviewEditSave");
-const reviewEditCancel = document.getElementById("reviewEditCancel");
-const reviewEditClose  = document.getElementById("reviewEditClose");
-const reviewEditOverlay = reviewEditModal?.querySelector(".absolute");
-let activeReviewEdit = null;
-let activeReviewDraft = "";
-let currentStep = 0;
-let reviewEditControl = null;
-let reviewEditOriginalEl = null;
-let detectedCategories = [];
+  document.addEventListener('DOMContentLoaded', () => {
+    const heroManualBtn = document.querySelector('[data-open-manual]');
+    const heroOcrBtn = document.querySelector('[data-open-ocr]');
+    const wizard = document.getElementById('manual-wizard');
+    const wizardClose = wizard?.querySelector('[data-wizard-close]');
+    const steps = wizard ? Array.from(wizard.querySelectorAll('.wizard-step')) : [];
+    const progress = wizard?.querySelector('[data-progress]');
+    const wizardForm = document.getElementById('wizard-form');
+    const imageInput = document.getElementById('wizard-image-url');
+    const imagePreview = document.getElementById('wizard-image-preview');
+    const fileInput = wizardForm?.querySelector('input[name="poster_file"]');
+    const mediaModal = document.getElementById('media-modal');
+    const mediaOpenButtons = document.querySelectorAll('[data-media-open]');
+    const mediaCloseButtons = mediaModal ? mediaModal.querySelectorAll('[data-media-close]') : [];
+    const mediaSelectButtons = mediaModal ? mediaModal.querySelectorAll('[data-media-select]') : [];
+    const mediaClear = document.querySelector('[data-media-clear]');
+    const ocrModal = document.getElementById('ocr-modal');
+    const ocrCloseButtons = ocrModal ? ocrModal.querySelectorAll('[data-modal-close]') : [];
+    const submissionModal = document.getElementById('submission-modal');
 
-const OCR_FIELD_LABELS = {
-  title: "Titel",
-  description: "Beschreibung",
-  date: "Datum",
-  time: "Startzeit",
-  time_end: "Endzeit",
-  location: "Ort",
-  category: "Kategorie",
-  categories: "Kategorien",
-  age_group: "Altersgruppe",
-  contact: "Kontakt",
-  opening_hours: "Öffnungszeiten",
-  price_info: "Preis / Hinweis",
-  registration: "Anmeldung",
-  maps_url: "Maps-URL",
-  image_url: "Bild"
-};
+    let currentStep = 0;
 
-const FORM_REVIEW_FIELDS = [
-  { key: "title", required: true },
-  { key: "description" },
-  { key: "date", required: true },
-  { key: "time" },
-  { key: "time_end" },
-  { key: "location", required: true },
-  { key: "category" },
-  { key: "age_group" },
-  { key: "contact" },
-  { key: "opening_hours" },
-  { key: "price_info" },
-  { key: "registration" },
-  { key: "maps_url" },
-  { key: "image_url" }
-];
+    const updateProgress = () => {
+      if (!progress || !steps.length) return;
+      const percent = ((currentStep + 1) / steps.length) * 100;
+      progress.style.width = `${percent}%`;
+    };
 
-function labelForField(key){
-  return OCR_FIELD_LABELS[key] || key;
-}
+    const showStep = (index) => {
+      if (!steps.length) return;
+      steps.forEach((step, i) => step.classList.toggle('active', i === index));
+      currentStep = index;
+      updateProgress();
+      if (index === steps.length - 1) {
+        updateSummary();
+      }
+    };
 
-function openFormForOcr(){
-  if (choiceBox) choiceBox.classList.add("hidden");
-  if (form) form.classList.remove("hidden");
-  steps.forEach((s,i)=>s.classList.toggle("hidden", i!==0));
-  currentStep = 0;
-}
+    const openWizard = () => {
+      if (!wizard) return;
+      wizard.hidden = false;
+      document.body.classList.add('overflow-hidden');
+      showStep(0);
+    };
 
-function setOcrStatus(message, tone="info"){
-  if (!ocrStatus) return;
-  const tones = {
-    info: "text-gray-700",
-    warn: "text-amber-600",
-    error: "text-red-600",
-    success: "text-green-700",
-  };
-  ocrStatus.innerHTML = message || "";
-  ocrStatus.classList.remove("text-gray-700","text-amber-600","text-red-600","text-green-700");
-  ocrStatus.classList.add(tones[tone] || tones.info);
-  if (message) ocrPanel?.classList.remove("hidden");
-}
+    const closeWizard = () => {
+      if (!wizard) return;
+      wizard.hidden = true;
+      document.body.classList.remove('overflow-hidden');
+    };
 
-function setOcrConfidence(confObj){
-  if (!ocrConf) return;
-  const text = renderConfidence(confObj || {});
-  ocrConf.textContent = text;
-  if (text) ocrConf.classList.remove("hidden");
-  else ocrConf.classList.add("hidden");
-}
+    const openOcrModal = () => {
+      if (!ocrModal) return;
+      ocrModal.hidden = false;
+      document.body.classList.add('overflow-hidden');
+    };
 
-function formatReadable(dateStr, timeStr, timeEndStr) {
-  if (!dateStr) return "Datum unbekannt";
-  const base = new Date(`${dateStr}T09:00`);
-  if (isNaN(base.getTime())) return "Datum unbekannt";
-  const weekday = base.toLocaleDateString("de-DE", { weekday: "long" });
-  const datePart = base.toLocaleDateString("de-DE");
+    const closeOcrModal = () => {
+      if (!ocrModal) return;
+      ocrModal.hidden = true;
+      document.body.classList.remove('overflow-hidden');
+    };
 
-  let timeText = "";
-  if (timeStr) {
-    const start = new Date(`${dateStr}T${timeStr}`);
-    if (!isNaN(start.getTime())) {
-      const startText = start.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }).replace(":00"," Uhr");
-      if (timeEndStr) {
-        const end = new Date(`${dateStr}T${timeEndStr}`);
-        if (!isNaN(end.getTime())) {
-          const endText = end.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }).replace(":00"," Uhr");
-          timeText = `${startText} – ${endText}`;
-        } else {
-          timeText = startText;
+    const validateStep = (index) => {
+      if (!wizardForm) return true;
+      const step = steps[index];
+      if (!step) return true;
+      const requiredInputs = step.querySelectorAll('[required]');
+      for (const input of requiredInputs) {
+        if (!input.value.trim()) {
+          input.focus();
+          return false;
         }
-      } else {
-        timeText = startText;
       }
-    }
-  }
-
-  return `${weekday}${timeText ? ", " + timeText : ""} (${datePart})`;
-}
-
-function renderConfidence(confObj) {
-  const vals = Object.values(confObj || {}).map(Number).filter(n => !isNaN(n));
-  if (!vals.length) return "";
-  const avg = Math.round(100 * vals.reduce((a,b)=>a+b,0) / vals.length);
-  return `≈ Erkennungs-Sicherheit: ${avg}%`;
-}
-
-function setInvalid(el){ el.classList.add("border-red-500","ring-2","ring-red-300"); }
-function clearInvalid(el){ el.classList.remove("border-red-500","ring-2","ring-red-300"); }
-function markMissing(missing=[]) {
-  const ids = ["title","description","date","time","time_end","location","category","age_group","maps_url","image_url"];
-  ids.forEach(id => { const el=document.getElementById(id); if(el) clearInvalid(el); });
-  missing.forEach(id => { const el=document.getElementById(id); if(el) setInvalid(el); });
-}
-
-function renderCategorySuggestions(list){
-  if (!categorySuggestions) return;
-  const cats = Array.isArray(list) ? [...new Set(list.filter(Boolean))] : [];
-  detectedCategories = cats;
-  categorySuggestions.innerHTML = "";
-  if (!cats.length) {
-    categorySuggestions.classList.add("hidden");
-    return;
-  }
-  const label = document.createElement("span");
-  label.className = "w-full text-[11px] uppercase tracking-wide text-lottina-primary font-semibold";
-  label.textContent = "Erkannte Kategorien";
-  categorySuggestions.appendChild(label);
-
-  cats.slice(0, 6).forEach((name) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "px-3 py-1 rounded-full border border-lottina-primary/40 text-lottina-primary text-xs sm:text-sm hover:bg-lottina-primary hover:text-lottina-primary transition focus:outline-none focus:ring-2 focus:ring-lottina-primary";
-    btn.textContent = name;
-    btn.addEventListener("click", () => {
-      const input = document.getElementById("category");
-      if (!input) return;
-      input.value = name;
-      const inputEvt = new Event("input", { bubbles: true });
-      input.dispatchEvent(inputEvt);
-      renderOcrReview();
-    });
-    categorySuggestions.appendChild(btn);
-  });
-  categorySuggestions.classList.remove("hidden");
-}
-
-function readFieldValue(id){
-  const el = document.getElementById(id);
-  if (!el) return "";
-  if (el.tagName === "SELECT") return el.value;
-  if (el.type === "checkbox") return el.checked ? "true" : "";
-  return typeof el.value === "string" ? el.value.trim() : el.value;
-}
-
-function formatDateForReview(value){
-  if (!value) return "";
-  const d = new Date(value);
-  if (!Number.isNaN(d.valueOf())) return d.toLocaleDateString("de-DE");
-  const m = value.match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
-  if (m) return `${m[1].padStart(2,"0")}.${m[2].padStart(2,"0")}.${m[3].length===2?"20"+m[3]:m[3]}`;
-  return value;
-}
-
-function formatTimeForReview(value){
-  if (!value) return "";
-  const match = value.match(/^(\d{1,2}):(\d{2})$/);
-  if (match) return `${match[1].padStart(2,"0")}:${match[2]}`;
-  const alt = value.match(/(\d{1,2})\.(\d{2})/);
-  if (alt) return `${alt[1].padStart(2,"0")}:${alt[2]}`;
-  return value;
-}
-
-function formatReviewValue(key, raw){
-  if (raw === undefined || raw === null) return "";
-  const value = typeof raw === "string" ? raw.trim() : raw;
-  if (value === "") return "";
-
-  if (key === "date") return formatDateForReview(value);
-  if (key === "time" || key === "time_end") return formatTimeForReview(value);
-  if (key === "registration") {
-    const low = String(value).toLowerCase();
-    if (low === "ja" || low === "yes" || low === "true") return "Ja";
-    if (low === "nein" || low === "no" || low === "false") return "Nein";
-    return value;
-  }
-
-  return value;
-}
-
-function createLinkValue(href, label){
-  const wrapper = document.createElement("div");
-  const a = document.createElement("a");
-  a.href = href;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  a.className = "text-sky-600 underline break-words";
-  a.title = href;
-  a.textContent = label || href;
-  wrapper.appendChild(a);
-  return wrapper;
-}
-
-function focusFieldFromReview(key){
-  const el = document.getElementById(key);
-  if (!el || el.type === "hidden") {
-    if (key === "image_url") {
-      const img = document.getElementById("ocrImagePreviewImg");
-      if (img?.src) window.open(img.src, "_blank", "noopener");
-    }
-    return;
-  }
-  const prevShadow = el.style.boxShadow;
-  el.scrollIntoView({ behavior: "smooth", block: "center" });
-  try { el.focus({ preventScroll: true }); } catch (_) { try { el.focus(); } catch (_) {} }
-  el.style.boxShadow = "0 0 0 3px rgba(251, 92, 79, 0.35)";
-  setTimeout(() => {
-    el.style.boxShadow = prevShadow;
-  }, 1200);
-}
-
-function renderOcrReview(){
-  if (!reviewGrid || !reviewBox) return;
-
-  reviewGrid.innerHTML = "";
-  let filled = 0;
-
-  FORM_REVIEW_FIELDS.forEach(({ key, required }) => {
-    const originalEl = document.getElementById(key);
-    const rawValue = originalEl && originalEl.value != null ? originalEl.value : readFieldValue(key);
-    const display = formatReviewValue(key, rawValue);
-    const isFilled = display !== "" && display !== undefined && display !== null;
-    if (isFilled) filled += 1;
-
-    const isEditing = activeReviewEdit === key;
-
-    const item = document.createElement("div");
-    item.className = "rounded-xl border px-3 py-2 text-sm shadow-sm bg-white";
-    item.dataset.field = key;
-    if (isEditing) {
-      item.classList.add("border-lottina-primary/50","bg-white");
-    } else if (isFilled) {
-      item.classList.add("border-emerald-200","bg-emerald-50");
-    } else {
-      item.classList.add(required ? "border-red-200" : "border-amber-200");
-      item.classList.add(required ? "bg-red-50" : "bg-amber-50");
-    }
-
-    const interactive = key !== "image_url" || Boolean(display);
-    if (interactive) {
-      item.classList.add("cursor-pointer");
-      item.tabIndex = 0;
-      item.setAttribute("role", "button");
-    }
-
-    const labelEl = document.createElement("div");
-    labelEl.className = "text-[11px] font-semibold uppercase tracking-wide text-gray-500 flex items-center gap-2";
-    labelEl.textContent = labelForField(key);
-    if (required) {
-      const badge = document.createElement("span");
-      badge.className = "text-[10px] font-bold text-red-500";
-      badge.textContent = "*";
-      labelEl.appendChild(badge);
-    }
-
-    const valueEl = document.createElement("div");
-    valueEl.className = "text-gray-900 whitespace-pre-line";
-
-    if (isFilled) {
-      if (key === "maps_url") {
-        valueEl.replaceChildren(createLinkValue(display, display));
-      } else if (key === "contact" && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(display)) {
-        valueEl.replaceChildren(createLinkValue(`mailto:${display}`, display));
-      } else if (key === "image_url") {
-        const label = display ? "Bild ansehen" : display;
-        valueEl.replaceChildren(createLinkValue(display, label));
-      } else {
-        valueEl.textContent = display;
-      }
-    } else {
-      const missingText = document.createElement("span");
-      missingText.className = required ? "text-red-600 font-medium" : "text-amber-700";
-      missingText.textContent = required ? "Pflichtfeld fehlt" : "Noch offen";
-      valueEl.appendChild(missingText);
-    }
-
-    item.appendChild(labelEl);
-    item.appendChild(valueEl);
-
-    item.addEventListener("click", () => handleReviewItemAction(key));
-    item.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter" || ev.key === " ") {
-        ev.preventDefault();
-        handleReviewItemAction(key);
-      }
-    });
-    reviewGrid.appendChild(item);
-  });
-
-  if (reviewStats) {
-    const total = FORM_REVIEW_FIELDS.length;
-    reviewStats.textContent = `${filled}/${total} Felder ausgefüllt`;
-  }
-
-  reviewBox.classList.remove("hidden");
-}
-
-document.getElementById("previewBtn")?.addEventListener("click", () => {
-  const previewData = {
-    title: document.getElementById("title").value || "Ohne Titel",
-    description: document.getElementById("description")?.value || "",
-    date: document.getElementById("date").value,
-    time: document.getElementById("time").value,
-    time_end: document.getElementById("time_end").value,
-    location: document.getElementById("location").value,
-    category: document.getElementById("category").value,
-    age_group: document.getElementById("age_group").value,
-    contact: document.getElementById("contact").value,
-    opening_hours: document.getElementById("opening_hours").value,
-    price_info: document.getElementById("price_info").value,
-    registration: document.getElementById("registration").value,
-    maps_url: document.getElementById("maps_url").value,
-    image_url: document.getElementById("image_url").value
-  };
-
-  renderPreview(previewData);
-  document.getElementById("previewModal").classList.remove("hidden");
-});
-document.getElementById("closePreview")?.addEventListener("click", () => {
-  document.getElementById("previewModal").classList.add("hidden");
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") document.getElementById("previewModal").classList.add("hidden");
-});
-
-function renderPreview(ev) {
-  const fallbackImg = document.getElementById("ocrImagePreviewImg")?.src || "";
-  const imgSrc = ev.image_url || fallbackImg;
-  const readable = formatReadable(ev.date, ev.time, ev.time_end);
-  const badges = [];
-  if (ev.category) badges.push(`<span class="bg-white text-lottina-primary px-3 py-1 rounded-full font-medium shadow-sm">${escapeHtml(ev.category)}</span>`);
-  if (ev.age_group) badges.push(`<span class="bg-white text-lottina-primary px-3 py-1 rounded-full font-medium shadow-sm">${escapeHtml(ev.age_group)}</span>`);
-
-  const detailItems = [];
-  if (ev.price_info) detailItems.push(`<li><strong>Preis:</strong> ${escapeHtml(ev.price_info)}</li>`);
-  if (ev.registration) detailItems.push(`<li><strong>Anmeldung:</strong> ${escapeHtml(formatReviewValue("registration", ev.registration))}</li>`);
-  if (ev.contact) {
-    const safeContact = escapeHtml(ev.contact);
-    const link = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ev.contact)
-      ? `<a class="text-sky-600 underline" href="mailto:${safeContact}">${safeContact}</a>`
-      : safeContact;
-    detailItems.push(`<li><strong>Kontakt:</strong> ${link}</li>`);
-  }
-  if (ev.opening_hours) detailItems.push(`<li><strong>Öffnungszeiten:</strong> ${escapeHtml(ev.opening_hours)}</li>`);
-  const detailBlock = detailItems.length
-    ? `
-      <section class="mb-8 text-sm text-gray-700 dark:text-gray-300">
-        <ul class="space-y-1">
-          ${detailItems.join("")}
-        </ul>
-      </section>`
-    : "";
-
-  const imgBlock = imgSrc
-    ? `
-    <div class="preview-img-wrap shadow border border-lottina-primary/15">
-      <div class="preview-ar">
-        <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(ev.title)}" class="w-full h-full object-contain" />
-      </div>
-    </div>`
-    : `
-    <div class="preview-img-wrap shadow border border-dashed border-lottina-primary/20 flex items-center justify-center text-gray-500 dark:text-gray-300">
-      <div class="preview-ar flex items-center justify-center">
-        <span class="px-3 text-sm">Kein Bild verfügbar</span>
-      </div>
-    </div>`;
-
-  const mapsBlock = ev.maps_url ? `
-      <section class="mb-12">
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-lottina-primary mb-3">Anfahrt</h2>
-        <iframe src="${escapeHtml(ev.maps_url)}" class="w-full h-64 rounded-xl border dark:border-gray-700 shadow"
-          allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </section>` : ``;
-
-  const html = `
-      <main class="mx-auto px-2 pt-2 pb-10">
-        ${imgBlock}
-        <div class="mb-4">
-          <h1 class="text-3xl font-bold text-lottina-primary dark:text-lottina-primary">${escapeHtml(ev.title)}</h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            ${escapeHtml(readable)} – ${escapeHtml(ev.location || "Ort unbekannt")}
-          </p>
-        </div>
-        <div class="flex flex-wrap gap-2 text-sm mb-6">${badges.join("")}</div>
-
-        ${ev.description ? `
-        <section class="mb-8 prose dark:prose-invert">
-          <h2>Details</h2>
-          <p>${escapeHtml(ev.description)}</p>
-        </section>` : ``}
-
-        ${detailBlock}
-
-        ${mapsBlock}
-      </main>
-    `;
-  document.getElementById("previewBody").innerHTML = html;
-}
-
-function escapeHtml(s) {
-  if (!s) return "";
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-
-function handleReviewItemAction(key){
-  if (key === "image_url") {
-    focusFieldFromReview(key);
-    return;
-  }
-
-  const originalEl = document.getElementById(key);
-  const rawValue = originalEl && originalEl.value != null ? originalEl.value : readFieldValue(key);
-  if (activeReviewEdit === key && !reviewEditModal?.classList.contains("hidden")) {
-    cancelReviewEdit();
-    return;
-  }
-  activeReviewEdit = key;
-  activeReviewDraft = rawValue ?? "";
-  reviewEditOriginalEl = originalEl;
-  renderOcrReview();
-  openReviewEditorModal(key, originalEl, rawValue ?? "");
-}
-
-function buildReviewEditorControl(key, originalEl, rawValue){
-  const type = inferEditorType(originalEl, key);
-  let control;
-  if (type === "textarea") {
-    control = document.createElement("textarea");
-    control.rows = 6;
-  } else {
-    control = document.createElement("input");
-    control.type = type;
-    if (type === "time" && rawValue && rawValue.length === 5) {
-      control.step = "60";
-    }
-  }
-  control.dataset.editorControl = "true";
-  control.className = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-lottina-primary focus:border-lottina-primary";
-  control.value = (activeReviewDraft ?? rawValue ?? "").toString();
-  if (originalEl?.placeholder) control.placeholder = originalEl.placeholder;
-  control.addEventListener("input", (ev) => {
-    activeReviewDraft = ev.target.value;
-  });
-  control.addEventListener("keydown", (ev) => {
-    if (ev.key === "Enter" && (control.tagName !== "TEXTAREA" || ev.metaKey || ev.ctrlKey)) {
-      ev.preventDefault();
-      saveReviewEdit(activeReviewEdit, reviewEditOriginalEl, control);
-    } else if (ev.key === "Escape") {
-      ev.preventDefault();
-      cancelReviewEdit();
-    }
-  });
-  return control;
-}
-
-function openReviewEditorModal(key, originalEl, rawValue){
-  if (!reviewEditModal || !reviewEditBody) return;
-  reviewEditBody.innerHTML = "";
-  reviewEditTitle.textContent = labelForField(key);
-
-  const helper = document.createElement("div");
-  helper.className = "text-xs text-gray-500 mb-2";
-  helper.textContent = "Direkt anpassen und übernehmen.";
-  reviewEditBody.appendChild(helper);
-
-  reviewEditControl = buildReviewEditorControl(key, originalEl, rawValue ?? "");
-  reviewEditBody.appendChild(reviewEditControl);
-
-  reviewEditModal.classList.remove("hidden");
-  requestAnimationFrame(() => {
-    if (reviewEditControl) {
-      reviewEditControl.focus();
-      if (typeof reviewEditControl.select === "function" && reviewEditControl.tagName !== "TEXTAREA") {
-        reviewEditControl.select();
-      }
-    }
-  });
-}
-
-function closeReviewEditorModal(){
-  if (!reviewEditModal) return;
-  reviewEditModal.classList.add("hidden");
-  if (reviewEditBody) reviewEditBody.innerHTML = "";
-  reviewEditControl = null;
-  reviewEditOriginalEl = null;
-}
-
-function inferEditorType(originalEl, key){
-  if (originalEl) {
-    if (originalEl.tagName === "TEXTAREA") return "textarea";
-    const attrType = originalEl.getAttribute("type");
-    if (attrType) return attrType;
-  }
-  if (key === "date") return "date";
-  if (key === "time") return "time";
-  if (key === "time_end") return "time";
-  if (key === "maps_url") return "url";
-  return "text";
-}
-
-function saveReviewEdit(key, originalEl, control){
-  const newValue = (control.value ?? "").toString();
-  const target = originalEl || document.getElementById(key);
-  if (target && "value" in target) {
-    target.value = newValue;
-    const inputEvt = new Event("input", { bubbles: true });
-    const changeEvt = new Event("change", { bubbles: true });
-    target.dispatchEvent(inputEvt);
-    target.dispatchEvent(changeEvt);
-  } else {
-    setVal(key, newValue);
-  }
-  if (typeof control.blur === "function") control.blur();
-  activeReviewEdit = null;
-  activeReviewDraft = "";
-  renderOcrReview();
-  renderCategorySuggestions(detectedCategories);
-  closeReviewEditorModal();
-}
-
-function cancelReviewEdit(){
-  activeReviewEdit = null;
-  activeReviewDraft = "";
-  closeReviewEditorModal();
-  renderOcrReview();
-  renderCategorySuggestions(detectedCategories);
-}
-
-function gotoStep(i){
-  i = Math.max(0, Math.min(i, steps.length-1));
-  steps[currentStep].classList.add("hidden");
-  steps[i].classList.remove("hidden");
-  currentStep = i;
-}
-
-function setVal(id, v){
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.value = v ?? "";
-}
-function toHtmlDate(s){ if(!s) return ""; const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})/); if(m) return `${m[1]}-${m[2]}-${m[3]}`; const d = String(s).match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/); if(!d) return ""; let [_,dd,mm,yy]=d; if(yy.length===2) yy="20"+yy; return `${yy.padStart(4,"0")}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`; }
-function toHtmlTime(s){ if(!s) return ""; const t=String(s).replace("Uhr","").trim().replace(".",":"); const m=t.match(/^(\d{1,2}):(\d{2})$/); return m?`${m[1].padStart(2,"0")}:${m[2]}`:""; }
-function showPreviewImg(src){
-  const wrap = document.getElementById("ocrImagePreview");
-  const img = document.getElementById("ocrImagePreviewImg");
-  const hiddenInput = document.getElementById("image_url");
-  if (hiddenInput) hiddenInput.value = src || "";
-  if (!wrap || !img) return;
-  if (src) {
-    img.src = src;
-    wrap.classList.remove("hidden");
-  } else {
-    img.src = "";
-    wrap.classList.add("hidden");
-  }
-}
-
-const ocrOverlay = document.getElementById("ocrOverlay");
-function showOcrOverlay(msg="Erkenne Text…"){ document.getElementById("ocrOverlayMsg").textContent = msg; ocrOverlay.classList.remove("hidden"); }
-function hideOcrOverlay(){ ocrOverlay.classList.add("hidden"); }
-
-reviewEditSave?.addEventListener("click", () => {
-  if (activeReviewEdit && reviewEditControl) {
-    saveReviewEdit(activeReviewEdit, reviewEditOriginalEl, reviewEditControl);
-  }
-});
-reviewEditCancel?.addEventListener("click", () => cancelReviewEdit());
-reviewEditClose?.addEventListener("click", () => cancelReviewEdit());
-reviewEditModal?.addEventListener("click", (e) => {
-  if (e.target === reviewEditModal || (reviewEditOverlay && e.target === reviewEditOverlay)) {
-    cancelReviewEdit();
-  }
-});
-
-document.getElementById("ocrUpload")?.addEventListener("change", async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  markMissing([]);
-  document.getElementById("ocrCandidateList")?.remove();
-  setOcrConfidence(null);
-  setOcrStatus(`<span class="font-medium">Analysiere:</span> ${escapeHtml(file.name || "Datei")} …`, "info");
-  ocrPanel?.classList.remove("hidden");
-  showOcrOverlay("Analysiere Datei …");
-
-  const fd = new FormData();
-  fd.append("file", file);
-
-  try {
-    const res = await fetch("/ocr/upload", { method:"POST", body: fd });
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data || data.ok === false) {
-      const msg = data?.error || "OCR fehlgeschlagen. Bitte versuche es erneut.";
-      setOcrStatus(escapeHtml(msg), "error");
-      setOcrConfidence(null);
-      return;
-    }
-    handleOcrResponse(data);
-  } catch (err) {
-    console.error("OCR-Upload fehlgeschlagen", err);
-    setOcrStatus("Die Datei konnte nicht analysiert werden. Bitte versuche es erneut.", "error");
-    setOcrConfidence(null);
-  } finally {
-    hideOcrOverlay();
-    e.target.value = "";
-  }
-});
-
-FORM_REVIEW_FIELDS.forEach(({ key }) => {
-  const el = document.getElementById(key);
-  if (!el) return;
-  const evt = el.tagName === "SELECT" ? "change" : "input";
-  el.addEventListener(evt, () => {
-    renderOcrReview();
-  });
-});
-
-renderOcrReview();
-</script>
-<script>
-// --- Prefill-Helfer, falls mehrere Kandidaten erkannt wurden ---
-function prefillFrom(fields, imageOverride) {
-  setVal("title", fields.title);
-  setVal("description", fields.description);
-  setVal("date", toHtmlDate(fields.date));
-  setVal("time", toHtmlTime(fields.time));
-  setVal("time_end", toHtmlTime(fields.time_end));
-  setVal("location", fields.location);
-  setVal("category", fields.category);
-  setVal("age_group", fields.age_group);
-  setVal("contact", fields.contact);
-  setVal("opening_hours", fields.opening_hours);
-  setVal("price_info", fields.price_info);
-  setVal("registration", fields.registration ? fields.registration.toLowerCase() : "");
-  setVal("maps_url", fields.maps_url);
-  renderCategorySuggestions(fields.categories);
-  const imgSrc = imageOverride ?? fields.image_url;
-  showPreviewImg(imgSrc);
-  activeReviewEdit = null;
-  activeReviewDraft = "";
-  renderOcrReview();
-}
-
-function handleOcrResponse(data) {
-  if (!data) {
-    setOcrStatus("Keine Daten vom OCR-Dienst erhalten.", "error");
-    setOcrConfidence(null);
-    return;
-  }
-
-  if (data.ok === false) {
-    setOcrStatus(escapeHtml(data.error || "OCR fehlgeschlagen."), "error");
-    setOcrConfidence(null);
-    return;
-  }
-
-  const fields = data.fields || {};
-  const imageUrl = data.image_url || fields.image_url;
-  prefillFrom(fields, imageUrl);
-
-  openFormForOcr();
-
-  const missing = Array.isArray(data.missing) ? data.missing : [];
-  markMissing(missing);
-  renderOcrReview();
-
-  const foundRaw = Array.isArray(data.found) ? data.found : Object.keys(fields).filter((key) => fields[key]);
-  const uniqueFound = [...new Set(foundRaw)];
-  const toLabel = (key) => escapeHtml(labelForField(key));
-
-  const foundText = uniqueFound.length
-    ? `<span class="font-semibold text-green-700">Erkannt:</span> ${uniqueFound.map(toLabel).join(", ")}`
-    : "Keine Felder automatisch erkannt.";
-
-  let tone = "success";
-  let message = `<div>${foundText}</div>`;
-  if (missing.length) {
-    tone = "warn";
-    message += `<div class="mt-1"><span class="font-semibold">Fehlend:</span> ${missing.map(toLabel).join(", ")}</div>`;
-  } else {
-    message += `<div class="mt-1">Alle Pflichtfelder wurden erkannt.</div>`;
-  }
-  setOcrStatus(message, tone);
-  setOcrConfidence(data.confidence);
-
-  document.getElementById("ocrCandidateList")?.remove();
-  const candidates = Array.isArray(data.candidates) ? data.candidates : [];
-  if (candidates.length > 1) {
-    const host = document.createElement("div");
-    host.id = "ocrCandidateList";
-    host.className = "mt-4 border-t pt-3";
-    host.innerHTML = `<div class="text-sm font-semibold mb-2">Mehrere Events erkannt – wähle eines aus:</div>`;
-    candidates.slice(0, 6).forEach((c) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "block w-full text-left px-3 py-2 mb-2 rounded-lg border hover:bg-gray-50";
-      const btnLabel = `${c.title || "Ohne Titel"} — ${c.date || "Datum unbekannt"} — ${c.location || "Ort ?"}`;
-      btn.textContent = btnLabel;
-      btn.addEventListener("click", () => {
-        prefillFrom(c, c.image_url);
-        markMissing([]);
-        setOcrStatus(`<div class="font-semibold">Kandidat übernommen.</div><div>${escapeHtml(btnLabel)}</div>`, "success");
-        if (c.confidence) setOcrConfidence({ avg: c.confidence });
-        renderOcrReview();
-        gotoStep(steps.length - 1);
+      return true;
+    };
+
+    const updateSummary = () => {
+      if (!wizardForm) return;
+      const summaryTargets = wizardForm.querySelectorAll('[data-summary]');
+      summaryTargets.forEach((target) => {
+        const name = target.dataset.summary;
+        if (!name) return;
+        const input = wizardForm.elements[name];
+        if (!input) {
+          target.textContent = '–';
+          return;
+        }
+        const value = input.value || '–';
+        target.textContent = value;
       });
-      host.appendChild(btn);
+      const priceInfo = wizardForm.elements['price_info']?.value || '–';
+      const contact = wizardForm.elements['contact']?.value || '–';
+      const registration = wizardForm.elements['registration']?.value || '';
+      wizardForm.querySelector('[data-summary="price_info"]').textContent = registration ? `${priceInfo} / ${registration}` : priceInfo;
+      const imageValue = imageInput?.value;
+      const fileName = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : '';
+      const imageSummary = imageValue || (fileName ? `Lokale Datei: ${fileName}` : 'Kein Bild');
+      wizardForm.querySelector('[data-summary="image_url"]').textContent = imageSummary;
+      const contactEl = wizardForm.querySelector('[data-summary="contact"]');
+      if (contactEl) contactEl.textContent = contact;
+    };
+
+    heroManualBtn?.addEventListener('click', openWizard);
+    heroOcrBtn?.addEventListener('click', openOcrModal);
+    ocrCloseButtons.forEach((btn) => btn.addEventListener('click', closeOcrModal));
+    wizardClose?.addEventListener('click', closeWizard);
+
+    wizard?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (target.matches('[data-next]')) {
+        event.preventDefault();
+        if (validateStep(currentStep) && currentStep < steps.length - 1) {
+          showStep(currentStep + 1);
+        }
+      } else if (target.matches('[data-prev]')) {
+        event.preventDefault();
+        if (currentStep > 0) {
+          showStep(currentStep - 1);
+        }
+      }
     });
-    ocrPanel.appendChild(host);
-  }
 
-  gotoStep(steps.length - 1);
-}
-</script>
-<script>
-// --- Wizard Navigation ---
-const startManualBtn = document.getElementById("startManual");
-const nextBtn        = document.getElementById("nextStep");
-const prevBtn        = document.getElementById("prevStep");
-const submitBtn      = document.getElementById("submitEvent");
+    const openMediaModal = () => {
+      if (!mediaModal) return;
+      mediaModal.hidden = false;
+    };
+    const closeMediaModal = () => {
+      if (!mediaModal) return;
+      mediaModal.hidden = true;
+    };
 
-function updateButtons(){
-  prevBtn.classList.toggle("hidden", currentStep === 0);
-  const isLast = currentStep === (steps.length - 1);
-  nextBtn.classList.toggle("hidden",  isLast);
-  submitBtn.classList.toggle("hidden", !isLast);
-}
+    mediaOpenButtons.forEach((btn) => btn.addEventListener('click', openMediaModal));
+    mediaCloseButtons.forEach((btn) => btn.addEventListener('click', closeMediaModal));
 
-startManualBtn?.addEventListener("click", () => {
-  choiceBox.classList.add("hidden");
-  form.classList.remove("hidden");
-  steps.forEach((s,i)=>s.classList.toggle("hidden", i!==0));
-  currentStep = 0;
-  updateButtons();
-});
+    mediaSelectButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.mediaUrl || '';
+        if (fileInput) {
+          fileInput.value = '';
+        }
+        if (imageInput) imageInput.value = url;
+        if (imagePreview) {
+          imagePreview.innerHTML = url
+            ? `<img src="${url}" alt="Ausgewähltes Bild" class="w-full h-full object-cover">`
+            : '<p class="text-sm text-white/70">Noch kein Bild ausgewählt.</p>';
+        }
+        closeMediaModal();
+      });
+    });
 
-nextBtn?.addEventListener("click", () => {
-  const req = steps[currentStep].querySelectorAll("[required]");
-  let ok = true;
-  req.forEach(el => {
-    if (!el.value) { ok = false; el.classList.add("border-red-500","ring-2","ring-red-300"); }
-    else { el.classList.remove("border-red-500","ring-2","ring-red-300"); }
+    mediaClear?.addEventListener('click', () => {
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      if (imageInput) imageInput.value = '';
+      if (imagePreview) {
+        imagePreview.innerHTML = '<p class="text-sm text-white/70">Noch kein Bild ausgewählt.</p>';
+      }
+    });
+
+    fileInput?.addEventListener('change', () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (file) {
+        if (imageInput) imageInput.value = '';
+        const url = URL.createObjectURL(file);
+        imagePreview.innerHTML = `<img src="${url}" alt="Ausgewähltes Bild" class="w-full h-full object-cover">`;
+      }
+    });
+
+    if (submissionModal && !submissionModal.hasAttribute('hidden')) {
+      document.body.classList.add('overflow-hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      submissionModal.querySelectorAll('[data-submission-close]').forEach((el) => {
+        el.addEventListener('click', () => {
+          submissionModal.hidden = true;
+          document.body.classList.remove('overflow-hidden');
+          window.location.href = "{{ url_for('index') }}";
+        });
+      });
+    }
   });
-  if (!ok) return;
-
-  if (currentStep < steps.length - 1) {
-    gotoStep(currentStep + 1);
-    updateButtons();
-  } else {
-    form.submit();
-  }
-});
-
-prevBtn?.addEventListener("click", () => {
-  if (currentStep > 0) {
-    gotoStep(currentStep - 1);
-    updateButtons();
-  }
-});
-
-const _origGotoStep = gotoStep;
-gotoStep = function(i){
-  _origGotoStep(i);
-  updateButtons();
-};
-
-document.getElementById("ocrUpload")?.addEventListener("change", () => {
-  updateButtons();
-});
 </script>
-
 {% endblock %}

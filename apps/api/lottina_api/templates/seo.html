@@ -1,0 +1,21 @@
+{% set meta_title = meta_title or "Lottina – Erlebnisse für Familien schneller finden" %}
+{% set meta_description = meta_description or "Lottina zeigt dir passende Aktivitäten, Events und Angebote für Familien – in deiner Stadt, jederzeit und kostenlos." %}
+{% set meta_keywords = meta_keywords or "Familien, Kinder, Freizeit, Aachen, Events, Spielplätze" %}
+{% set canonical = canonical or default_canonical %}
+{% set og_title = og_title or meta_title or "Lottina – Familien erleben mehr" %}
+{% set og_description = og_description or meta_description %}
+{% set og_image = og_image or url_for('static', filename='img/og-default.jpg', _external=True) %}
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ meta_title or "Lottina – Erlebnisse für Familien schneller finden" }}</title>
+<meta name="description" content="{{ meta_description }}">
+<meta name="keywords" content="{{ meta_keywords }}">
+<meta name="robots" content="index, follow">
+<meta http-equiv="content-language" content="de-DE">
+<link rel="canonical" href="{{ canonical }}">
+<meta property="og:title" content="{{ og_title }}">
+<meta property="og:description" content="{{ og_description }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:image" content="{{ og_image }}">

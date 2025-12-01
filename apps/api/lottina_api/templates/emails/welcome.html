@@ -5,37 +5,83 @@
   <title>Willkommen bei lottina</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4fdf8;font-family:'Inter',Arial,sans-serif;color:#0f2f2c;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:linear-gradient(135deg,#0f2f2c,#1f6d5c,#8be84f);padding:32px 0;">
+
+  <!-- HERO SECTION -->
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 0;background:#ffffff;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:28px;padding:40px 32px;box-shadow:0 35px 90px rgba(6,14,12,0.18);">
+
+        <!-- Card -->
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:40px;overflow:hidden;box-shadow:0 35px 90px rgba(6,14,12,0.15);">
+
+          <!-- Branding Box -->
           <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <img src="{{ url_for('static', filename='img/lottina_logo.png', _external=True) }}" alt="lottina" width="120" style="display:block;margin:0 auto 12px auto;">
-              <p style="letter-spacing:0.35em;text-transform:uppercase;font-size:11px;color:#1f6d5c;margin:0;">Yay, du bist drin!</p>
+            <td align="center" style="background:linear-gradient(180deg,#0f2f2c,#1f6d5c,#8be84f);padding:60px 20px;border-radius:0;">
+              <h1 style="margin:0;font-size:36px;color:#ffffff;font-weight:700;line-height:1;">
+                lottina.de
+              </h1>
+              <p style="margin:6px 0 0 0;color:#eaffea;font-size:16px;letter-spacing:0.5px;">
+                die Freizeit-Plattform für Familien
+              </p>
             </td>
           </tr>
+
+          <!-- Main Text -->
           <tr>
-            <td style="font-size:16px;line-height:1.6;color:#12352d;">
-              <h1 style="font-size:26px;margin:0 0 16px 0;color:#0f2f2c;">Hallo {{ user.username or 'Entdecker:in' }},</h1>
-              <p style="margin:0 0 12px 0;">dein neues lottina Konto ist bereit. Ab jetzt kannst du Events speichern, Poster hochladen und mit wenigen Klicks entdecken, was in deiner Stadt passiert.</p>
-              <p style="margin:0 0 12px 0;">Wir kuratieren täglich neue Highlights ohne Tracking und Werberummel. Wenn du Input hast, antworte einfach auf diese Mail – wir lesen alles.</p>
+            <td style="padding:40px 32px;font-size:17px;line-height:1.6;color:#12352d;">
+              <p style="margin:0 0 12px 0;font-size:20px;font-weight:600;">
+                Du hast gerade unsern Tag bereichert!
+              </p>
+
+              <p style="margin:0 0 12px 0;font-size:17px;">
+                Bereit für Herzens-Momente?
+              </p>
+
+              <p style="margin:0 0 20px 0;">
+                In deinem lottina-Bereich kannst du jetzt Erlebnisse entdecken.
+              </p>
+
+              <p style="margin:0 0 12px 0;">
+                Finde Angebote, die zu dir und deiner Familie passen. Jetzt ist alles bereit für Tage und Erinnerungen voller toller (kostenloser) Erlebnisse.
+              </p>
+
+              <p style="margin:0 0 16px 0;">Was möchtet ihr unternehmen?</p>
             </td>
           </tr>
+
+          <!-- CTA Button -->
           <tr>
-            <td align="center" style="padding:24px 0;">
-              <a href="{{ url_for('login', _external=True) }}" style="display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:999px;background:linear-gradient(90deg,#8be84f,#2c9677);color:#0f2f2c;text-decoration:none;font-weight:600;">Jetzt einloggen →</a>
+            <td align="center" style="padding:10px 0 35px 0;">
+              <a href="{{ url_for('dashboard', _external=True) }}"
+                 style="display:inline-block;padding:14px 32px;background:#1f6d5c;color:#ffffff;
+                        text-decoration:none;font-weight:600;border-radius:999px;font-size:16px;">
+                Erlebnisse entdecken
+              </a>
             </td>
           </tr>
+
+          <!-- Support -->
           <tr>
-            <td style="font-size:13px;line-height:1.5;color:#4b5a55;">
-              <p style="margin:0 0 8px 0;">Noch ein Tipp: Folge uns auf Instagram @lottina.de, um Sneak Peeks zu kommenden Funktionen zu bekommen.</p>
-              <p style="margin:0;">Schön, dass du da bist!<br>– das lottina Team</p>
+            <td style="padding:0 32px 35px 32px;font-size:14px;color:#4b5a55;line-height:1.6;">
+              <p style="margin:0 0 8px 0;">Brauchst du Hilfe? Antworte einfach auf diese Mail und wir unterstützen dich!</p>
             </td>
           </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:20px 0 30px 0;font-size:12px;color:#6c7a77;line-height:1.5;">
+              <a href="/unsubscribe"
+                 style="color:#6c7a77;text-decoration:underline;">Abmelden</a>
+              <br>
+              Jungchenbüchel 60, 52156 Monschau
+            </td>
+          </tr>
+
         </table>
+
       </td>
     </tr>
   </table>
+
 </body>
 </html>

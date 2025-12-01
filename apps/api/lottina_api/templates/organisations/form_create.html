@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Neues Formular – {{ organisation.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-8">
+    <a href="{{ url_for('organisations.organisation_forms', slug=organisation.slug) }}"
+       class="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white">← Zurück</a>
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div class="space-y-3">
+        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Neues Formular</p>
+        <h1 class="text-3xl font-lottina font-bold">Formular erstellen</h1>
+        <p class="text-sm text-white/80">Bestimme Titel, Beschreibung, Teilnehmerlimit und Felder.</p>
+      </div>
+      {% if errors %}
+        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+          <p class="font-semibold">Bitte prüfe deine Eingaben:</p>
+          <ul class="list-disc list-inside space-y-1">
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      <form method="post" class="space-y-5" id="formBuilder">
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="wizard-label text-white">
+            Titel
+            <input type="text" name="title" value="{{ form_data.title }}" class="wizard-input" required>
+          </label>
+          <label class="wizard-label text-white">
+            Max. Teilnehmer
+            <input type="number" min="1" name="max_participants" value="{{ form_data.max_participants }}" class="wizard-input" placeholder="optional">
+          </label>
+        </div>
+        <label class="wizard-label text-white">
+          Beschreibung
+          <textarea name="description" rows="4" class="wizard-textarea" placeholder="Worum geht es?">{{ form_data.description }}</textarea>
+        </label>
+        <label class="wizard-label text-white">
+          Bestätigungsnachricht
+          <textarea name="confirmation_message" rows="3" class="wizard-textarea" placeholder="Nachricht, die Teilnehmer per E-Mail erhalten">{{ form_data.confirmation_message }}</textarea>
+        </label>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-[0.4em] text-white/60">Felder</p>
+              <p class="text-sm text-white/70">Mindestens ein Feld erforderlich.</p>
+            </div>
+            <button type="button" class="wizard-btn wizard-btn--primary" data-add-field>+ Feld</button>
+          </div>
+          <div id="fieldsContainer" class="space-y-4">
+            {% for row in field_rows %}
+              <div class="rounded-[28px] border border-white/15 bg-white/5 p-4 space-y-3 field-row">
+                <div class="grid gap-3 md:grid-cols-3">
+                  <label class="wizard-label text-white">
+                    Label
+                    <input type="text" name="field_label[]" value="{{ row.label }}" class="wizard-input" required>
+                  </label>
+                  <label class="wizard-label text-white">
+                    Typ
+                    <select name="field_type[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+                      {% set field_type = row.type %}
+                      <option value="text" {% if field_type == 'text' %}selected{% endif %}>Text</option>
+                      <option value="email" {% if field_type == 'email' %}selected{% endif %}>E-Mail</option>
+                      <option value="textarea" {% if field_type == 'textarea' %}selected{% endif %}>Mehrzeilig</option>
+                      <option value="select" {% if field_type == 'select' %}selected{% endif %}>Auswahl</option>
+                    </select>
+                  </label>
+                  <label class="wizard-label text-white">
+                    Pflichtfeld?
+                    <select name="field_required[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+                      <option value="1" {% if row.required == '1' %}selected{% endif %}>Ja</option>
+                      <option value="" {% if not row.required %}selected{% endif %}>Nein</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="wizard-label text-white field-options" {% if row.type != 'select' %}hidden{% endif %}>
+                  Optionen (Kommagetrennt)
+                  <input type="text" name="field_options[]" value="{{ row.options }}" class="wizard-input" placeholder="z. B. Früh, Mittag, Abend">
+                </label>
+                <button type="button" class="wizard-btn wizard-btn--ghost text-sm" data-remove-field>Feld entfernen</button>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <button type="submit" class="wizard-btn wizard-btn--primary w-full">Formular speichern</button>
+      </form>
+    </section>
+  </div>
+</div>
+
+<template id="fieldTemplate">
+  <div class="rounded-[28px] border border-white/15 bg-white/5 p-4 space-y-3 field-row">
+    <div class="grid gap-3 md:grid-cols-3">
+      <label class="wizard-label text-white">
+        Label
+        <input type="text" name="field_label[]" class="wizard-input" required>
+      </label>
+      <label class="wizard-label text-white">
+        Typ
+        <select name="field_type[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+          <option value="text">Text</option>
+          <option value="email">E-Mail</option>
+          <option value="textarea">Mehrzeilig</option>
+          <option value="select">Auswahl</option>
+        </select>
+      </label>
+      <label class="wizard-label text-white">
+        Pflichtfeld?
+        <select name="field_required[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+          <option value="1">Ja</option>
+          <option value="">Nein</option>
+        </select>
+      </label>
+    </div>
+    <label class="wizard-label text-white field-options" hidden>
+      Optionen (Kommagetrennt)
+      <input type="text" name="field_options[]" class="wizard-input" placeholder="z. B. Früh, Mittag, Abend">
+    </label>
+    <button type="button" class="wizard-btn wizard-btn--ghost text-sm" data-remove-field>Feld entfernen</button>
+  </div>
+</template>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .wizard-input, .wizard-textarea {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.95);
+    color: #0f2f2c;
+    padding: 0.85rem 1rem;
+  }
+  .wizard-textarea {
+    min-height: 120px;
+  }
+  .wizard-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 0.75rem 1.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .wizard-btn--primary {
+    background: linear-gradient(135deg, #0f2f2c, #1f6d5c, #8be84f);
+    color: #fff;
+  }
+  .wizard-btn--ghost {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const fieldsContainer = document.getElementById("fieldsContainer");
+    const template = document.getElementById("fieldTemplate");
+    document.querySelector("[data-add-field]")?.addEventListener("click", () => {
+      if (!template || !fieldsContainer) return;
+      const clone = template.content.firstElementChild.cloneNode(true);
+      fieldsContainer.appendChild(clone);
+    });
+    document.addEventListener("click", (event) => {
+      const removeBtn = event.target.closest("[data-remove-field]");
+      if (removeBtn) {
+        const row = removeBtn.closest(".field-row");
+        if (row && row.parentElement.children.length > 1) {
+          row.remove();
+        }
+      }
+    });
+    document.addEventListener("change", (event) => {
+      const select = event.target.closest("select[name='field_type[]']");
+      if (select) {
+        const row = select.closest(".field-row");
+        const optionsLabel = row?.querySelector(".field-options");
+        if (optionsLabel) {
+          optionsLabel.hidden = select.value !== "select";
+        }
+      }
+    });
+    document.querySelectorAll("select[name='field_type[]']").forEach((select) => {
+      const event = new Event("change");
+      select.dispatchEvent(event);
+    });
+  });
+</script>
+{% endblock %}

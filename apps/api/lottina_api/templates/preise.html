@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Preise – lottina{% endblock %}
+{% block title %}Preise – lottina Family Familienabo{% endblock %}
 
 {% block content %}
 {% set monthly_price_text = "{:.2f}".format(monthly_price_eur).replace('.', ',') %}
@@ -12,7 +12,7 @@
   <div class="relative pt-20 z-10 max-w-5xl mx-auto space-y-16">
     <div class="text-center space-y-4">
       <span class="inline-flex items-center gap-2 rounded-full border border-lottina-primary/30 bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-lottina-primary">
-        Freemium wird Realität
+        lottina Family
       </span>
       <h1 class="text-3xl md:text-5xl font-bold text-lottina-primary leading-tight">Mitgliedschaft für {{ monthly_price_text }} € im Monat</h1>
       <p class="max-w-2xl mx-auto text-base md:text-lg text-lottina-primary/80">
@@ -87,7 +87,7 @@
       <article class="relative rounded-3xl border border-[#b6f0c2] bg-gradient-to-br from-[#f0fff4] via-[#d5ffd6] to-[#b8ffcb] p-6 text-lottina-primary shadow-xl flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         {% if has_yearly_plan %}
         <div class="absolute -top-3 right-6 inline-flex items-center gap-2 rounded-full bg-red-500 text-white px-3 py-1 text-xs font-semibold uppercase shadow-lg">
-          Spare {{ savings_text }} €
+          Spare {{ savings_percent_text }} %
         </div>
         {% endif %}
         <div class="text-xs uppercase tracking-[0.4em] text-lottina-primary/70 font-semibold">Jährlich</div>
@@ -97,9 +97,6 @@
         <div class="mt-6">
           <p class="text-3xl font-bold text-lottina-primary">{{ yearly_price_text }} €</p>
           <p class="text-xs text-lottina-primary/70">einmal pro Jahr</p>
-          <p class="mt-3 text-sm font-semibold text-lottina-primary">
-            (−{{ savings_percent_text }} % gegenüber monatlich)
-          </p>
         </div>
         <ul class="mt-8 space-y-2 text-sm text-lottina-primary/85 flex-1">
           <li>• Alle Vorteile der monatlichen Mitgliedschaft</li>

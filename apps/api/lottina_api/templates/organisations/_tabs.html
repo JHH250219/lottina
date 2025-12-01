@@ -1,0 +1,30 @@
+<div class="flex flex-wrap gap-3 text-sm">
+  <a href="{{ url_for('organisations.organisation_dashboard', slug=organisation.slug) }}"
+     class="inline-flex items-center gap-2 rounded-full px-4 py-2 border {{ 'bg-white text-lottina-primary' if active_tab == 'dashboard' else 'border-white/25 text-white/80 hover:bg-white/10' }}">
+    Übersicht
+  </a>
+  <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug) }}"
+     class="inline-flex items-center gap-2 rounded-full px-4 py-2 border {{ 'bg-white text-lottina-primary' if active_tab == 'events' else 'border-white/25 text-white/80 hover:bg-white/10' }}">
+    Events
+  </a>
+  <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
+     class="inline-flex items-center gap-2 rounded-full px-4 py-2 border {{ 'bg-white text-lottina-primary' if active_tab == 'events_new' else 'border-white/25 text-white/80 hover:bg-white/10' }}">
+    Neues Event
+  </a>
+  <a href="{{ url_for('organisations.organisation_groups', slug=organisation.slug) }}"
+     class="inline-flex items-center gap-2 rounded-full px-4 py-2 border {{ 'bg-white text-lottina-primary' if active_tab == 'groups' else 'border-white/25 text-white/80 hover:bg-white/10' }}">
+    Gruppen
+  </a>
+  <a href="{{ url_for('organisations.organisation_members', slug=organisation.slug) }}"
+     class="inline-flex items-center gap-2 rounded-full px-4 py-2 border {{ 'bg-white text-lottina-primary' if active_tab == 'members' else 'border-white/25 text-white/80 hover:bg-white/10' }}">
+    Mitglieder
+  </a>
+  <a href="{{ url_for('organisations.organisation_documents', slug=organisation.slug) }}"
+     class="inline-flex items-center gap-2 rounded-full px-4 py-2 border {{ 'bg-white text-lottina-primary' if active_tab == 'documents' else 'border-white/25 text-white/80 hover:bg-white/10' }}">
+    Dokumente
+  </a>
+  <a href="{{ url_for('organisations.organisation_forms', slug=organisation.slug) }}"
+     class="inline-flex items-center gap-2 rounded-full px-4 py-2 border {{ 'bg-white text-lottina-primary' if active_tab == 'forms' else 'border-white/25 text-white/80 hover:bg-white/10' }}">
+    Formulare
+  </a>
+</div>

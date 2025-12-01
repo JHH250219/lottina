@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ organisation.name }} – Formulare{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-10">
+    <header class="space-y-3 text-center">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+        Formulare
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Anmeldungen & Feedback</h1>
+      <p class="text-sm sm:text-base text-white/80">Erstelle individuelle Formulare, sammle Teilnehmerdaten und exportiere sie als CSV.</p>
+    </header>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      {% include "organisations/_tabs.html" %}
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Übersicht</p>
+          <h2 class="text-2xl font-semibold">Deine Formulare</h2>
+        </div>
+        <a href="{{ url_for('organisations.organisation_forms_new', slug=organisation.slug) }}"
+           class="inline-flex items-center gap-2 rounded-full bg-white text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+          Neues Formular
+        </a>
+      </div>
+      {% if forms %}
+        <div class="space-y-4">
+          {% for form in forms %}
+            <article class="rounded-[32px] border border-white/15 bg-white/5 p-5 flex flex-col gap-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 class="text-lg font-semibold">{{ form.title }}</h3>
+                  <p class="text-xs text-white/70">
+                    {{ form.submissions|length }} Anmeldungen
+                    {% if form.max_participants %}
+                      · max. {{ form.max_participants }}
+                    {% endif %}
+                  </p>
+                </div>
+                <a href="{{ url_for('organisations.organisation_form_detail', slug=organisation.slug, form_slug=form.slug) }}"
+                   class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold hover:bg-white/10">
+                  Öffnen
+                </a>
+              </div>
+              <p class="text-sm text-white/70">{{ form.description or 'Keine Beschreibung hinterlegt.' }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/70">Noch keine Formulare angelegt.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}{{ organisation.name }} – Events{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 pt-32 pb-16 space-y-10">
+    <header class="space-y-3 text-center">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+        Termine
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Events verwalten</h1>
+      <p class="text-sm sm:text-base text-white/80">Plane, filtere und analysiere deine Organisationstermine.</p>
+    </header>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-5">
+      {% include "organisations/_tabs.html" %}
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
+        <div class="flex items-center gap-2 rounded-full bg-white/5 p-1">
+          {% set view_modes = [('list', 'Liste'), ('calendar', 'Kalender')] %}
+          {% for mode, label in view_modes %}
+            <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug, view=mode, visibility=filter_visibility) }}"
+               class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold {{ 'bg-white text-lottina-primary shadow' if view_mode == mode else 'text-white/70' }}">
+              {{ label }}
+            </a>
+          {% endfor %}
+        </div>
+        <div class="flex items-center gap-2">
+          {% set filters = [('all','Alle'), ('public','Öffentlich'), ('internal','Intern')] %}
+          {% for value, label in filters %}
+            <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug, view=view_mode, visibility=value) }}"
+               class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold {{ 'border-white bg-white/15' if filter_visibility == value else 'border-white/30 text-white/70 hover:bg-white/10' }}">
+              {{ label }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {% if view_mode == 'calendar' %}
+      <section class="dashboard-card p-6 sm:p-8 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Kalender</p>
+            <h2 class="text-2xl font-semibold">Monatsübersicht</h2>
+          </div>
+          <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
+             class="inline-flex items-center gap-2 rounded-full bg-white text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+            Neues Event
+          </a>
+        </div>
+        <div id="orgCalendar"
+             class="rounded-[32px] border border-white/15 bg-white/5 p-5 text-white shadow-lg space-y-4">
+          <div class="flex items-center justify-between">
+            <button type="button" class="calendar-nav" data-calendar-prev aria-label="Vorheriger Monat">‹</button>
+            <div class="text-lg font-semibold" data-calendar-month>–</div>
+            <button type="button" class="calendar-nav" data-calendar-next aria-label="Nächster Monat">›</button>
+          </div>
+          <div class="grid grid-cols-7 text-center text-xs uppercase tracking-[0.4em] text-white/60">
+            <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+          </div>
+          <div class="grid grid-cols-7 gap-2" data-calendar-grid></div>
+        </div>
+      </section>
+    {% else %}
+      <section class="dashboard-card p-6 sm:p-8 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Liste</p>
+            <h2 class="text-2xl font-semibold">Alle Termine</h2>
+          </div>
+          <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
+             class="inline-flex items-center gap-2 rounded-full bg-white text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+            Neues Event
+          </a>
+        </div>
+        {% if events %}
+          <div class="space-y-4">
+            {% for event in events %}
+              <article class="rounded-[32px] border border-white/15 bg-white/5 p-5 shadow flex flex-col gap-4">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 class="text-lg font-semibold text-white">{{ event.title }}</h3>
+                    <p class="text-sm text-white/70">
+                      {% if event.dt_start %}
+                        {{ event.dt_start|smartdate }}
+                      {% else %}
+                        Termin folgt
+                      {% endif %}
+                    </p>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ 'border-amber-200 text-amber-100' if event.is_internal else 'border-emerald-200 text-emerald-100' }}">
+                      {{ 'Intern' if event.is_internal else 'Öffentlich' }}
+                    </span>
+                    {% if event.is_recurring %}
+                      <span class="inline-flex items-center rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white/85">
+                        Wiederkehrend
+                      </span>
+                    {% endif %}
+                    {% if event.status %}
+                      <span class="inline-flex items-center rounded-full border border-white/25 px-3 py-1 text-xs font-semibold text-white/70">
+                        {{ event.status.value }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                <p class="text-sm text-white/75 line-clamp-2">
+                  {{ event.summary or event.description or 'Keine Beschreibung hinterlegt.' }}
+                </p>
+                <div class="flex flex-wrap items-center justify-between gap-4 text-xs text-white/70">
+                  <div class="flex items-center gap-2">
+                    <span>📍</span>
+                    <span>
+                      {% if event.location %}
+                        {{ event.location.name or event.location.address or 'Ort folgt' }}
+                      {% else %}
+                        Ort folgt
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <a href="{{ url_for('organisations.organisation_event_detail', slug=organisation.slug, event_id=event.id) }}"
+                       class="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                      Details
+                    </a>
+                    <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
+                       class="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                      Serie ergänzen
+                    </a>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="rounded-3xl border border-dashed border-white/30 bg-white/5 px-6 py-10 text-center text-sm text-white/70">
+            Noch keine Events vorhanden. Starte mit einem neuen Termin.
+          </div>
+        {% endif %}
+      </section>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .calendar-nav {
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 999px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.08);
+  }
+</style>
+
+{% if view_mode == 'calendar' %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const events = {{ calendar_events_json|safe }};
+    const calendar = document.getElementById("orgCalendar");
+    if (!calendar) return;
+
+    const monthLabel = calendar.querySelector("[data-calendar-month]");
+    const grid = calendar.querySelector("[data-calendar-grid]");
+    const prevBtn = calendar.querySelector("[data-calendar-prev]");
+    const nextBtn = calendar.querySelector("[data-calendar-next]");
+
+    let current = new Date();
+    current.setDate(1);
+
+    const groupedEvents = events.reduce((acc, event) => {
+      if (!event.start) return acc;
+      const date = new Date(event.start);
+      const key = date.toISOString().slice(0, 10);
+      (acc[key] = acc[key] || []).push(event);
+      return acc;
+    }, {});
+
+    function renderCalendar() {
+      if (!grid || !monthLabel) return;
+      const year = current.getFullYear();
+      const month = current.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const startDay = (firstDay.getDay() + 6) % 7; // Monday first
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      monthLabel.textContent = firstDay.toLocaleDateString("de-DE", {
+        month: "long",
+        year: "numeric",
+      });
+
+      grid.innerHTML = "";
+      for (let i = 0; i < startDay; i += 1) {
+        const empty = document.createElement("div");
+        empty.className = "min-h-[90px]";
+        grid.appendChild(empty);
+      }
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        const date = new Date(year, month, day);
+        const key = date.toISOString().slice(0, 10);
+        const cell = document.createElement("div");
+        cell.className = "rounded-2xl border border-white/15 bg-white/5 p-2 flex flex-col gap-1 min-h-[90px]";
+        const label = document.createElement("div");
+        label.className = "text-xs font-semibold text-white/90";
+        label.textContent = day;
+        cell.appendChild(label);
+
+        const dayEvents = groupedEvents[key] || [];
+        dayEvents.slice(0, 3).forEach((event) => {
+          const badge = document.createElement("a");
+          badge.href = event.url || "#";
+          badge.className = "text-[11px] rounded-full bg-white/10 px-2 py-1 text-white/90 hover:bg-white/20";
+          badge.textContent = event.title;
+          cell.appendChild(badge);
+        });
+        if (dayEvents.length > 3) {
+          const more = document.createElement("div");
+          more.className = "text-[11px] text-white/60";
+          more.textContent = `+${dayEvents.length - 3} weitere`;
+          cell.appendChild(more);
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    prevBtn?.addEventListener("click", () => {
+      current.setMonth(current.getMonth() - 1);
+      renderCalendar();
+    });
+    nextBtn?.addEventListener("click", () => {
+      current.setMonth(current.getMonth() + 1);
+      renderCalendar();
+    });
+
+    renderCalendar();
+  });
+</script>
+{% endif %}
+{% endblock %}

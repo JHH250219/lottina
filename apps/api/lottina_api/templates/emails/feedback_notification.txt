@@ -1,0 +1,13 @@
+Neues Community-Feedback ({{ category_label }})
+==================================================
+
+Quelle: {{ entry.source or '-' }}
+E-Mail: {{ entry.email or '–' }}
+Stadt: {{ entry.city or '–' }}
+Eingegangen: {{ entry.created_at.strftime('%d.%m.%Y %H:%M') if entry.created_at else '–' }}
+
+Nachricht:
+{{ entry.message or 'Keine Nachricht angegeben.' }}
+
+--
+Dieses Feedback wurde automatisch von lottina übermittelt.

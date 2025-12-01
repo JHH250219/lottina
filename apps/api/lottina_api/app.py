@@ -1,13 +1,32 @@
 from flask import (
     Flask, render_template, request, jsonify,
     redirect, url_for, flash, send_from_directory,
-    abort, send_file, session
+    abort, send_file, session, Response
 )
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, and_, or_, create_engine
 from flask_migrate import Migrate
 import stripe
-from .models import db, Offer, Location, User, Category, OfferType
+from .models import (
+    db,
+    Offer,
+    Location,
+    User,
+    Category,
+    OfferType,
+    OfferStatus,
+    SourceType,
+    Organizer,
+    OrganisationGroup,
+    OrganisationInvitation,
+    CommunityFeedback,
+    UserChild,
+    UserFavoriteOffer,
+    organisation_users,
+    ORGANISATION_ROLE_ADMIN,
+)
+from .sitemap import sitemap_bp
+from .organisations import organisations_bp
 from jinja2 import TemplateNotFound
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
@@ -17,27 +36,36 @@ from flask_login import (
     login_required, current_user
 )
 from flask_mail import Mail, Message
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 
+import json
 import os, re, uuid
 from pathlib import Path
 import mimetypes
 import click
+from itertools import zip_longest
 from werkzeug.utils import secure_filename
 from .utils import (
     allowed,
     save_upload,
-    extract_fields,
-    confidence_stats,
     extract_addr_city_from_text,
+    extract_fields,
 )
-from .utils.mistral_agent import enrich_fields_with_mistral, merge_fields
+from .ocr_client import run_ocr
 
 # ---------------------------------------------------------------------------
 # Konfiguration
 # ---------------------------------------------------------------------------
 load_dotenv()
 EMAIL_RX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_SLUG_REPLACEMENTS = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
+
+def slugify_value(value: str | None, *, fallback: str = "organisation") -> str:
+    value = (value or "").strip().lower()
+    for src, dst in _SLUG_REPLACEMENTS.items():
+        value = value.replace(src, dst)
+    value = re.sub(r"[^a-z0-9]+", "-", value).strip("-")
+    return value or fallback
 
 app = Flask(
     __name__,
@@ -66,16 +94,18 @@ else:
 
 app.config["SQLALCHEMY_DATABASE_URI"] = resolved_db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
 app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
 app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 25))
-app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "0") == "1"
-app.config["MAIL_USE_SSL"] = os.getenv("MAIL_USE_SSL", "0") == "1"
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
-app.config["STRIPE_PRICE_MONTHLY"] = os.getenv("STRIPE_PRICE_MONTHLY", "price_1SWGRFRx44l32FoJFoHNqcvO")
-app.config["STRIPE_PRICE_YEARLY"] = os.getenv("STRIPE_PRICE_YEARLY", "price_1SWvVERx44l32FoJ2ZTdOJXy")
+app.config["STRIPE_PRICE_MONTHLY"] = os.getenv("STRIPE_PRICE_MONTHLY", "price_1SWFfnRx44l32FoJcn2FrXst")
+app.config["STRIPE_PRICE_YEARLY"] = os.getenv("STRIPE_PRICE_YEARLY", "price_1SXn4dRx44l32FoJBE3K15gw")
+app.config["FEEDBACK_ALERT_RECIPIENT"] = os.getenv("FEEDBACK_ALERT_RECIPIENT", "hello@lottina.de")
 
 # DB + Migrationssystem initialisieren
 db.init_app(app)
@@ -83,10 +113,22 @@ migrate = Migrate(app, db)
 mail = Mail(app)
 MONTHLY_PRICE_EUR = Decimal(os.getenv("MEMBERSHIP_PRICE_MONTHLY_EUR", "1.99"))
 YEARLY_PRICE_EUR = Decimal(os.getenv("MEMBERSHIP_PRICE_YEARLY_EUR", "19.99"))
+app.register_blueprint(sitemap_bp)
+app.register_blueprint(organisations_bp)
+
+
+FEEDBACK_KIND_FEEDBACK = "feedback"
+FEEDBACK_KIND_CITY = "city_request"
+FEEDBACK_KIND_LABELS = {
+    FEEDBACK_KIND_FEEDBACK: "Feedback",
+    FEEDBACK_KIND_CITY: "Wunschstadt / Aktivität",
+}
+
 
 
 def send_templated_email(subject, template, recipients, **context):
     if not recipients or not app.config.get("MAIL_SERVER"):
+        app.logger.exception("E-Mail Versand übersprungen: Keine Empfänger oder kein Mail-Server konfiguriert.")
         return
     try:
         msg = Message(subject=subject, recipients=recipients)
@@ -118,25 +160,63 @@ def send_membership_email(user):
     if not user or not user.email:
         return
     send_templated_email(
-        subject="Dein lottina+ Abo ist aktiv 💚",
+        subject="Dein lottina Family Abo ist aktiv 💚",
         template="membership",
         recipients=[user.email],
         user=user,
     )
 
+
+def send_feedback_notification(entry):
+    recipient = app.config.get("FEEDBACK_ALERT_RECIPIENT")
+    if not recipient or not entry:
+        return
+    label = FEEDBACK_KIND_LABELS.get(entry.kind, "Feedback")
+    send_templated_email(
+        subject=f"Neues Community-Feedback ({label})",
+        template="feedback_notification",
+        recipients=[recipient],
+        entry=entry,
+        category_label=label,
+    )
+
+
+def create_feedback_entry(kind, email, city, message, source):
+    normalized_kind = kind or FEEDBACK_KIND_FEEDBACK
+    entry = CommunityFeedback(
+        kind=normalized_kind,
+        email=email or None,
+        city=city or None,
+        message=message or None,
+        source=source or None,
+    )
+    db.session.add(entry)
+    db.session.commit()
+    send_feedback_notification(entry)
+    return entry
+
+
 if fallback_in_use and resolved_db_uri.startswith("sqlite"):
     with app.app_context():
         db.create_all()
 
+
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_FOLDER = BASE_DIR / "uploads"
 IMAGE_FOLDER = UPLOAD_FOLDER / "images"
-PDF_FOLDER   = UPLOAD_FOLDER / "pdf"
-for p in (IMAGE_FOLDER, PDF_FOLDER):
-    p.mkdir(parents=True, exist_ok=True)
+IMAGE_FOLDER.mkdir(parents=True, exist_ok=True)
+ORG_LOGO_FOLDER = IMAGE_FOLDER / "org"
+ORG_LOGO_FOLDER.mkdir(parents=True, exist_ok=True)
 
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024  # 12 MB
 app.config["UPLOAD_FOLDER"] = str(UPLOAD_FOLDER)
+
+@app.route("/robots.txt")
+def robots():
+    return Response(
+        "User-agent: *\nAllow: /\n\nSitemap: https://lottina.de/sitemap.xml",
+        mimetype="text/plain",
+    )
 
 def _parse_date(s: str | None):
     if not s:
@@ -153,6 +233,274 @@ MAX_MEETING_LEN  = 200
 MAX_LOC_NAME     = 160
 MAX_LOC_ADDR     = 160
 MAX_CITY_LEN     = 120
+
+MODE_MANUAL = "manual"
+MODE_OCR = "ocr"
+OCR_FORM_FIELDS = [
+    "title",
+    "description",
+    "date",
+    "time",
+    "time_end",
+    "location",
+    "category",
+    "age_group",
+    "contact",
+    "opening_hours",
+    "price_info",
+    "registration",
+    "maps_url",
+]
+OCR_FIELD_LABELS = {
+    "title": "Titel",
+    "description": "Beschreibung",
+    "date": "Datum",
+    "time": "Startzeit",
+    "time_end": "Endzeit",
+    "location": "Ort",
+    "category": "Kategorie",
+    "age_group": "Altersgruppe",
+    "contact": "Kontakt",
+    "opening_hours": "Öffnungszeiten",
+    "price_info": "Preis / Hinweis",
+    "registration": "Anmeldung",
+    "maps_url": "Maps-URL",
+}
+ORGANISATION_TYPE_CHOICES = [
+    ("verein", "Verein"),
+    ("kirche", "Kirche"),
+    ("kommune", "Kommune / Verwaltung"),
+    ("öffentliche Einrichtung", "öffentliche Einrichtung"),
+    ("ehrenamt", "Ehrenamt / Initiative"),
+    ("sonstiges", "Sonstiges"),
+    ("unternehmen", "Unternehmen"),
+]
+
+def _format_datetime_input(value: datetime | None) -> str:
+    if not value:
+        return ""
+    try:
+        localized = value.astimezone(timezone.utc)
+    except Exception:
+        localized = value
+    return localized.strftime("%Y-%m-%dT%H:%M")
+
+def _unique_slug_for(model, base_value: str, *, fallback: str = "organisation", attr: str = "slug") -> str:
+    slug = slugify_value(base_value, fallback=fallback)
+    if not slug:
+        slug = fallback
+    existing = (
+        db.session.query(getattr(model, attr))
+        .filter(getattr(model, attr) == slug)
+        .first()
+    )
+    if not existing:
+        return slug
+    counter = 2
+    while True:
+        candidate = f"{slug}-{counter}"
+        exists = (
+            db.session.query(getattr(model, attr))
+            .filter(getattr(model, attr) == candidate)
+            .first()
+        )
+        if not exists:
+            return candidate
+        counter += 1
+
+@app.route("/organisation-onboarding", methods=["GET", "POST"])
+def organisation_onboarding():
+    default_contact = current_user.email if getattr(current_user, "is_authenticated", False) else ""
+    form_defaults = {
+        "organisation_type": "",
+        "name": "",
+        "description": "",
+        "address": "",
+        "website": "",
+        "contact_email": default_contact,
+        "logo_url": "",
+    }
+    form_data = dict(form_defaults)
+    group_entries: list[dict[str, str]] = []
+    invite_entries: list[str] = []
+    submission_errors: list[str] = []
+    wizard_param = (request.args.get("wizard") or "").strip().lower()
+    open_wizard = wizard_param in {"1", "true", "yes", "open"}
+
+    if request.method == "POST":
+        open_wizard = True
+        for key in form_defaults:
+            if key == "logo_url":
+                continue
+            form_data[key] = (request.form.get(key) or "").strip()
+        form_data.setdefault("contact_email", default_contact)
+
+        saved_logo_path = None
+        logo_file = request.files.get("logo_file")
+        if logo_file and logo_file.filename:
+            if not allowed(logo_file.filename):
+                submission_errors.append("Unterstützt werden nur PNG, JPG, JPEG oder WEBP für Logos.")
+            else:
+                saved_logo_path = save_upload(logo_file, ORG_LOGO_FOLDER)
+                relative_logo = saved_logo_path.relative_to(IMAGE_FOLDER)
+                form_data["logo_url"] = f"/uploads/images/{relative_logo.as_posix()}"
+
+        names = request.form.getlist("group_names[]")
+        descriptions = request.form.getlist("group_descriptions[]")
+        for name, desc in zip_longest(names, descriptions, fillvalue=""):
+            clean_name = (name or "").strip()
+            clean_desc = (desc or "").strip()
+            if clean_name:
+                group_entries.append({"name": clean_name, "description": clean_desc})
+
+        invite_candidates = [(email or "").strip().lower() for email in request.form.getlist("invite_emails[]")]
+        seen_invites: set[str] = set()
+        for email in invite_candidates:
+            if not email or email in seen_invites:
+                continue
+            invite_entries.append(email)
+            seen_invites.add(email)
+
+        if not form_data["organisation_type"]:
+            submission_errors.append("Bitte wähle einen Organisationstyp aus.")
+        if not form_data["name"]:
+            submission_errors.append("Der Name der Organisation ist erforderlich.")
+        if not form_data["description"]:
+            submission_errors.append("Bitte beschreibe deine Organisation kurz.")
+        if not group_entries:
+            submission_errors.append("Lege mindestens eine Gruppe an.")
+        if not form_data["contact_email"] and not getattr(current_user, "is_authenticated", False):
+            submission_errors.append("Bitte gib eine Kontakt-E-Mail an, damit wir dich kontaktieren können.")
+
+        if not getattr(current_user, "is_authenticated", False):
+            contact_invite = (form_data["contact_email"] or "").strip().lower()
+            if contact_invite and contact_invite not in invite_entries:
+                invite_entries.append(contact_invite)
+
+        invalid_invites = [email for email in invite_entries if not EMAIL_RX.match(email)]
+        if invalid_invites:
+            submission_errors.append(f"Diese Einladungen sehen nicht korrekt aus: {', '.join(invalid_invites)}")
+
+        if submission_errors:
+            if saved_logo_path:
+                try:
+                    saved_logo_path.unlink()
+                except Exception:
+                    pass
+            return (
+                render_template(
+                    "organisation-onboarding.html",
+                    form_data=form_data,
+                    group_entries=group_entries,
+                    invite_entries=invite_entries,
+                    submission_errors=submission_errors,
+                    open_wizard=open_wizard,
+                    organisation_type_choices=ORGANISATION_TYPE_CHOICES,
+                ),
+                400,
+            )
+
+        try:
+            slug = _unique_slug_for(Organizer, form_data["name"], fallback="organisation")
+            organisation_contact_email = form_data["contact_email"] or default_contact or None
+            organisation = Organizer(
+                slug=slug,
+                name=form_data["name"],
+                organisation_type=form_data["organisation_type"],
+                description=form_data["description"],
+                address=form_data["address"] or None,
+                website=form_data["website"] or None,
+                email=organisation_contact_email,
+                logo=form_data.get("logo_url") or None,
+            )
+            db.session.add(organisation)
+            db.session.flush()
+
+            if getattr(current_user, "is_authenticated", False):
+                db.session.execute(
+                    organisation_users.insert().values(
+                        organisation_id=organisation.id,
+                        user_id=current_user.id,
+                        role=ORGANISATION_ROLE_ADMIN,
+                    )
+                )
+
+            used_group_slugs: set[str] = set()
+            for entry in group_entries:
+                base_slug = slugify_value(entry["name"], fallback="gruppe")
+                candidate = base_slug
+                counter = 2
+                while candidate in used_group_slugs:
+                    candidate = f"{base_slug}-{counter}"
+                    counter += 1
+                used_group_slugs.add(candidate)
+                db.session.add(
+                    OrganisationGroup(
+                        organisation_id=organisation.id,
+                        name=entry["name"],
+                        slug=candidate,
+                        description=entry.get("description") or None,
+                    )
+                )
+
+            for email in invite_entries:
+                db.session.add(
+                    OrganisationInvitation(
+                        organisation_id=organisation.id,
+                        email=email,
+                        role=ORGANISATION_ROLE_ADMIN,
+                        invited_by=current_user if getattr(current_user, "is_authenticated", False) else None,
+                    )
+                )
+
+            db.session.commit()
+            if getattr(current_user, "is_authenticated", False):
+                return redirect(url_for("organisations.organisation_dashboard", slug=organisation.slug))
+            flash("Organisation angelegt! Lege jetzt dein Nutzerkonto an oder melde dich an, um das Dashboard zu nutzen.", "success")
+            return redirect(url_for("register"))
+        except IntegrityError:
+            db.session.rollback()
+            submission_errors.append("Die Organisation konnte nicht gespeichert werden. Bitte versuche es erneut.")
+        except Exception as exc:  # noqa: BLE001
+            db.session.rollback()
+            app.logger.exception("Organisation onboarding failed: %s", exc)
+            submission_errors.append("Unbekannter Fehler beim Speichern. Bitte versuche es erneut.")
+
+        return (
+            render_template(
+                "organisation-onboarding.html",
+                form_data=form_data,
+                group_entries=group_entries,
+                invite_entries=invite_entries,
+                submission_errors=submission_errors,
+                open_wizard=open_wizard,
+                organisation_type_choices=ORGANISATION_TYPE_CHOICES,
+            ),
+            500,
+        )
+
+    return render_template(
+        "organisation-onboarding.html",
+        form_data=form_data,
+        group_entries=group_entries,
+        invite_entries=invite_entries,
+        submission_errors=submission_errors,
+        open_wizard=open_wizard,
+        organisation_type_choices=ORGANISATION_TYPE_CHOICES,
+    )
+
+MARKER_COLOR_SEQUENCE = ["blue", "orange", "violet", "red", "gold", "grey", "black"]
+MARKER_COLOR_STYLES = {
+    "green": {"hex": "#059669"},
+    "blue": {"hex": "#2563eb"},
+    "orange": {"hex": "#f97316"},
+    "violet": {"hex": "#7c3aed"},
+    "red": {"hex": "#dc2626"},
+    "gold": {"hex": "#fbbf24"},
+    "grey": {"hex": "#6b7280"},
+    "black": {"hex": "#111827"},
+}
+DEFAULT_MARKER_COLOR = "violet"
 
 def _has_value(value):
     if value is None:
@@ -176,7 +524,19 @@ def inject_globals():
         "current_year": datetime.now().year,
         "request_path": request.path,
         "current_user": current_user,
+        "FEEDBACK_KIND_CITY": FEEDBACK_KIND_CITY,
+        "FEEDBACK_KIND_FEEDBACK": FEEDBACK_KIND_FEEDBACK,
     }
+
+@app.context_processor
+def inject_seo_defaults():
+    view_args = request.view_args or {}
+    canonical = request.base_url
+    try:
+        canonical = url_for(request.endpoint, _external=True, **view_args)
+    except Exception:
+        pass
+    return {"default_canonical": canonical}
 
 # ---------------------------------------------------------------------------
 # Healthcheck (für Sliplane)
@@ -202,6 +562,7 @@ def index():
     try:
         events = (
             db.session.query(Offer)
+            .filter(or_(Offer.source != "manual", Offer.status == OfferStatus.published))
             .order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
             .limit(9)
             .all()
@@ -320,6 +681,16 @@ def results():
     q        = request.args.get("q", "").strip()
     date_str = request.args.get("date")
     cats     = request.args.getlist("cats[]")
+    def _parse_age_param(name):
+        value = request.args.get(name)
+        if not value:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+    age_min = _parse_age_param("age_min")
+    age_max = _parse_age_param("age_max")
 
     day = _parse_date(date_str)
     if day:
@@ -327,12 +698,22 @@ def results():
         day_end   = day_start + timedelta(days=1)
     else:
         day_start = day_end = None
+    today_cutoff = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
     qry = (
         db.session
         .query(Offer)
         .join(Location, Offer.location_id == Location.id, isouter=True)
+        .filter(or_(Offer.source != "manual", Offer.status == OfferStatus.published))
     )
+
+    playground_clause = or_(
+        func.lower(Category.slug) == "spielplatz",
+        func.lower(Category.name) == "spielplatz",
+        func.lower(Category.slug) == "playground",
+        func.lower(Category.name) == "playground",
+    )
+    qry = qry.filter(~Offer.categories.any(playground_clause))
 
     # Freitext
     if q:
@@ -349,10 +730,17 @@ def results():
         qry = qry.filter(
             and_(Offer.dt_start >= day_start, Offer.dt_start < day_end)
         )
+    else:
+        qry = qry.filter(or_(Offer.dt_start.is_(None), Offer.dt_start >= today_cutoff))
 
     # Kategorien (relational)
     if cats:
         qry = qry.join(Offer.categories).filter(Category.name.in_(cats))
+
+    if age_min is not None:
+        qry = qry.filter(or_(Offer.target_age_max.is_(None), Offer.target_age_max >= age_min))
+    if age_max is not None:
+        qry = qry.filter(or_(Offer.target_age_min.is_(None), Offer.target_age_min <= age_max))
 
     # Flags
     if request.args.get("free") == "1":
@@ -411,6 +799,15 @@ def results():
                 "offer_type": offer_type_value,
             })
 
+    favorite_offer_ids = set()
+    if current_user.is_authenticated and events:
+        user_favorites = (
+            db.session.query(UserFavoriteOffer.offer_id)
+            .filter(UserFavoriteOffer.user_id == current_user.id)
+            .all()
+        )
+        favorite_offer_ids = {str(row.offer_id) for row in user_favorites}
+
     return render_template(
         "results.html",
         events=events,
@@ -419,6 +816,7 @@ def results():
         date_filter=date_str or "",
         playground_ids=playground_ids,
         permanent_ids=permanent_ids,
+        favorite_offer_ids=favorite_offer_ids,
     )
 
 
@@ -428,9 +826,12 @@ def karte():
     offers = (
         db.session.query(Offer)
         .join(Location, Offer.location_id == Location.id)
-        .filter(Location.lat.isnot(None), Location.lon.isnot(None))
+        .filter(
+            Location.lat.isnot(None),
+            Location.lon.isnot(None),
+            or_(Offer.source != "manual", Offer.status == OfferStatus.published),
+        )
         .order_by(Offer.updated_at.desc().nullslast(), Offer.id.desc())
-        .limit(400)
         .all()
     )
 
@@ -453,9 +854,25 @@ def karte():
         s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
         return s or "kategorie"
 
+    marker_color_map = {"spielplatz": "green", "playground": "green"}
+    color_index = 0
+
+    def assign_marker_color(slug: str | None) -> str:
+        nonlocal color_index
+        normalized = (slug or "").strip().lower()
+        if not normalized:
+            return DEFAULT_MARKER_COLOR
+        if normalized in marker_color_map:
+            return marker_color_map[normalized]
+        color_key = MARKER_COLOR_SEQUENCE[color_index % len(MARKER_COLOR_SEQUENCE)]
+        color_index += 1
+        marker_color_map[normalized] = color_key
+        return color_key
+
     category_lookup = {}
     for slug, name in base_categories:
-        category_lookup[slug or _slugify(name)] = name
+        normalized_slug = (slug or "").strip().lower() or _slugify(name)
+        category_lookup[normalized_slug] = name
 
     coords = []
     for offer in offers:
@@ -473,11 +890,17 @@ def karte():
         categories = []
         category_labels = []
         for cat in (offer.categories or []):
-            slug = (cat.slug or "").strip() or _slugify(cat.name)
+            slug = (cat.slug or "").strip().lower() or _slugify(cat.name)
             name = cat.name or slug
             categories.append(slug)
             category_labels.append(name)
             category_lookup.setdefault(slug, name)
+            assign_marker_color(slug)
+
+        primary_category_slug = categories[0] if categories else None
+        if not primary_category_slug and has_playground_category:
+            primary_category_slug = "spielplatz"
+        marker_color = assign_marker_color(primary_category_slug)
 
         coords.append(
             {
@@ -495,19 +918,22 @@ def karte():
                 "is_permanent": is_permanent,
                 "source": offer.source,
                 "offer_type": offer_type_value,
+                "marker_color": marker_color,
             }
         )
 
-    category_filters = [
-        {"slug": slug, "name": name}
-        for slug, name in sorted(category_lookup.items(), key=lambda item: item[1].lower())
-    ]
+    category_filters = []
+    for slug, name in sorted(category_lookup.items(), key=lambda item: item[1].lower()):
+        color_key = assign_marker_color(slug)
+        category_filters.append({"slug": slug, "name": name, "color": color_key})
 
     return render_template(
         "karte.html",
         coords=coords,
         category_filters=category_filters,
         total=len(coords),
+        marker_color_styles=MARKER_COLOR_STYLES,
+        default_marker_color=DEFAULT_MARKER_COLOR,
     )
 
 @app.get("/teaser")
@@ -529,7 +955,270 @@ def vorgaben():
 @app.route("/event/<uuid:event_id>")
 def event_detail(event_id):
     event = Offer.query.get_or_404(event_id)
-    return render_template("event.html", event=event)
+    if event.source == "manual" and event.status != OfferStatus.published:
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(404)
+    is_favorite = False
+    if current_user.is_authenticated:
+        is_favorite = (
+            UserFavoriteOffer.query.filter_by(user_id=current_user.id, offer_id=event.id).first()
+            is not None
+        )
+    canonical = url_for("event_detail", event_id=event.id, _external=True)
+    meta_title = f"{event.title or 'Event'} – Familien-Erlebnis auf lottina"
+    if event.summary:
+        meta_description = event.summary
+    elif event.description:
+        meta_description = event.description[:150] + "..."
+    else:
+        meta_description = "Familienfreundliches Erlebnis auf lottina."
+    return render_template(
+        "event.html",
+        event=event,
+        canonical=canonical,
+        meta_title=meta_title,
+        meta_description=meta_description,
+        is_favorite=is_favorite,
+        favorite_endpoint=url_for("favorite_offer_add", offer_id=event.id),
+        register_url=url_for("register", next=request.full_path or request.path),
+    )
+
+
+@app.route("/event/<uuid:event_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_event(event_id):
+    event = Offer.query.get_or_404(event_id)
+    if not current_user.is_admin:
+        abort(403)
+
+    text_fields = [
+        "title",
+        "summary",
+        "image",
+        "maps_url",
+        "meeting_point",
+        "currency",
+        "source",
+        "source_url",
+        "source_name",
+    ]
+    long_text_fields = ["description"]
+    datetime_fields = ["dt_start", "dt_end"]
+    decimal_fields = ["price_value", "price_min", "price_max"]
+    integer_fields = ["target_age_min", "target_age_max"]
+    bool_fields = [
+        "is_free",
+        "is_outdoor",
+        "is_indoor",
+        "with_accompaniment",
+        "hobby_regular",
+        "is_once",
+        "is_sporty",
+        "is_creative",
+        "pets_allowed",
+    ]
+    json_fields = {
+        "opening_hours_json": "opening_hours",
+        "holiday_hours_json": "holiday_hours",
+    }
+    location_text_fields = ["location_name", "location_address", "location_city"]
+    location_number_fields = {"location_lat": "lat", "location_lon": "lon"}
+
+    errors: list[str] = []
+
+    def _slugify_category(value: str) -> str:
+        mapping = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
+        slug = value.strip().lower()
+        for src, target in mapping.items():
+            slug = slug.replace(src, target)
+        slug = re.sub(r"[^a-z0-9]+", "-", slug).strip("-")
+        return slug or "kategorie"
+
+    if request.method == "POST":
+        for field in text_fields:
+            raw = (request.form.get(field) or "").strip()
+            setattr(event, field, raw or None)
+
+        for field in long_text_fields:
+            raw = request.form.get(field)
+            setattr(event, field, raw or None)
+
+        for field in datetime_fields:
+            raw = (request.form.get(field) or "").strip()
+            if not raw:
+                setattr(event, field, None)
+                continue
+            try:
+                parsed = datetime.fromisoformat(raw)
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=timezone.utc)
+                setattr(event, field, parsed)
+            except ValueError:
+                errors.append(f"Ungültiges Datum/Zeit für Feld '{field}'.")
+
+        for field in decimal_fields:
+            raw = (request.form.get(field) or "").strip()
+            if not raw:
+                setattr(event, field, None)
+                continue
+            try:
+                setattr(event, field, Decimal(raw))
+            except InvalidOperation:
+                errors.append(f"Ungültiger Zahlenwert für Feld '{field}'.")
+
+        for field in integer_fields:
+            raw = (request.form.get(field) or "").strip()
+            if not raw:
+                setattr(event, field, None)
+                continue
+            try:
+                setattr(event, field, int(raw))
+            except ValueError:
+                errors.append(f"Ungültige Ganzzahl für Feld '{field}'.")
+
+        for field in bool_fields:
+            setattr(event, field, request.form.get(field) == "on")
+
+        type_value = (request.form.get("type") or "").strip()
+        if type_value:
+            try:
+                event.type = OfferType(type_value)
+            except ValueError:
+                errors.append("Ungültiger Angebotstyp.")
+
+        status_value = (request.form.get("status") or "").strip()
+        if status_value:
+            try:
+                event.status = OfferStatus(status_value)
+            except ValueError:
+                errors.append("Ungültiger Status.")
+
+        source_type_value = (request.form.get("source_type") or "").strip()
+        if source_type_value:
+            try:
+                event.source_type = SourceType(source_type_value)
+            except ValueError:
+                errors.append("Ungültiger Quellentyp.")
+
+        for form_name, attr_name in json_fields.items():
+            raw = (request.form.get(form_name) or "").strip()
+            if not raw:
+                setattr(event, attr_name, None)
+                continue
+            try:
+                setattr(event, attr_name, json.loads(raw))
+            except json.JSONDecodeError as exc:
+                errors.append(f"JSON Feld '{form_name}': {exc.msg}")
+
+        location_inputs_present = any(
+            (request.form.get(name) or "").strip() for name in [*location_text_fields, *location_number_fields.keys()]
+        )
+        if event.location is None and location_inputs_present:
+            event.location = Location()
+            db.session.add(event.location)
+
+        if event.location:
+            for field in location_text_fields:
+                value = (request.form.get(field) or "").strip()
+                setattr(event.location, field.replace("location_", ""), value or None)
+
+            for form_name, attr_name in location_number_fields.items():
+                raw_val = (request.form.get(form_name) or "").strip()
+                if not raw_val:
+                    setattr(event.location, attr_name, None)
+                    continue
+                try:
+                    setattr(event.location, attr_name, float(raw_val))
+                except ValueError:
+                    errors.append(f"Ungültiger Zahlenwert für Feld '{form_name}'.")
+
+        categories_raw = request.form.get("categories", "") or ""
+        category_names = [name.strip() for name in categories_raw.split(",") if name.strip()]
+        if category_names:
+            new_categories = []
+            for name in category_names:
+                slug = _slugify_category(name)
+                category = (
+                    Category.query.filter(func.lower(Category.slug) == slug).one_or_none()
+                    or Category.query.filter(func.lower(Category.name) == name.lower()).one_or_none()
+                )
+                if category is None:
+                    category = Category(slug=slug, name=name)
+                    db.session.add(category)
+                new_categories.append(category)
+            event.categories = new_categories
+        else:
+            event.categories = []
+
+        if not errors:
+            try:
+                db.session.commit()
+                flash("Event erfolgreich aktualisiert.", "success")
+                return redirect(url_for("event_detail", event_id=str(event.id)))
+            except Exception:
+                db.session.rollback()
+                errors.append("Speichern fehlgeschlagen. Bitte später erneut versuchen.")
+
+    location_proxy = event.location or Location()
+    prefill = {
+        "title": event.title or "",
+        "summary": event.summary or "",
+        "description": event.description or "",
+        "image": event.image or "",
+        "maps_url": event.maps_url or "",
+        "meeting_point": event.meeting_point or "",
+        "source": event.source or "",
+        "source_url": event.source_url or "",
+        "source_name": event.source_name or "",
+        "price_value": "" if event.price_value is None else str(event.price_value),
+        "price_min": "" if event.price_min is None else str(event.price_min),
+        "price_max": "" if event.price_max is None else str(event.price_max),
+        "currency": event.currency or "",
+        "target_age_min": "" if event.target_age_min is None else str(event.target_age_min),
+        "target_age_max": "" if event.target_age_max is None else str(event.target_age_max),
+        "dt_start": _format_datetime_input(event.dt_start),
+        "dt_end": _format_datetime_input(event.dt_end),
+        "opening_hours_json": json.dumps(event.opening_hours, ensure_ascii=False, indent=2)
+        if event.opening_hours
+        else "",
+        "holiday_hours_json": json.dumps(event.holiday_hours, ensure_ascii=False, indent=2)
+        if event.holiday_hours
+        else "",
+        "location_name": location_proxy.name or "",
+        "location_address": location_proxy.address or "",
+        "location_city": location_proxy.city or "",
+        "location_lat": "" if location_proxy.lat is None else str(location_proxy.lat),
+        "location_lon": "" if location_proxy.lon is None else str(location_proxy.lon),
+        "categories": ", ".join(filter(None, [cat.name or cat.slug for cat in event.categories])),
+        "type": getattr(event.type, "value", ""),
+        "status": getattr(event.status, "value", ""),
+        "source_type": getattr(event.source_type, "value", ""),
+    }
+
+    if request.method == "POST":
+        for key in list(prefill.keys()):
+            if key in request.form:
+                prefill[key] = request.form.get(key, "")
+
+    bool_states = {field: bool(getattr(event, field)) for field in bool_fields}
+    if request.method == "POST":
+        for field in bool_fields:
+            bool_states[field] = request.form.get(field) == "on"
+
+    offer_type_choices = [(choice.value, choice.name.title()) for choice in OfferType]
+    source_type_choices = [(choice.value, choice.name.title()) for choice in SourceType]
+    status_choices = [(choice.value, choice.name.title()) for choice in OfferStatus]
+
+    return render_template(
+        "event_edit.html",
+        event=event,
+        prefill=prefill,
+        bool_states=bool_states,
+        errors=errors,
+        offer_type_choices=offer_type_choices,
+        source_type_choices=source_type_choices,
+        status_choices=status_choices,
+    )
 
 @app.get("/ueber_uns")
 def ueber_uns():
@@ -556,6 +1245,39 @@ def ueber_uns():
 @app.get("/feedback")
 def feedback():
     return render_template("feedback.html")
+
+
+@app.post("/feedback/submit")
+def submit_feedback():
+    kind = (request.form.get("kind") or FEEDBACK_KIND_FEEDBACK).strip().lower()
+    if kind not in FEEDBACK_KIND_LABELS:
+        kind = FEEDBACK_KIND_FEEDBACK
+    email = (request.form.get("email") or "").strip().lower()
+    city = (request.form.get("city") or "").strip()
+    message = (request.form.get("message") or "").strip()
+    source = (request.form.get("source") or "").strip() or request.referrer or "unknown"
+    redirect_target = request.form.get("redirect") or request.referrer or url_for("feedback")
+
+    if email and not EMAIL_RX.match(email):
+        flash("Bitte gib eine gültige E-Mail-Adresse an.", "danger")
+        return redirect(redirect_target)
+    if not message and not city:
+        flash("Bitte erzähl uns kurz, welche Stadt oder welches Feedback du hast.", "danger")
+        return redirect(redirect_target)
+
+    try:
+        create_feedback_entry(kind=kind, email=email, city=city, message=message, source=source)
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        app.logger.exception("Feedback konnte nicht gespeichert werden: %s", exc)
+        flash("Dein Hinweis konnte nicht gespeichert werden. Versuch es gleich nochmal.", "danger")
+        return redirect(redirect_target)
+
+    success_msg = "Danke für dein Feedback!"
+    if kind == FEEDBACK_KIND_CITY:
+        success_msg = "Danke! Wir notieren deinen Wunsch und melden uns bei Neuigkeiten."
+    flash(success_msg, "success")
+    return redirect(redirect_target)
 
 @app.post("/notify")
 def notify():
@@ -662,10 +1384,201 @@ def logout():
     flash("Abgemeldet.", "success")
     return redirect(url_for("login"))
 
+def _dashboard_context():
+    """Dashboard-Daten aus der Datenbank aufbereiten."""
+    children_query = current_user.children.order_by(UserChild.created_at.asc())
+    child_rows = [
+        {
+            "id": child.id,
+            "name": child.name or "",
+            "age": child.age or "",
+            "interests": child.interests or [],
+        }
+        for child in children_query
+    ]
+    child_profiles_count = len(child_rows)
+    child_profiles = child_rows if child_rows else [{"id": None, "name": "", "age": "", "interests": []}]
+    if not child_profiles:
+        child_profiles = [{"id": None, "name": "", "age": "", "interests": []}]
+
+    favorite_rows = (
+        db.session.query(Offer, UserFavoriteOffer.created_at)
+        .join(UserFavoriteOffer, UserFavoriteOffer.offer_id == Offer.id)
+        .filter(UserFavoriteOffer.user_id == current_user.id)
+        .order_by(UserFavoriteOffer.created_at.desc())
+        .limit(6)
+        .all()
+    )
+    favorite_events = []
+    for offer, created_at in favorite_rows:
+        date_label = "Termin folgt"
+        time_label = ""
+        if offer.dt_start:
+            localized = offer.dt_start.astimezone()
+            date_label = localized.strftime("%A, %d.%m.")
+            end_dt = offer.dt_end.astimezone() if offer.dt_end else None
+            if end_dt and end_dt.date() == localized.date():
+                time_label = f"{localized.strftime('%H:%M')} – {end_dt.strftime('%H:%M')} Uhr"
+            elif end_dt:
+                time_label = f"{localized.strftime('%H:%M')} Uhr · bis {end_dt.strftime('%d.%m. %H:%M')} Uhr"
+            else:
+                time_label = f"{localized.strftime('%H:%M')} Uhr"
+        tags = [cat.name for cat in (offer.categories or [])][:3]
+        favorite_events.append(
+            {
+                "id": str(offer.id),
+                "title": offer.title or "Ohne Titel",
+                "date": date_label,
+                "time": time_label,
+                "location": offer.location.name if offer.location else "Ort folgt",
+                "tags": tags,
+                "is_free": bool(offer.is_free),
+                "url": url_for("event_detail", event_id=str(offer.id)),
+            }
+        )
+
+    available_interests = [
+        "Klettern",
+        "Forschen",
+        "Musik",
+        "Kreativ",
+        "Schwimmen",
+        "Natur",
+        "Tanz",
+        "Gaming",
+        "Sprachen",
+    ]
+
+    nearby_events = [
+        {
+            "title": "Kinderbauernhof Pinke-Panke",
+            "category": "Draußen",
+            "distance": "0,8 km",
+            "time": "Heute, 15:00 Uhr",
+            "lat": 52.5564,
+            "lon": 13.4027,
+        },
+        {
+            "title": "FabLab Mini-Maker",
+            "category": "Technik",
+            "distance": "1,3 km",
+            "time": "Heute, 17:30 Uhr",
+            "lat": 52.5488,
+            "lon": 13.4129,
+        },
+        {
+            "title": "Kinderkino am Pankeufer",
+            "category": "Film",
+            "distance": "2,1 km",
+            "time": "Morgen, 16:00 Uhr",
+            "lat": 52.5462,
+            "lon": 13.3895,
+        },
+    ]
+
+    return dict(
+        favorite_events=favorite_events,
+        child_profiles=child_profiles,
+        child_profiles_count=child_profiles_count,
+        available_interests=available_interests,
+        nearby_events=nearby_events,
+    )
+
+
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    return render_template("dashboard.html", **_dashboard_context())
+
+
+@app.post("/dashboard/profile")
+@login_required
+def dashboard_profile_update():
+    firstname = (request.form.get("firstname") or "").strip()
+    lastname = (request.form.get("lastname") or "").strip()
+    city = (request.form.get("city") or "").strip()
+    had_changes = False
+    if firstname != (current_user.firstname or ""):
+        current_user.firstname = firstname or None
+        had_changes = True
+    if lastname != (current_user.lastname or ""):
+        current_user.lastname = lastname or None
+        had_changes = True
+    if city != (current_user.city or ""):
+        current_user.city = city or None
+        had_changes = True
+    if had_changes:
+        db.session.commit()
+        flash("Profil aktualisiert.", "success")
+    else:
+        flash("Keine Änderungen erkannt.", "info")
+    return redirect(url_for("dashboard"))
+
+
+@app.post("/dashboard/children")
+@login_required
+def dashboard_children_save():
+    payload = request.get_json(silent=True) or {}
+    children = payload.get("children") or []
+    cleaned_children = []
+    for entry in children:
+        name = (entry.get("name") or "").strip()
+        if not name:
+            continue
+        try:
+            age_value = entry.get("age")
+            age = int(age_value) if age_value not in (None, "") else None
+            if age is not None and age < 0:
+                age = None
+        except (TypeError, ValueError):
+            age = None
+        raw_interests = entry.get("interests") or []
+        interests = []
+        for interest in raw_interests:
+            if interest and interest not in interests:
+                interests.append(str(interest)[:80])
+            if len(interests) >= 3:
+                break
+        cleaned_children.append({"name": name[:80], "age": age, "interests": interests})
+
+    UserChild.query.filter_by(user_id=current_user.id).delete(synchronize_session=False)
+    for child in cleaned_children:
+        db.session.add(
+            UserChild(
+                user_id=current_user.id,
+                name=child["name"],
+                age=child["age"],
+                interests=child["interests"],
+            )
+        )
+    db.session.commit()
+    return jsonify({"ok": True, "count": len(cleaned_children)})
+
+
+@app.post("/favorites/<uuid:offer_id>")
+@login_required
+def favorite_offer_add(offer_id):
+    offer = Offer.query.get_or_404(offer_id)
+    exists = (
+        UserFavoriteOffer.query.filter_by(user_id=current_user.id, offer_id=offer.id).first()
+    )
+    if exists:
+        return jsonify({"ok": True, "favorite": True})
+    db.session.add(UserFavoriteOffer(user_id=current_user.id, offer_id=offer.id))
+    db.session.commit()
+    return jsonify({"ok": True, "favorite": True})
+
+
+@app.delete("/favorites/<uuid:offer_id>")
+@login_required
+def favorite_offer_remove(offer_id):
+    deleted = (
+        UserFavoriteOffer.query.filter_by(user_id=current_user.id, offer_id=offer_id).delete()
+    )
+    if deleted:
+        db.session.commit()
+    return jsonify({"ok": True, "favorite": False})
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -696,9 +1609,31 @@ def register():
 
     return render_template("register.html")
 
+
+@app.post("/password-reset")
+def password_reset_request():
+    email = (request.form.get("reset_email") or "").strip().lower()
+    if not email:
+        flash("Bitte gib deine E-Mail-Adresse ein.", "danger")
+        return redirect(url_for("login"))
+    user = User.query.filter(func.lower(User.email) == email).first()
+    if not user:
+        flash("Wir konnten kein Konto mit dieser E-Mail finden.", "danger")
+        return redirect(url_for("login"))
+    reset_url = url_for("login", _external=True) + "?reset=1"
+    send_templated_email(
+        subject="Passwort zurücksetzen",
+        template="password_reset",
+        recipients=[user.email],
+        user=user,
+        reset_url=reset_url,
+    )
+    flash("Wir haben dir eine E-Mail zum Zurücksetzen gesendet.", "success")
+    return redirect(url_for("login"))
+
 @app.get("/profil")
 def profil():
-    return render_template("dashboard.html")
+    return render_template("dashboard.html", **_dashboard_context())
 
 
 @app.post("/account/delete")
@@ -719,9 +1654,62 @@ def delete_account():
 # ---------------------------------------------------------------------------
 # Anbieter / Events erstellen
 # ---------------------------------------------------------------------------
+def _list_media_images(limit: int = 60):
+    try:
+        files = sorted(
+            (p for p in IMAGE_FOLDER.glob("*") if p.is_file()),
+            key=lambda path: path.stat().st_mtime,
+            reverse=True,
+        )
+    except Exception:
+        return []
+
+    items: list[dict[str, str]] = []
+    for path in files[:limit]:
+        try:
+            stat = path.stat()
+        except FileNotFoundError:
+            continue
+        items.append(
+            {
+                "name": path.name,
+                "url": f"/uploads/images/{path.name}",
+                "size": f"{stat.st_size / 1024:.1f} KB",
+            }
+        )
+    return items
+
+def _render_event_form(
+    form_data=None,
+    ocr_text=None,
+    ocr_error=None,
+    ocr_filled=None,
+    submission_success=False,
+    submitted_title=None,
+    submission_error=None,
+):
+    data = dict(form_data or {})
+    mode = data.get("form_mode")
+    if mode not in (MODE_MANUAL, MODE_OCR):
+        mode = MODE_MANUAL
+    data["form_mode"] = mode
+    return render_template(
+        "event-erstellen.html",
+        form_data=data,
+        form_mode=mode,
+        ocr_text=ocr_text,
+        ocr_error=ocr_error,
+        ocr_filled=ocr_filled or [],
+        media_images=_list_media_images(),
+        submission_success=submission_success,
+        submitted_title=submitted_title,
+        submission_error=submission_error,
+    )
+
+
 @app.get("/event-erstellen")
 def event_erstellen():
-    return render_template("event-erstellen.html")
+    return _render_event_form({"form_mode": MODE_MANUAL})
 
 @app.route("/uploads/images/<path:fname>")
 def _serve_uploaded_image(fname):
@@ -741,113 +1729,48 @@ def _serve_uploaded_image(fname):
     mimetype, _ = mimetypes.guess_type(target_path.name)
     return send_file(str(target_path), mimetype=mimetype, as_attachment=False)
 
-@app.post("/ocr/upload")
-def ocr_upload():
-    """
-    Nimmt Bild oder PDF entgegen, führt OCR aus und gibt extrahierte Felder zurück.
-    Erwartet Feldname 'file' im Multipart-Upload.
-    """
-
-    # Lazy imports, damit der Server in Production ohne libGL (OpenCV)
-    # trotzdem starten kann und Sliplane den Container nicht sofort killt.
-    import numpy as np
-    import cv2
-    from .utils.ocr import pdf_to_images, ocr_image  # zieht easyocr/cv2 erst jetzt rein
-
-    file = request.files.get("file")
-    if not file or not file.filename or not allowed(file.filename):
-        return jsonify({"ok": False, "error": "Keine gültige Datei (Bild/PDF)."}), 400
-
-    ext = file.filename.rsplit(".", 1)[-1].lower()
-
-    # --- PDF Upload ---
-    if ext == "pdf":
-        saved = save_upload(file, PDF_FOLDER)
-        try:
-            pages = pdf_to_images(saved)
-        except Exception:
-            app.logger.exception("pdf_to_images failed")
-            return jsonify({"ok": False, "error": "PDF konnte nicht gerendert werden."}), 400
-
-        if not pages:
-            return jsonify({"ok": False, "error": "PDF hatte keine renderbaren Seiten."}), 400
-
-        texts = []
-        confs_all = []
-        for img_rgb in pages:
-            text, confs, meta = ocr_image(img_rgb)
-            if text:
-                texts.append(text)
-            confs_all.extend(confs)
-
-        full_text = "\n".join(texts).strip()
-        fields = extract_fields(full_text)
-        ai_fields = enrich_fields_with_mistral(full_text, base_fields=fields)
-        fields = merge_fields(fields, ai_fields)
-        app.logger.info(
-            "OCR upload (pdf) mistral_enriched=%s keys=%s avg_conf=%.3f",
-            bool(ai_fields),
-            sorted(ai_fields.keys()) if ai_fields else [],
-            confidence_stats(confs_all).get("avg", 0.0),
-        )
-
-        found = [k for k, v in fields.items() if _has_value(v)]
-        missing = [k for k in ("title", "date", "location") if not _has_value(fields.get(k))]
-
-        return jsonify({
-            "ok": True,
-            "fields": fields,
-            "found": found,
-            "missing": missing,
-            "confidence": confidence_stats(confs_all),
-            "image_url": None,
-        })
-
-    # --- Bild Upload ---
-    saved = save_upload(file, IMAGE_FOLDER)
-    rel_url = f"/uploads/images/{saved.name}"
-
-    try:
-        # np.fromfile + cv2.imdecode ist pfad-sicherer bei Unicode etc.
-        data = np.fromfile(str(saved), dtype=np.uint8)
-        img_bgr = cv2.imdecode(data, cv2.IMREAD_COLOR)
-        if img_bgr is None:
-            raise ValueError("imdecode returned None")
-        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-    except Exception:
-        app.logger.exception("Bild konnte nicht gelesen werden")
-        return jsonify({"ok": False, "error": "Bild konnte nicht gelesen werden."}), 400
-
-    text, confs, meta = ocr_image(img_rgb)
-
-    fields = extract_fields(text)
-    ai_fields = enrich_fields_with_mistral(text, base_fields=fields)
-    fields = merge_fields(fields, ai_fields)
-    app.logger.info(
-        "OCR upload (image) mistral_enriched=%s keys=%s avg_conf=%.3f",
-        bool(ai_fields),
-        sorted(ai_fields.keys()) if ai_fields else [],
-        confidence_stats(confs).get("avg", 0.0),
-    )
-    fields["image_url"] = rel_url
-
-    found = [k for k, v in fields.items() if _has_value(v)]
-    missing = [k for k in ("title", "date", "location") if not _has_value(fields.get(k))]
-
-    return jsonify({
-        "ok": True,
-        "fields": fields,
-        "found": found,
-        "missing": missing,
-        "confidence": confidence_stats(confs),
-        "image_url": rel_url,
-    })
-
-
 @app.post("/event-erstellen")
 def create_event():
-    f  = request.form
-    up = request.files.get("summary_file")
+    f = request.form
+    poster_file = request.files.get("poster_file")
+    interactive_mode = f.get("interactive") == "1"
+    form_data = request.form.to_dict()
+    form_data.pop("perform_ocr", None)
+    form_data.setdefault("image_url", form_data.get("image_url") or "")
+    mode = form_data.get("form_mode")
+    if mode not in (MODE_MANUAL, MODE_OCR):
+        mode = MODE_MANUAL
+    form_data["form_mode"] = mode
+
+    if f.get("perform_ocr") == "1":
+        form_data["form_mode"] = MODE_OCR
+        if not poster_file or not poster_file.filename:
+            return _render_event_form(form_data, ocr_error="Bitte wähle eine Bilddatei aus.")
+        if not allowed(poster_file.filename):
+            return _render_event_form(form_data, ocr_error="Unterstützt werden JPG, JPEG, PNG oder WEBP.")
+        saved = save_upload(poster_file, IMAGE_FOLDER)
+        form_data["image_url"] = f"/uploads/images/{saved.name}"
+        try:
+            text = run_ocr(str(saved))
+            extracted = extract_fields(text) or {}
+        except Exception as exc:  # noqa: BLE001
+            app.logger.warning("Remote OCR prefill failed: %s", exc)
+            return _render_event_form(form_data, ocr_error="Texterkennung konnte nicht durchgeführt werden.")
+        filled_labels: list[str] = []
+        if extracted:
+            filled_keys: list[str] = []
+            for key in OCR_FORM_FIELDS:
+                value = extracted.get(key)
+                if value:
+                    form_data[key] = value
+                    filled_keys.append(key)
+            if not filled_keys and text:
+                form_data["description"] = text
+            filled_labels = [OCR_FIELD_LABELS.get(key, key.title()) for key in filled_keys]
+        else:
+            if text:
+                form_data["description"] = text
+        return _render_event_form(form_data, ocr_text=text, ocr_filled=filled_labels)
 
     def _to_bool(v):
         return True if v == "true" else False if v == "false" else None
@@ -866,10 +1789,27 @@ def create_event():
         return s[:n]
 
     # Bild
-    image_url = f.get("image_url") or None
-    if up and up.filename:
-        saved = save_upload(up, IMAGE_FOLDER)
+    image_url = (f.get("image_url") or "").strip() or None
+    ocr_text = None
+    if poster_file and poster_file.filename:
+        if not allowed(poster_file.filename):
+            msg = "Nur JPG, JPEG, PNG oder WEBP werden unterstützt."
+            if interactive_mode:
+                return _render_event_form(form_data, submission_error=msg), 400
+            flash(msg, "danger")
+            return redirect(url_for("event_erstellen")), 400
+        saved = save_upload(poster_file, IMAGE_FOLDER)
         image_url = f"/uploads/images/{saved.name}"
+        try:
+            ocr_text = run_ocr(str(saved))
+            flash("Texterkennung erfolgreich – Beschreibung wurde vorausgefüllt.", "info")
+        except Exception as exc:  # noqa: BLE001
+            app.logger.warning("Remote OCR failed during event save: %s", exc)
+            flash("Bild gespeichert, Texterkennung nicht möglich.", "warning")
+
+    description_text = (f.get("description") or "").strip()
+    if not description_text and ocr_text:
+        description_text = ocr_text
 
     contact_email       = shorten((f.get("contact") or "").strip(), MAX_SRC_NAME)
     opening_hours_text  = shorten((f.get("opening_hours") or "").strip(), 260)
@@ -925,9 +1865,7 @@ def create_event():
     lon = _to_float(f.get("lon"))
 
     if not location_name_raw or len(location_name_raw) > MAX_LOC_NAME:
-        addr_guess, city_guess = extract_addr_city_from_text(
-            f.get("description") or ""
-        )
+        addr_guess, city_guess = extract_addr_city_from_text(description_text)
         location_name_raw = addr_guess or location_name_raw or city_guess or ""
 
     loc_name = shorten(location_name_raw, MAX_LOC_NAME)
@@ -935,7 +1873,7 @@ def create_event():
 
     city_guess = None
     if not city_guess:
-        _, city_guess = extract_addr_city_from_text(f.get("description") or "")
+        _, city_guess = extract_addr_city_from_text(description_text)
 
     location = None
     if loc_name:
@@ -983,7 +1921,7 @@ def create_event():
 
     offer = Offer(
         title=title,
-        description=f.get("description") or None,
+        description=description_text or None,
         summary=summary,
         external_id=external_id,
         source=source,
@@ -1005,6 +1943,7 @@ def create_event():
         created_by_user_id=current_user.id if current_user.is_authenticated else None,
         location_id=location.id if location else None,
     )
+    offer.status = OfferStatus.draft
     db.session.add(offer)
 
     cat_name = (f.get("category") or "").strip()
@@ -1028,12 +1967,98 @@ def create_event():
 
     try:
         db.session.commit()
+        if interactive_mode:
+            return _render_event_form(
+                {"form_mode": MODE_MANUAL},
+                submission_success=True,
+                submitted_title=offer.title,
+            )
         flash("Event gespeichert.", "success")
         return redirect(url_for("suchergebnisse"))
     except IntegrityError:
         db.session.rollback()
+        if interactive_mode:
+            return _render_event_form(
+                form_data,
+                submission_error="Konnte Event nicht speichern (DB-Fehler).",
+            ), 400
         flash("Konnte Event nicht speichern (DB-Fehler).", "danger")
         return redirect(url_for("event_erstellen")), 400
+
+
+@app.get("/freigeben")
+@login_required
+def freigeben():
+    if not current_user.is_admin:
+        abort(403)
+    pending_offers = (
+        db.session.query(Offer)
+        .filter(
+            Offer.status == OfferStatus.draft,
+            Offer.source == "manual",
+        )
+        .order_by(Offer.created_at.desc())
+        .limit(200)
+        .all()
+    )
+    city_rows = (
+        db.session.query(
+            CommunityFeedback.city.label("city"),
+            func.count(CommunityFeedback.id).label("count"),
+            func.max(CommunityFeedback.created_at).label("latest_at"),
+        )
+        .filter(
+            CommunityFeedback.kind == FEEDBACK_KIND_CITY,
+            CommunityFeedback.city.isnot(None),
+            CommunityFeedback.city != "",
+        )
+        .group_by(CommunityFeedback.city)
+        .order_by(func.count(CommunityFeedback.id).desc(), func.max(CommunityFeedback.created_at).desc())
+        .limit(50)
+        .all()
+    )
+    city_requests = [
+        {"city": row.city, "count": row.count, "latest_at": row.latest_at}
+        for row in city_rows
+    ]
+    feedback_entries = (
+        CommunityFeedback.query
+        .filter(CommunityFeedback.kind != FEEDBACK_KIND_CITY)
+        .order_by(CommunityFeedback.created_at.desc())
+        .limit(15)
+        .all()
+    )
+    return render_template(
+        "freigeben.html",
+        pending_offers=pending_offers,
+        city_requests=city_requests,
+        feedback_entries=feedback_entries,
+        feedback_kind_labels=FEEDBACK_KIND_LABELS,
+    )
+
+
+@app.post("/freigeben/<uuid:offer_id>/publish")
+@login_required
+def freigeben_publish(offer_id):
+    if not current_user.is_admin:
+        abort(403)
+    offer = Offer.query.get_or_404(offer_id)
+    offer.status = OfferStatus.published
+    db.session.commit()
+    flash("Event veröffentlicht.", "success")
+    return redirect(url_for("freigeben"))
+
+
+@app.post("/freigeben/<uuid:offer_id>/archive")
+@login_required
+def freigeben_archive(offer_id):
+    if not current_user.is_admin:
+        abort(403)
+    offer = Offer.query.get_or_404(offer_id)
+    offer.status = OfferStatus.archived
+    db.session.commit()
+    flash("Event archiviert.", "info")
+    return redirect(url_for("freigeben"))
 
 # ---------------------------------------------------------------------------
 # Fehlerseiten
@@ -1055,24 +2080,26 @@ def server_error(e):
 
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
-    price = request.form.get("priceId")
-    # Hier würde der Checkout-Prozess gestartet werden
-    session = stripe.checkout.Session.create(
-    success_url='http://localhost:5000/success.html?session_id={CHECKOUT_SESSION_ID}',
-    mode='subscription',
-    line_items=[{
-        'price': price,
-        # For usage-based billing, don't pass quantity
-        'quantity': 1
-    }],
-    subscription_data={
-        'billing_mode': {
-            'type': 'flexible'
-        }
-    }
-)
+    price_id = request.form.get("priceId") or app.config.get("STRIPE_PRICE_MONTHLY")
+    if not price_id:
+        flash("Kein Preis ausgewählt – bitte versuche es erneut.", "danger")
+        return redirect(url_for("preise"))
 
-# Redirect to the URL returned on the session
+    success_url = url_for("checkout_success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = url_for("preise", _external=True)
+
+    try:
+        session = stripe.checkout.Session.create(
+            success_url=success_url,
+            cancel_url=cancel_url,
+            mode="subscription",
+            line_items=[{"price": price_id, "quantity": 1}],
+        )
+    except Exception:
+        app.logger.exception("Stripe Checkout konnte nicht erstellt werden")
+        flash("Checkout konnte nicht gestartet werden. Bitte versuche es später erneut.", "danger")
+        return redirect(url_for("preise"))
+
     return redirect(session.url, code=303)
 
 

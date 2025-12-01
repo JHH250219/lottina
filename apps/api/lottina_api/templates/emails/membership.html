@@ -2,40 +2,89 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>lottina+ aktiviert</title>
+  <title>Dein lottina Family Abo ist aktiv</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f2fff6;font-family:'Inter',Arial,sans-serif;color:#0f2f2c;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2fff6;padding:32px 0;">
+<body style="margin:0;padding:0;background-color:#f4fdf8;font-family:'Inter',Arial,sans-serif;color:#0f2f2c;">
+
+  <!-- Wrapper -->
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 0;background:#ffffff;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#0f2f2c;border-radius:28px;padding:40px 36px;color:#ffffff;box-shadow:0 45px 110px rgba(6,14,12,0.4);background-image:linear-gradient(135deg,#12352d,#0f2f2c,#1f6d5c);">
+
+        <!-- Card -->
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:40px;overflow:hidden;box-shadow:0 35px 90px rgba(6,14,12,0.15);">
+
+          <!-- Branding -->
           <tr>
-            <td align="center" style="padding-bottom:20px;">
-              <img src="{{ url_for('static', filename='img/check.png', _external=True) }}" width="96" alt="Check" style="display:block;margin:0 auto 12px auto;">
-              <p style="letter-spacing:0.35em;text-transform:uppercase;font-size:11px;color:#8be84f;margin:0;">lottina+</p>
+            <td align="center" style="background:linear-gradient(180deg,#0f2f2c,#1f6d5c,#8be84f);padding:60px 20px;">
+              <h1 style="margin:0;font-size:36px;color:#ffffff;font-weight:700;line-height:1;">
+                lottina Family
+              </h1>
+              <p style="margin:6px 0 0 0;color:#eaffea;font-size:16px;letter-spacing:0.5px;">
+                deine Premium-Erlebnisse für Familien
+              </p>
             </td>
           </tr>
+
+          <!-- Text -->
           <tr>
-            <td style="font-size:16px;line-height:1.7;">
-              <h1 style="font-size:28px;margin:0 0 16px 0;color:#fdfefb;">Danke, {{ user.username or 'Entdecker:in' }}!</h1>
-              <p style="margin:0 0 12px 0;color:#f1fff4;">Deine lottina+ Mitgliedschaft läuft. Wir reservieren für dich neue Features, persönliche Empfehlungen und Goodies aus der Community.</p>
-              <p style="margin:0 0 12px 0;color:#d9f9e4;">Sobald neue Extras live gehen, erhältst du ein Update. Bis dahin kannst du jederzeit im Profil prüfen, welche Vorteile aktiv sind.</p>
+            <td style="padding:40px 32px;font-size:17px;line-height:1.6;color:#12352d;">
+              <h2 style="margin:0 0 16px 0;font-size:24px;color:#0f2f2c;">
+                Danke, {{ user.username or 'Entdecker:in' }}!
+              </h2>
+
+              <p style="margin:0 0 12px 0;">
+                Dein lottina Family Abo ist jetzt aktiv – und damit startet für euch eine neue, entspannte Art, gemeinsame Erlebnisse zu finden.
+              </p>
+
+              <p style="margin:0 0 12px 0;">
+                Du bekommst ab sofort Zugang zu zusätzlichen Angeboten, exklusiven Empfehlungen und neuen Funktionen, die wir Schritt für Schritt ausrollen.
+              </p>
+
+              <p style="margin:0 0 16px 0;">
+                Wir arbeiten kontinuierlich daran, lottina Family für dich und deine Familie immer wertvoller zu machen. Danke, dass du uns auf diesem Weg unterstützt.
+              </p>
+
+              <p style="margin:0;">Hier findest du alle aktiven Vorteile:</p>
             </td>
           </tr>
+
+          <!-- CTA -->
           <tr>
-            <td align="center" style="padding:24px 0;">
-              <a href="{{ url_for('preise', _external=True) }}" style="display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:999px;background:#8be84f;color:#0f2f2c;text-decoration:none;font-weight:600;">Vorteile ansehen →</a>
+            <td align="center" style="padding:10px 0 35px 0;">
+              <a href="{{ url_for('preise', _external=True) }}"
+                 style="display:inline-block;padding:14px 32px;background:#1f6d5c;color:#ffffff;text-decoration:none;
+                        font-weight:600;border-radius:999px;font-size:16px;">
+                Vorteile ansehen
+              </a>
             </td>
           </tr>
+
+          <!-- Support -->
           <tr>
-            <td style="font-size:13px;line-height:1.5;color:#ccefdc;">
-              <p style="margin:0 0 8px 0;">Fragen zum Abo? Schreib uns einfach an hello@lottina.de – wir antworten persönlich.</p>
-              <p style="margin:0;">Bis gleich auf lottina.de!<br>– Anne Sophie & Jan</p>
+            <td style="padding:0 32px 35px 32px;font-size:14px;color:#4b5a55;line-height:1.6;">
+              <p style="margin:0 0 8px 0;">
+                Hast du Fragen zum Abo? Schreib uns einfach an <strong>hello@lottina.de</strong> – wir helfen dir persönlich weiter.
+              </p>
+              <p style="margin:0;">Schön, dass du Teil von lottina Family bist!<br>– Anne Sophie & Jan</p>
             </td>
           </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:20px 0 30px 0;font-size:12px;color:#6c7a77;line-height:1.5;">
+              <a href="{{ url_for('unsubscribe', user_id=user.id, _external=True) }}"
+                 style="color:#6c7a77;text-decoration:underline;">Abmelden</a>
+              <br>
+              Jungchenbüchel 60, 52156 Monschau
+            </td>
+          </tr>
+
         </table>
+
       </td>
     </tr>
   </table>
+
 </body>
 </html>

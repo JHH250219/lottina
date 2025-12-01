@@ -1,17 +1,17 @@
 {# templates/header.html #}
 <header class="fixed top-0 inset-x-0 z-50">
   <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-    <div class="mt-2 sm:mt-4 flex flex-col gap-2 sm:gap-4 rounded-[28px] bg-gradient-to-r from-[#0c231e]/95 via-[#16503f]/95 to-[#78d33d]/90 px-3 py-2 sm:px-4 sm:py-3 shadow-xl backdrop-blur border border-white/5">
+    <div class="mt-2 sm:mt-4 flex flex-col gap-2 sm:gap-4 rounded-[28px] bg-gradient-to-r from-[#0c231e]/95 via-[#16503f]/95 to-[#78d33d]/90 px-3 py-2 sm:px-4 sm:py-3 shadow-xl backdrop-blur ">
       <div class="flex items-center justify-between gap-3">
         <!-- Logo -->
         <div class="flex items-center gap-3">
-          <a href="{{ url_for('index') }}"
+      <a href="{{ url_for('index') }}"
              class="inline-flex items-center gap-2 text-white"
              aria-label="Startseite">
-            <img src="{{ url_for('static', filename='img/lottina_logo_weiß.png') }}" alt="lottina Logo" class="h-10 w-auto">
+            <img src="{{ url_for('static', filename='img/lottina_logo.png') }}" alt="lottina Logo" class="h-10 w-auto">
             <span class="text-lg font-lottina tracking-wide"></span>
           </a>
-          <span class="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/80">
+          <span class="hidden sm:inline-flex items-center gap-2  bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/80">
             Beta
           </span>
         </div>
@@ -19,12 +19,22 @@
         <!-- CTA + Menu Trigger -->
         <div class="flex items-center gap-2 sm:gap-3">
           <a href="{{ url_for('event_erstellen') }}"
-             class="header-cta-primary hidden sm:inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-wide text-[#0f2f2c] shadow-2xl transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+             class="header-cta-primary hidden sm:inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-[#0f2f2c] shadow-2xl transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
             </svg>
             Erlebnis erstellen
           </a>
+          {% if current_user.is_authenticated and current_user.organisations.count() %}
+            {% set first_org = current_user.organisations.first() %}
+            <a href="{{ url_for('organisations.organisation_dashboard', slug=first_org.slug) }}"
+               class="header-cta-primary hidden sm:inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-[#0f2f2c] shadow-2xl transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12h18M6 6h12M6 18h12"/>
+              </svg>
+              Organisation
+            </a>
+          {% endif %}
           <button id="headerMenuToggle"
                   class="inline-flex items-center justify-center p-0"
                   aria-label="Menü öffnen oder schließen"
@@ -48,7 +58,7 @@
         </svg>
       </button>
     </div>
-    {% set current_endpoint = request.endpoint %}
+    {% set current_endpoint = request.endpoint or '' %}
     <nav class="flex flex-col gap-2 text-sm font-semibold" aria-label="Hauptnavigation">
       <a href="{{ url_for('results') }}"
          class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'results' else '' }}"
@@ -68,7 +78,7 @@
       <a href="{{ url_for('preise') }}"
          class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'preise' else '' }}"
          {% if current_endpoint == 'preise' %}aria-current="page"{% endif %}>
-        lottina+
+        lottina Family
       </a>
       <a href="{{ url_for('ueber_uns') }}"
          class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'ueber_uns' else '' }}"
@@ -77,17 +87,24 @@
       </a>
       {% if current_user.is_authenticated %}
         {% if current_user.is_admin %}
-          <a href="{{ url_for('dashboard') }}"
-             class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'dashboard' else '' }}"
-             {% if current_endpoint == 'dashboard' %}aria-current="page"{% endif %}>
-            Admin
+          <a href="{{ url_for('freigeben') }}"
+             class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'freigeben' else '' }}"
+             {% if current_endpoint == 'freigeben' %}aria-current="page"{% endif %}>
+            Freigeben
+          </a>
+        {% endif %}
+        {% if current_user.organisations.count() %}
+          {% set first_org = current_user.organisations.first() %}
+          <a href="{{ url_for('organisations.organisation_dashboard', slug=first_org.slug) }}"
+             class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint.startswith('organisations.') else '' }}">
+            Organisation Dashboard
           </a>
         {% endif %}
         <a href="{{ url_for('profil') }}"
            class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'profil' else '' }}"
            {% if current_endpoint == 'profil' %}aria-current="page"{% endif %}>
-          Profil
-        </a>
+         Profil
+       </a>
         <a href="{{ url_for('logout') }}" class="header-drawer__link">
           Logout
         </a>
@@ -99,11 +116,6 @@
         </a>
       {% endif %}
     </nav>
-    <div class="pt-2 border-t border-white/15 space-y-2 text-sm text-white/80">
-      <p class="text-xs uppercase tracking-[0.2em] text-white/60">Kurzlinks</p>
-      <a href="/faq" class="header-drawer__link">FAQ</a>
-      <a href="/so-funktionierts" class="header-drawer__link">So funktioniert’s</a>
-    </div>
   </aside>
 </div>
 

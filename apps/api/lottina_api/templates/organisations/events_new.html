@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+{% block title %}{{ organisation.name }} – Neues Event{% endblock %}
+
+{% block content %}
+{% set form_data = form_data or {} %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-12 pt-32 pb-16 space-y-10">
+    <header class="space-y-3 text-center">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+        Neues Event
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Wizard für Organisationen</h1>
+      <p class="text-sm sm:text-base text-white/80">Erstelle Termine inkl. Wiederholungen, Sichtbarkeit und Karte in wenigen Fragen.</p>
+    </header>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-5">
+      {% include "organisations/_tabs.html" %}
+      {% if errors %}
+        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+          <p class="font-semibold">Prüfe bitte folgende Punkte:</p>
+          <ul class="list-disc list-inside space-y-1">
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      <div class="text-center">
+        <button type="button"
+                class="choice-card bg-white text-lottina-primary inline-flex flex-col gap-3 items-center mx-auto px-8 py-5"
+                data-open-org-wizard>
+          <div class="flex items-center gap-4">
+            <img src="{{ url_for('static', filename='img/typing.png') }}"
+                 alt="Organisation Wizard"
+                 class="hidden sm:block h-20 w-20 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.35)]">
+            <div class="text-left">
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                Wizard
+              </span>
+              <h2 class="text-2xl font-semibold leading-tight">Termin erstellen</h2>
+              <p class="text-sm text-lottina-primary/70">
+                Schritt für Schritt – inkl. Wiederholung, Sichtbarkeit und Bild.
+              </p>
+            </div>
+          </div>
+        </button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="org-wizard" class="wizard-overlay" hidden>
+  <div class="wizard-panel">
+    <div class="wizard-progress">
+      <div class="wizard-progress__label">Fortschritt</div>
+      <div class="wizard-progress__bar">
+        <div class="wizard-progress__value" data-progress style="width: 0%;"></div>
+      </div>
+    </div>
+    <button type="button" class="wizard-close" data-wizard-close aria-label="Schließen">×</button>
+
+    <form id="org-wizard-form"
+          method="post"
+          action="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
+          enctype="multipart/form-data"
+          class="wizard-form">
+      <div class="wizard-step" data-step="0">
+        <p class="wizard-step__eyebrow">Schritt 1</p>
+        <h3 class="wizard-step__title">Wie heißt der Termin?</h3>
+        <label class="wizard-label">
+          Titel
+          <input type="text" name="title" value="{{ form_data.get('title','') }}" class="wizard-input" placeholder="z. B. Eltern-Kind-Treff" required>
+        </label>
+        <label class="wizard-label">
+          Kurzbeschreibung
+          <input type="text" name="summary" value="{{ form_data.get('summary','') }}" class="wizard-input" placeholder="1-2 Sätze, optional">
+        </label>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="1">
+        <p class="wizard-step__eyebrow">Schritt 2</p>
+        <h3 class="wizard-step__title">Wann findet das Event statt?</h3>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Startdatum
+            <input type="date" name="start_date" value="{{ form_data.get('start_date','') }}" class="wizard-input" required>
+          </label>
+          <label class="wizard-label">
+            Startzeit
+            <input type="time" name="start_time" value="{{ form_data.get('start_time','') }}" class="wizard-input" required>
+          </label>
+          <label class="wizard-label">
+            Enddatum
+            <input type="date" name="end_date" value="{{ form_data.get('end_date','') }}" class="wizard-input">
+          </label>
+          <label class="wizard-label">
+            Endzeit
+            <input type="time" name="end_time" value="{{ form_data.get('end_time','') }}" class="wizard-input">
+          </label>
+        </div>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Wiederholung
+            <select name="repeat_pattern" class="wizard-input">
+              {% set repeat_value = form_data.get('repeat_pattern','none') %}
+              <option value="none" {% if repeat_value == 'none' %}selected{% endif %}>Keine</option>
+              <option value="weekly" {% if repeat_value == 'weekly' %}selected{% endif %}>Wöchentlich</option>
+              <option value="monthly" {% if repeat_value == 'monthly' %}selected{% endif %}>Monatlich</option>
+            </select>
+          </label>
+          <label class="wizard-label">
+            Wiederholungs-Enddatum
+            <input type="date" name="repeat_until" value="{{ form_data.get('repeat_until','') }}" class="wizard-input">
+          </label>
+        </div>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="2">
+        <p class="wizard-step__eyebrow">Schritt 3</p>
+        <h3 class="wizard-step__title">Wo findet der Termin statt?</h3>
+        <label class="wizard-label">
+          Ort / Name
+          <input type="text" name="location_name" value="{{ form_data.get('location_name','') }}" class="wizard-input" placeholder="z. B. Bürgerzentrum">
+        </label>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Adresse
+            <input type="text" name="location_address" value="{{ form_data.get('location_address','') }}" class="wizard-input">
+          </label>
+          <label class="wizard-label">
+            Stadt
+            <input type="text" name="location_city" value="{{ form_data.get('location_city','') }}" class="wizard-input">
+          </label>
+        </div>
+        <label class="wizard-label">
+          Maps-Link
+          <input type="url" name="maps_url" value="{{ form_data.get('maps_url','') }}" class="wizard-input" placeholder="https://">
+        </label>
+        <div class="rounded-3xl border border-white/20 bg-white/5 p-4 space-y-3">
+          <p class="text-xs uppercase tracking-[0.35em] text-white/60">Sichtbarkeit</p>
+          <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center gap-2 text-sm font-semibold">
+              <input type="radio" name="visibility" value="public" {% if form_data.get('visibility','public') != 'internal' %}checked{% endif %}>
+              Öffentlich auf lottina
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm font-semibold">
+              <input type="radio" name="visibility" value="internal" {% if form_data.get('visibility') == 'internal' %}checked{% endif %}>
+              Nur intern sichtbar
+            </label>
+          </div>
+          <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center gap-2 text-sm font-semibold">
+              <input type="checkbox" name="is_outdoor" {% if form_data.get('is_outdoor') %}checked{% endif %}>
+              Outdoor
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm font-semibold">
+              <input type="checkbox" name="is_indoor" {% if form_data.get('is_indoor') %}checked{% endif %}>
+              Indoor
+            </label>
+          </div>
+        </div>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="3">
+        <p class="wizard-step__eyebrow">Schritt 4</p>
+        <h3 class="wizard-step__title">Details & Bild</h3>
+        <label class="wizard-label">
+          Beschreibung
+          <textarea name="description" rows="5" class="wizard-textarea" placeholder="Was erwartet Familien?">{{ form_data.get('description','') }}</textarea>
+        </label>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Preis (€)
+            <input type="text" name="price" value="{{ form_data.get('price','') }}" class="wizard-input" placeholder="0 oder Betrag">
+          </label>
+          <label class="wizard-label">
+            Kontakt
+            <input type="text" name="contact" value="{{ form_data.get('contact','') }}" class="wizard-input" placeholder="E-Mail oder Telefon">
+          </label>
+        </div>
+        <div class="wizard-label">
+          Bild
+          <div class="wizard-image">
+            <label class="wizard-btn wizard-btn--primary cursor-pointer w-full text-center">
+              <input type="file" name="image_file" accept="image/*" class="sr-only">
+              Bild hochladen
+            </label>
+          </div>
+        </div>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="4">
+        <p class="wizard-step__eyebrow">Schritt 5</p>
+        <h3 class="wizard-step__title">Alles bereit?</h3>
+        <div class="wizard-summary space-y-5">
+          <dl>
+            <dt>Event</dt>
+            <dd data-summary="title">–</dd>
+            <dt>Datum</dt>
+            <dd data-summary="start_date">–</dd>
+            <dt>Zeit</dt>
+            <dd data-summary="start_time">–</dd>
+            <dt>Ort</dt>
+            <dd data-summary="location_name">–</dd>
+            <dt>Sichtbarkeit</dt>
+            <dd data-summary="visibility">–</dd>
+            <dt>Wiederholung</dt>
+            <dd data-summary="repeat_pattern">–</dd>
+          </dl>
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60 mb-2">Preis & Kontakt</p>
+            <p class="text-sm text-white/80" data-summary="price">–</p>
+            <p class="text-sm text-white/80" data-summary="contact">–</p>
+          </div>
+        </div>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Nochmal prüfen</button>
+          <button type="submit" class="wizard-btn wizard-btn--primary">Event speichern</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .choice-card {
+    border-radius: 32px;
+    padding: 24px;
+    border: 1px solid rgba(15, 47, 44, 0.08);
+    box-shadow: 0 25px 60px rgba(8, 20, 18, 0.25);
+    min-width: min(420px, 100%);
+  }
+  .wizard-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(7, 28, 21, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .wizard-overlay[hidden] { display: none; }
+  .wizard-panel {
+    position: relative;
+    width: min(900px, 100%);
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 40px;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,255,244,0.98));
+    box-shadow: 0 45px 120px rgba(7, 28, 21, 0.45);
+    color: #0f2f2c;
+  }
+  .wizard-close {
+    position: absolute;
+    top: 1.75rem;
+    right: 1.75rem;
+    background: rgba(15,47,44,0.1);
+    border-radius: 999px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    font-size: 1.5rem;
+    color: #0f2f2c;
+    cursor: pointer;
+  }
+  .wizard-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .wizard-progress__label {
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(15,47,44,0.6);
+  }
+  .wizard-progress__bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(15,47,44,0.15);
+    overflow: hidden;
+  }
+  .wizard-progress__value {
+    height: 100%;
+    background: linear-gradient(90deg, #0f2f2c, #1f6d5c, #8be84f);
+    transition: width 200ms ease;
+  }
+  .wizard-form { display: flex; flex-direction: column; gap: 2rem; }
+  .wizard-step { display: none; flex-direction: column; gap: 1.25rem; }
+  .wizard-step.active { display: flex; }
+  .wizard-step__eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: rgba(15,47,44,0.65);
+  }
+  .wizard-step__title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f2f2c;
+  }
+  .wizard-input,
+  .wizard-textarea {
+    width: 100%;
+    padding: 0.9rem 1.1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(15,47,44,0.1);
+    background: rgba(255,255,255,0.9);
+  }
+  .wizard-textarea { min-height: 120px; resize: vertical; }
+  .wizard-label { display: flex; flex-direction: column; gap: 0.4rem; font-weight: 600; color: rgba(15,47,44,0.85); }
+  .wizard-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .wizard-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+  .wizard-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 0.85rem 1.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .wizard-btn--primary { background: linear-gradient(135deg, #0f2f2c, #1f6d5c, #8be84f); color: #fff; }
+  .wizard-btn--secondary { background: rgba(15,47,44,0.08); color: #0f2f2c; }
+  .wizard-btn--ghost { background: transparent; color: #0f2f2c; border: 1px solid rgba(15,47,44,0.2); }
+  .wizard-summary dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem 1rem;
+    background: rgba(15,47,44,0.04);
+    border-radius: 28px;
+    padding: 1.5rem;
+  }
+  .wizard-summary dt { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(15,47,44,0.55); }
+  .wizard-summary dd { font-weight: 600; color: #0f2f2c; }
+  @media (max-width: 640px) {
+    .wizard-panel { padding: 1.5rem; border-radius: 32px; }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const wizard = document.getElementById("org-wizard");
+    const openButtons = document.querySelectorAll("[data-open-org-wizard]");
+    const closeButton = wizard?.querySelector("[data-wizard-close]");
+    const form = document.getElementById("org-wizard-form");
+    const steps = wizard ? Array.from(wizard.querySelectorAll(".wizard-step")) : [];
+    const progress = wizard?.querySelector("[data-progress]");
+    let currentStep = 0;
+    const totalSteps = steps.length;
+    const openOnLoad = {{ (errors|length > 0)|tojson }};
+
+    function updateSummary() {
+      if (!form) return;
+      const summaryMap = {
+        title: form.elements["title"]?.value,
+        start_date: form.elements["start_date"]?.value,
+        start_time: form.elements["start_time"]?.value,
+        location_name: form.elements["location_name"]?.value,
+        visibility: form.querySelector('input[name="visibility"]:checked')?.value,
+        repeat_pattern: form.elements["repeat_pattern"]?.options[form.elements["repeat_pattern"].selectedIndex]?.text,
+        price: form.elements["price"]?.value ? `${form.elements["price"].value} €` : "Kostenlos",
+        contact: form.elements["contact"]?.value || "–",
+      };
+      Object.entries(summaryMap).forEach(([key, value]) => {
+        const target = wizard.querySelector(`[data-summary="${key}"]`);
+        if (target) {
+          target.textContent = value || "–";
+        }
+      });
+    }
+
+    function updateProgress() {
+      if (!progress) return;
+      const value = ((currentStep + 1) / totalSteps) * 100;
+      progress.style.width = `${value}%`;
+    }
+
+    function showStep(index) {
+      if (!steps.length) return;
+      currentStep = Math.max(0, Math.min(index, totalSteps - 1));
+      steps.forEach((step, idx) => step.classList.toggle("active", idx === currentStep));
+      updateProgress();
+      if (currentStep === totalSteps - 1) {
+        updateSummary();
+      }
+    }
+
+    function openWizard() {
+      if (!wizard) return;
+      wizard.hidden = false;
+      document.body.style.overflow = "hidden";
+      showStep(currentStep);
+    }
+
+    function closeWizard() {
+      if (!wizard) return;
+      wizard.hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    openButtons.forEach((button) => button.addEventListener("click", () => {
+      currentStep = 0;
+      openWizard();
+    }));
+    closeButton?.addEventListener("click", closeWizard);
+    wizard?.addEventListener("click", (event) => {
+      if (event.target === wizard) {
+        closeWizard();
+      }
+    });
+
+    wizard?.addEventListener("click", (event) => {
+      const next = event.target.closest("[data-next]");
+      const prev = event.target.closest("[data-prev]");
+      if (next) {
+        event.preventDefault();
+        showStep(currentStep + 1);
+      }
+      if (prev) {
+        event.preventDefault();
+        showStep(currentStep - 1);
+      }
+    });
+
+    if (openOnLoad) {
+      openWizard();
+    } else {
+      showStep(0);
+    }
+  });
+</script>
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Login – lottina{% endblock %}
+{% block title %}Login – lottina Familienkonto{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-lottina-background text-lottina-primary">
@@ -37,7 +37,7 @@
             {% if messages %}
               <div class="space-y-3">
                 {% for category, message in messages %}
-                  <div class="px-4 py-3 rounded-2xl text-sm font-medium text-lottina-primary
+                  <div class="px-4 py-3 rounded-2xl text-sm font-medium text-white
                               {{ 'bg-lottina-accent' if category == 'danger' else 'bg-lottina-primary' }}">
                     {{ message }}
                   </div>
@@ -63,6 +63,11 @@
                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-lottina-accent text-lottina-primary font-semibold shadow-lg hover:bg-lottina-highlight/80 transition">
               Einloggen
             </button>
+            <button type="button"
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-lottina-primary/20 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5 transition"
+                    data-reset-open>
+              Passwort vergessen?
+            </button>
           </form>
 
           <p class="text-xs text-lottina-primary/60">
@@ -74,4 +79,60 @@
     </div>
   </div>
 </div>
+
+<style>
+  .reset-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+  }
+  .reset-modal[hidden] { display: none; }
+  .wizard-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(7, 28, 23, 0.65);
+  }
+  .wizard-modal__dialog {
+    position: relative;
+    margin: 15vh auto;
+    padding: 2rem;
+    border-radius: 32px;
+    background: linear-gradient(145deg, #0f2f2c, #1f6d5c);
+    color: white;
+    box-shadow: 0 30px 90px rgba(5, 12, 11, 0.4);
+  }
+</style>
+
+<div id="reset-modal" class="reset-modal" hidden>
+  <div class="wizard-modal__backdrop" data-reset-close></div>
+  <div class="wizard-modal__dialog" style="max-width:420px;">
+    <h2 class="wizard-modal__title">Passwort zurücksetzen</h2>
+    <p class="wizard-modal__text">Gib deine E-Mail-Adresse ein und wir senden dir einen Link.</p>
+    <form method="post" action="{{ url_for('password_reset_request') }}" class="space-y-4">
+      <input type="email" name="reset_email" required placeholder="dein@mail.de"
+             class="w-full rounded-2xl border border-white/30 bg-transparent px-4 py-3 text-white placeholder:text-white/60">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button type="button" class="wizard-modal__button" data-reset-close>Abbrechen</button>
+        <button type="submit" class="wizard-modal__button" style="background:#1f6d5c;color:#ffffff;">
+          E-Mail senden
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("reset-modal");
+    const openBtn = document.querySelector("[data-reset-open]");
+    const closeButtons = modal ? modal.querySelectorAll("[data-reset-close]") : [];
+    const toggleModal = (show) => {
+      if (!modal) return;
+      modal.hidden = !show;
+      document.body.classList.toggle("overflow-hidden", show);
+    };
+    openBtn?.addEventListener("click", () => toggleModal(true));
+    closeButtons.forEach(btn => btn.addEventListener("click", () => toggleModal(false)));
+  });
+</script>
 {% endblock %}

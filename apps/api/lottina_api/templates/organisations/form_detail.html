@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ form.title }} – {{ organisation.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-8">
+    <a href="{{ url_for('organisations.organisation_forms', slug=organisation.slug) }}"
+       class="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white">← Zurück</a>
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      {% include "organisations/_tabs.html" %}
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Formular</p>
+          <h1 class="text-3xl font-lottina font-bold">{{ form.title }}</h1>
+          <p class="text-sm text-white/80">{{ form.description or 'Keine Beschreibung hinterlegt.' }}</p>
+        </div>
+        <a href="{{ url_for('organisations.organisation_form_export', slug=organisation.slug, form_slug=form.slug) }}"
+           class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold hover:bg-white/10">
+          CSV Export
+        </a>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="rounded-[24px] border border-white/15 bg-white/5 p-4 text-center">
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Anmeldungen</p>
+          <p class="text-2xl font-semibold">{{ submissions|length }}</p>
+        </div>
+        <div class="rounded-[24px] border border-white/15 bg-white/5 p-4 text-center">
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Limit</p>
+          <p class="text-2xl font-semibold">{{ form.max_participants or '–' }}</p>
+        </div>
+        <div class="rounded-[24px] border border-white/15 bg-white/5 p-4 text-center">
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Verfügbar</p>
+          <p class="text-2xl font-semibold">{{ remaining_slots if remaining_slots is not none else '–' }}</p>
+        </div>
+      </div>
+    </section>
+
+    {% if errors %}
+      <div class="dashboard-card p-6 space-y-3 text-sm text-red-200 border border-red-200/40">
+        {% for error in errors %}
+          <p>• {{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <h2 class="text-2xl font-semibold">Teilnehmer hinzufügen</h2>
+      <form method="post" class="space-y-4">
+        <input type="hidden" name="action" value="add_submission">
+        {% for field in form.fields %}
+          <label class="wizard-label text-white">
+            {{ field.label }}{% if field.required %} *{% endif %}
+            {% if field.field_type == 'textarea' %}
+              <textarea name="field_{{ field.id }}" rows="3" class="wizard-textarea" {% if field.required %}required{% endif %}></textarea>
+            {% elif field.field_type == 'select' %}
+              <select name="field_{{ field.id }}" class="wizard-input bg-white/90 text-[#0f2f2c]" {% if field.required %}required{% endif %}>
+                <option value="">Bitte wählen</option>
+                {% for option in field.options or [] %}
+                  <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input type="{{ 'email' if field.field_type == 'email' else 'text' }}"
+                     name="field_{{ field.id }}"
+                     class="wizard-input"
+                     {% if field.required %}required{% endif %}>
+            {% endif %}
+          </label>
+        {% endfor %}
+        <button type="submit" class="wizard-btn wizard-btn--primary">Teilnehmer speichern</button>
+      </form>
+    </section>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Liste</p>
+          <h2 class="text-2xl font-semibold">Anmeldungen</h2>
+        </div>
+        <p class="text-xs text-white/70">{{ submissions|length }} Ergebnisse</p>
+      </div>
+      {% if submissions %}
+        <div class="space-y-3">
+          {% for submission in submissions %}
+            <article class="rounded-[28px] border border-white/15 bg-white/5 p-4 flex flex-col gap-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p class="font-semibold">{{ submission.participant_name or 'Teilnehmer' }}</p>
+                  <p class="text-xs text-white/60">{{ submission.participant_email or 'E-Mail nicht angegeben' }}</p>
+                </div>
+                <form method="post" onsubmit="return confirm('Teilnehmer löschen?');">
+                  <input type="hidden" name="action" value="delete_submission">
+                  <input type="hidden" name="submission_id" value="{{ submission.id }}">
+                  <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-3 py-1 text-xs font-semibold text-red-200 hover:bg-white/10">
+                    Löschen
+                  </button>
+                </form>
+              </div>
+              <div class="grid gap-3 md:grid-cols-2 text-sm text-white/80">
+                {% for label, value in (submission.data or {}).items() %}
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-white/60">{{ label }}</p>
+                    <p>{{ value or '–' }}</p>
+                  </div>
+                {% endfor %}
+              </div>
+              <p class="text-xs text-white/60">Eingereicht am {{ submission.created_at.strftime('%d.%m.%Y %H:%M') if submission.created_at else '' }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/70">Noch keine Anmeldungen.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .wizard-input, .wizard-textarea {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.95);
+    color: #0f2f2c;
+    padding: 0.85rem 1rem;
+  }
+  .wizard-textarea {
+    min-height: 110px;
+  }
+  .wizard-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 0.8rem 1.6rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .wizard-btn--primary {
+    background: linear-gradient(135deg, #0f2f2c, #1f6d5c, #8be84f);
+    color: #fff;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ organisation.name }} – Dokumente{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 pt-32 pb-16 space-y-10">
+    <header class="space-y-3 text-center">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+        Dokumente
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Dateien verwalten</h1>
+      <p class="text-sm sm:text-base text-white/80 max-w-3xl mx-auto">
+        Lade PDF-Dateien und Bilder hoch, strukturiere sie in Ordnern und steuere die Sichtbarkeit.
+      </p>
+    </header>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      {% include "organisations/_tabs.html" %}
+      {% if errors %}
+        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+          <p class="font-semibold">Bitte prüfe deine Eingaben:</p>
+          <ul class="list-disc list-inside space-y-1">
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      <div class="grid gap-6 md:grid-cols-2">
+        <form method="post" class="rounded-[34px] border border-white/15 bg-white/5 p-6 space-y-4">
+          <input type="hidden" name="action" value="create_folder">
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Ordner anlegen</p>
+          <label class="wizard-label text-white">
+            Name des Ordners
+            <input type="text" name="folder_name" class="wizard-input" placeholder="z. B. Presse" required>
+          </label>
+          <button type="submit" class="wizard-btn wizard-btn--primary w-full">Ordner erstellen</button>
+        </form>
+        {% include "organisations/_document_upload.html" with context %}
+      </div>
+    </section>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Ordner</p>
+          <h2 class="text-2xl font-semibold">Dateiablage</h2>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a href="{{ url_for('organisations.organisation_documents', slug=organisation.slug) }}"
+             class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold {{ 'border-white bg-white/15' if not active_folder_slug else 'border-white/30 text-white/70 hover:bg-white/10' }}">
+            Alle
+          </a>
+          {% for folder in folders %}
+            <a href="{{ url_for('organisations.organisation_documents', slug=organisation.slug, folder=folder.slug) }}"
+               class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold {{ 'border-white bg-white/15' if folder.slug == active_folder_slug else 'border-white/30 text-white/70 hover:bg-white/10' }}">
+              {{ folder.name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% if documents %}
+        <div class="space-y-4">
+          {% for doc in documents %}
+            <article class="rounded-[32px] border border-white/15 bg-white/5 p-5 flex flex-wrap items-center gap-4 justify-between">
+              <div class="space-y-1">
+                <p class="text-lg font-semibold text-white">{{ doc.original_filename or doc.filename }}</p>
+                <div class="text-xs text-white/70">
+                  <span>{{ doc.folder or 'Allgemein' }}</span>
+                  <span class="mx-2">•</span>
+                  <span>{{ doc.created_at.strftime('%d.%m.%Y %H:%M') if doc.created_at else '' }}</span>
+                  {% if doc.file_size %}
+                    <span class="mx-2">•</span>
+                    <span>{{ (doc.file_size / 1024)|round(1) }} KB</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ 'border-emerald-200 text-emerald-100' if doc.visibility.value == 'public' else 'border-amber-200 text-amber-100' }}">
+                  {{ 'Öffentlich' if doc.visibility.value == 'public' else 'Intern' }}
+                </span>
+                <a href="{{ url_for('organisations.organisation_document_download', slug=organisation.slug, doc_id=doc.id) }}"
+                   class="inline-flex items-center gap-2 rounded-full border border-white/25 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                  Herunterladen
+                </a>
+                <form method="post" onsubmit="return confirm('Datei wirklich löschen?');">
+                  <input type="hidden" name="action" value="delete_file">
+                  <input type="hidden" name="document_id" value="{{ doc.id }}">
+                  <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-3 py-1 text-xs font-semibold text-red-200 hover:bg-white/10">
+                    Löschen
+                  </button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/70">In diesem Ordner befinden sich noch keine Dateien.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<style>
+  .dashboard-card {
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.35);
+    backdrop-filter: blur(14px);
+  }
+  .wizard-label .wizard-input,
+  .wizard-label select {
+    margin-top: 0.35rem;
+  }
+  .wizard-input {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.95);
+    color: #0f2f2c;
+    padding: 0.85rem 1rem;
+  }
+  .wizard-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 0.85rem 1.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .wizard-btn--primary {
+    background: linear-gradient(135deg, #0f2f2c, #1f6d5c, #8be84f);
+    color: #fff;
+  }
+</style>
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ event.title or "Event" }} – lottina{% endblock %}
+{% block title %}{{ event.title or "Event" }} – Familien-Erlebnis auf lottina{% endblock %}
 
 {% block content %}
 {% set location = event.location %}
@@ -21,9 +21,17 @@
 <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white pt-32 pb-16">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
   <div class="relative z-10 max-w-5xl mx-auto px-6 lg:px-10 space-y-6">
-    <a href="{{ url_for('suchergebnisse') }}" class="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white">
-      ← Zurück zur Übersicht
-    </a>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <a href="{{ url_for('suchergebnisse') }}" class="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white">
+        ← Zurück zur Übersicht
+      </a>
+      {% if current_user.is_authenticated and current_user.is_admin %}
+        <a href="{{ url_for('edit_event', event_id=event.id) }}"
+           class="inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-white/10 transition">
+          Event bearbeiten
+        </a>
+      {% endif %}
+    </div>
     <div class="space-y-4">
       <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs uppercase tracking-[0.3em] font-semibold">
         Familien-Event
@@ -56,6 +64,20 @@
             Zur Veranstalterseite
           </a>
         {% endif %}
+      </div>
+      <div class="mt-4">
+        <button type="button"
+                class="inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-sm font-semibold text-white backdrop-blur favorite-toggle {% if is_favorite %}favorite-toggle--active{% endif %}"
+                data-favorite-toggle
+                data-endpoint="{{ favorite_endpoint }}"
+                data-authenticated="{{ 1 if current_user.is_authenticated else 0 }}"
+                data-register-url="{{ register_url }}"
+                aria-pressed="{{ 'true' if is_favorite else 'false' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.4" class="h-5 w-5">
+            <path d="M12 21s-6-3.35-8.5-7.05C1.5 11.25 1.25 7.5 3.75 5.5 5.75 4 8 4.75 9 6c1-1.25 3.25-2 5.25-.5 2.5 2 2.25 5.75.25 8.45C18 17.65 12 21 12 21Z" stroke="currentColor" fill="currentColor"/>
+          </svg>
+          <span data-favorite-label>{% if is_favorite %}Gespeichert{% else %}Für mich speichern{% endif %}</span>
+        </button>
       </div>
     </div>
   </div>
@@ -103,6 +125,52 @@
             </div>
           {% endif %}
         </dl>
+        <div class="pt-3">
+          <div class="relative inline-block w-full">
+            <button type="button"
+                    class="inline-flex w-full items-center justify-between rounded-2xl border border-transparent bg-gradient-to-r from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95 transition"
+                    data-event-calendar-toggle>
+              Zum Kalender hinzufügen
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            <div class="calendar-dropdown hidden absolute z-10 mt-2 w-full rounded-2xl border border-lottina-primary/10 bg-white shadow-xl">
+              <div class="py-2 text-sm text-lottina-primary/80">
+                <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
+                   data-calendar-provider="google"
+                   data-title="{{ event.title }}"
+                   data-location="{{ location_text }}"
+                   data-description="{{ (event.summary or event.description or '') | striptags }}"
+                   data-start="{{ event.dt_start.isoformat() if event.dt_start else '' }}"
+                   data-end="{{ event.dt_end.isoformat() if event.dt_end else '' }}"
+                   data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
+                  Google Kalender
+                </a>
+                <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
+                   data-calendar-provider="apple"
+                   data-title="{{ event.title }}"
+                   data-location="{{ location_text }}"
+                   data-description="{{ (event.summary or event.description or '') | striptags }}"
+                   data-start="{{ event.dt_start.isoformat() if event.dt_start else '' }}"
+                   data-end="{{ event.dt_end.isoformat() if event.dt_end else '' }}"
+                   data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
+                  Apple Kalender
+                </a>
+                <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
+                   data-calendar-provider="ics"
+                   data-title="{{ event.title }}"
+                   data-location="{{ location_text }}"
+                   data-description="{{ (event.summary or event.description or '') | striptags }}"
+                   data-start="{{ event.dt_start.isoformat() if event.dt_start else '' }}"
+                   data-end="{{ event.dt_end.isoformat() if event.dt_end else '' }}"
+                   data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
+                  ICS herunterladen
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -185,4 +253,164 @@
   });
 </script>
 {% endif %}
+
+<style>
+  .favorite-toggle svg {
+    transition: transform 0.2s ease;
+  }
+  .favorite-toggle--active {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(248, 113, 113, 0.7);
+    color: #f87171;
+  }
+  .favorite-toggle--active svg {
+    transform: scale(1.05);
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const favoriteBtn = document.querySelector("button[data-favorite-toggle]");
+    if (!favoriteBtn) return;
+    const endpoint = favoriteBtn.dataset.endpoint;
+    const registerUrl = favoriteBtn.dataset.registerUrl || "{{ url_for('register') }}";
+    const isAuthenticated = favoriteBtn.dataset.authenticated === "1";
+
+    const label = favoriteBtn.querySelector("[data-favorite-label]");
+    const updateLabel = (text) => {
+      if (label) label.textContent = text;
+    };
+
+    favoriteBtn.addEventListener("click", async () => {
+      if (!endpoint) return;
+      if (!isAuthenticated) {
+        window.location.href = registerUrl;
+        return;
+      }
+      const isActive = favoriteBtn.classList.contains("favorite-toggle--active");
+      const method = isActive ? "DELETE" : "POST";
+      try {
+        const response = await fetch(endpoint, {
+          method,
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json",
+          },
+        });
+        if (!response.ok) {
+          console.error("Favorit konnte nicht aktualisiert werden", await response.text());
+          return;
+        }
+        if (isActive) {
+          favoriteBtn.classList.remove("favorite-toggle--active");
+          favoriteBtn.setAttribute("aria-pressed", "false");
+          updateLabel("Für mich speichern");
+        } else {
+          favoriteBtn.classList.add("favorite-toggle--active");
+          favoriteBtn.setAttribute("aria-pressed", "true");
+          updateLabel("Gespeichert");
+        }
+      } catch (error) {
+        console.error("Favorit-Request fehlgeschlagen", error);
+      }
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.querySelector("[data-event-calendar-toggle]");
+    const dropdown = toggle?.nextElementSibling;
+
+    const formatDate = (value) => {
+      if (!value) return "";
+      try {
+        const date = new Date(value);
+        return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+      } catch {
+        return "";
+      }
+    };
+
+    const buildGoogleLink = ({ title, start, end, location, description, url }) => {
+      const base = "https://calendar.google.com/calendar/render?action=TEMPLATE";
+      const params = new URLSearchParams({
+        text: title || "Event",
+        dates: `${formatDate(start)}/${formatDate(end || start)}`,
+        details: `${description || ""}\n${url || ""}`.trim(),
+        location: location || "",
+      });
+      return `${base}&${params.toString()}`;
+    };
+
+    const buildICS = ({ title, start, end, location, description, url }) => {
+      const dtStart = formatDate(start);
+      const dtEnd = formatDate(end || start);
+      return [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "BEGIN:VEVENT",
+        `SUMMARY:${title || "Event"}`,
+        `DTSTART:${dtStart}`,
+        `DTEND:${dtEnd}`,
+        `DESCRIPTION:${(description || "") + (url ? "\\n" + url : "")}`,
+        `LOCATION:${location || ""}`,
+        "END:VEVENT",
+        "END:VCALENDAR",
+      ].join("\\n");
+    };
+
+    const downloadICS = (content, filename = "event.ics") => {
+      const blob = new Blob([content], { type: "text/calendar" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    const handlers = {
+      google: (data) => window.open(buildGoogleLink(data), "_blank"),
+      apple: (data) => {
+        const content = buildICS(data);
+        downloadICS(content, "event.ics");
+      },
+      ics: (data) => {
+        const content = buildICS(data);
+        downloadICS(content, "event.ics");
+      },
+    };
+
+    toggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      dropdown?.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!dropdown || !toggle) return;
+      if (!dropdown.contains(event.target) && !toggle.contains(event.target)) {
+        dropdown.classList.add("hidden");
+      }
+    });
+
+    dropdown?.querySelectorAll(".calendar-link").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const provider = link.dataset.calendarProvider;
+        const data = {
+          title: link.dataset.title,
+          location: link.dataset.location,
+          description: link.dataset.description,
+          start: link.dataset.start,
+          end: link.dataset.end,
+          url: link.dataset.url,
+        };
+        const handler = handlers[provider];
+        if (handler) handler(data);
+        dropdown.classList.add("hidden");
+      });
+    });
+  });
+</script>
 {% endblock %}

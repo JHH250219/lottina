@@ -1,6 +1,6 @@
 Hallo {{ user.username or 'Entdecker:in' }},
 
-deine lottina+ Mitgliedschaft ist aktiv. Wir informieren dich, sobald neue Vorteile live gehen.
+deine lottina Family Mitgliedschaft ist aktiv. Wir informieren dich, sobald neue Vorteile live gehen.
 
 Überblick über die Benefits: {{ url_for('preise', _external=True) }}
 

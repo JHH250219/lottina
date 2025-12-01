@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ organisation.name }} – Organisations-Dashboard{% endblock %}
+
+{% block content %}
+{% set events_list = events if events is not none else [] %}
+{% set sorted_events = events_list|sort(attribute='dt_start') %}
+{% set upcoming_events = sorted_events[:3] %}
+<div class="min-h-screen relative isolate overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full bg-white/10 blur-[140px]"></div>
+  <div class="pointer-events-none absolute bottom-0 left-4 h-72 w-72 rounded-full bg-[#ffffff]/10 blur-[120px]"></div>
+
+  <div class="relative mx-auto max-w-6xl px-4 sm:px-8 lg:px-12 pt-32 pb-20 space-y-10">
+    <header class="space-y-4 text-center">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] shadow">
+        Organisation
+      </p>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold drop-shadow-lg">
+        {{ organisation.name }}
+      </h1>
+      <p class="text-sm sm:text-base text-white/80 max-w-3xl mx-auto">
+        Verwalte Events, Gruppen und Mitglieder aus einer Oberfläche heraus.
+      </p>
+    </header>
+
+    <div class="dashboard-card p-6 sm:p-8 space-y-6">
+      {% include "organisations/_tabs.html" %}
+    </div>
+
+    <section class="dashboard-card p-6 sm:p-8 space-y-8">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="space-y-2">
+          <p class="text-xs uppercase tracking-[0.4em] text-white/60">Kalender</p>
+          <h2 class="text-2xl font-semibold">Nächste Termine</h2>
+          <p class="text-sm text-white/75">Die nächsten drei Aktivitäten deiner Organisation.</p>
+        </div>
+        <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
+           class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8be84f] to-[#1f6d5c] px-6 py-3 text-sm font-semibold text-[#0f2f2c] shadow-lg hover:-translate-y-0.5 transition">
+          Neues Event
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/>
+          </svg>
+        </a>
+      </div>
+
+      {% if upcoming_events %}
+        <div class="grid gap-4 md:grid-cols-3">
+          {% for event in upcoming_events %}
+            <article class="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg flex flex-col gap-3">
+              <div class="text-xs uppercase tracking-[0.4em] text-white/60">
+                {{ event.dt_start.strftime('%d.%m.%Y') if event.dt_start else 'Ohne Datum' }}
+              </div>
+              <h3 class="text-lg font-semibold text-white">{{ event.title }}</h3>
+              <p class="text-sm text-white/70 line-clamp-3">{{ event.summary or event.description or 'Keine Beschreibung hinterlegt.' }}</p>
+              <div class="text-xs text-white/60">
+                {% if event.location %}
+                  📍 {{ event.location.name or event.location.address or 'Ort folgt' }}
+                {% else %}
+                  📍 Ort folgt
+                {% endif %}
+              </div>
+              <div class="pt-3">
+                <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug) }}"
+                   class="inline-flex items-center gap-2 text-sm font-semibold text-[#8be84f] hover:text-white">
+                  Details anzeigen →
+                </a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="rounded-3xl border border-dashed border-white/30 bg-white/5 px-6 py-10 text-center text-sm text-white/70">
+          Noch keine Termine geplant. Lege jetzt euer erstes Event an.
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-2">
+      <article class="dashboard-card p-6 space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Events</p>
+            <h3 class="text-xl font-semibold">Events verwalten</h3>
+          </div>
+          <span class="text-3xl font-bold text-white">{{ events_list|length }}</span>
+        </div>
+        <p class="text-sm text-white/75">Überblick über alle geplanten und vergangenen Events.</p>
+        <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug) }}"
+           class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 transition">
+          Zu den Events
+        </a>
+      </article>
+
+      <article class="dashboard-card p-6 space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Gruppen</p>
+            <h3 class="text-xl font-semibold">Gruppen</h3>
+          </div>
+          <span class="text-3xl font-bold text-white">{{ organisation.groups.count() }}</span>
+        </div>
+        <p class="text-sm text-white/75">Alle Abteilungen, Teams oder Angebote eurer Organisation.</p>
+        <a href="{{ url_for('organisations.organisation_groups', slug=organisation.slug) }}"
+           class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 transition">
+          Gruppen öffnen
+        </a>
+      </article>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-3">
+      <article class="dashboard-card p-6 space-y-4">
+        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Team</p>
+        <h3 class="text-xl font-semibold">Mitglieder</h3>
+        <p class="text-sm text-white/75">Admins und eingeladene Personen verwalten.</p>
+        <div class="text-3xl font-bold text-white">{{ organisation.members.count() }}</div>
+        <a href="{{ url_for('organisations.organisation_members', slug=organisation.slug) }}"
+           class="inline-flex items-center gap-2 text-sm font-semibold text-[#8be84f] hover:text-white">
+          Mitglieder ansehen →
+        </a>
+      </article>
+
+      <article class="dashboard-card p-6 space-y-4">
+        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Dokumente</p>
+        <h3 class="text-xl font-semibold">Dokumente & Ressourcen</h3>
+        <p class="text-sm text-white/75">Satzungen, PDF-Infos oder Sponsoring-Materialien hinterlegen.</p>
+        <a href="{{ url_for('organisations.organisation_documents', slug=organisation.slug) }}"
+           class="inline-flex items-center gap-2 text-sm font-semibold text-[#8be84f] hover:text-white">
+          Dokumente öffnen →
+        </a>
+      </article>
+
+      <article class="dashboard-card p-6 space-y-4">
+        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Workflows</p>
+        <h3 class="text-xl font-semibold">Formulare & Anmeldungen</h3>
+        <p class="text-sm text-white/75">Sammle Rückmeldungen oder Anmeldungen direkt online.</p>
+        <a href="{{ url_for('organisations.organisation_forms', slug=organisation.slug) }}"
+           class="inline-flex items-center gap-2 text-sm font-semibold text-[#8be84f] hover:text-white">
+          Formulare verwalten →
+        </a>
+      </article>
+    </section>
+  </div>
+</div>
+{% endblock %}
