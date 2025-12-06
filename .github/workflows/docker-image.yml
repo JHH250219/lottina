@@ -9,7 +9,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/lottina-api
   DOCKERFILE: apps/api/Dockerfile
-  DOCKER_CONTEXT: apps/api
 
 jobs:
   build-and-deploy:
@@ -35,7 +34,6 @@ jobs:
       - name: Build & Push API image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.DOCKER_CONTEXT }}
           file: ${{ env.DOCKERFILE }}
           push: true
           tags: |
