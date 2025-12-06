@@ -1,31 +1,55 @@
-name: Build & Push Docker Images
+name: Build & Deploy API
 
 on:
   push:
     branches:
       - main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/lottina-api
+  DOCKERFILE: apps/api/Dockerfile
+  DOCKER_CONTEXT: apps/api
 
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write   # wichtig für GHCR push
-
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_NAMESPACE: ${{ github.repository_owner }}
+      packages: write
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-    
+      - name: Build & Push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.DOCKER_CONTEXT }}
+          file: ${{ env.DOCKERFILE }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            APP_ENV=production
+
+      - name: Trigger Sliplane deploy
+        env:
+          SLIPLANE_DEPLOY_URL: ${{ secrets.SLIPLANE_DEPLOY_URL }}
+        run: |
+          if [ -z "$SLIPLANE_DEPLOY_URL" ]; then
+            echo "SLIPLANE_DEPLOY_URL secret not set" >&2
+            exit 1
+          fi
+          curl -f -X GET "$SLIPLANE_DEPLOY_URL"
