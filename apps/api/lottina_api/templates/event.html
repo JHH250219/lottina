@@ -104,12 +104,18 @@
           {% if location %}
             <div>
               <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Ort</dt>
-              <dd class="font-semibold">{{ location.name or "Ort folgt" }}</dd>
-              {% if location.address %}
-                <p class="text-xs text-lottina-primary/60">{{ location.address }}</p>
-              {% endif %}
-              {% if location.city %}
-                <p class="text-xs text-lottina-primary/60">{{ location.city }}</p>
+              <dd class="font-semibold">
+                {{ location.name or "Ort folgt" }}
+                {% if not location.name and (location.address or location.city) %}
+                  {{ (location.address ~ (', ' if location.address and location.city else '') ~ (location.city or '')) }}
+                {% endif %}
+              </dd>
+              {% if location.name and (location.address or location.city) %}
+                <p class="text-xs text-lottina-primary/60">
+                  {{ location.address }}
+                  {% if location.address and location.city %}, {% endif %}
+                  {{ location.city }}
+                </p>
               {% endif %}
             </div>
           {% endif %}

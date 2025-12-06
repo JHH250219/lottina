@@ -239,7 +239,9 @@ class NrwTourismusCrawler(BaseCrawler):
 
     def _first(self, value):
         if isinstance(value, list):
-            return value[0]
+            value = value[0]
+        if isinstance(value, dict):
+            return value.get("url") or value.get("contentUrl") or value.get("thumbnail")
         return value
 
     def _text_or_none(self, node) -> Optional[str]:

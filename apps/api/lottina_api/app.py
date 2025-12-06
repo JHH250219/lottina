@@ -1386,7 +1386,11 @@ def crawl_external():
     from .crawlers import run_all_crawlers
 
     results = run_all_crawlers()
-    click.echo(f"Crawler abgeschlossen: {results}")
+    click.echo("Crawler abgeschlossen:")
+    for name, stats in results.items():
+        created = stats.get("created", 0)
+        updated = stats.get("updated", 0)
+        click.echo(f"  • {name}: {created} erstellt, {updated} aktualisiert")
 
 @app.cli.command("cleanup-events")
 @click.option("--days", default=1, show_default=True, help="Wie viele Tage sollen behalten werden?")

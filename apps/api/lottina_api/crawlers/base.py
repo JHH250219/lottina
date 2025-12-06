@@ -85,7 +85,7 @@ class BaseCrawler:
     # Persistence helpers
     # ------------------------------------------------------------------
     def _persist_event(self, payload: EventPayload) -> str:
-        external_id = f"{self.source_slug}:{payload.external_id}"
+        external_id = self._compose_external_id(payload.external_id)
         offer = Offer.query.filter_by(external_id=external_id).one_or_none()
 
         created = False
@@ -123,6 +123,16 @@ class BaseCrawler:
 
         db.session.flush()
         return "created" if created else "updated"
+
+    def _compose_external_id(self, raw_id: str | None) -> str:
+        """Ensure external IDs always match the DB limit (VARCHAR(64))."""
+        base = f"{self.source_slug}:{(raw_id or '').strip()}"
+        if len(base) <= 64:
+            return base
+        hashed = hashlib.sha256(base.encode("utf-8")).hexdigest()[:40]
+        prefix = self.source_slug[:20]
+        composed = f"{prefix}:{hashed}"
+        return composed[:64]
 
     def _upsert_location(self, payload: EventPayload) -> Optional[Location]:
         if not (payload.location_name or payload.location_address or payload.location_city):
