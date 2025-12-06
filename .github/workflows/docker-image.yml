@@ -36,7 +36,6 @@ jobs:
         uses: docker/build-push-action@v5
         working-directory: ${{ env.WORKING_DIR }}
         with:
-          context: .
           file: ${{ env.DOCKERFILE }}
           push: true
           tags: |
