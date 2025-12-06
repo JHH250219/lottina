@@ -806,7 +806,7 @@ def results():
         )
 
     qry = qry.order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
-    events = qry.limit(10000).all()
+    events = qry.limit(1000).all()
 
     # Kategorienliste für Sidebar
     categories = [
