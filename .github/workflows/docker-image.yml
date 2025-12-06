@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/lottina-api
+  IMAGE_NAME: jhh250219/lottina-api
   DOCKERFILE: apps/api/Dockerfile
 
 jobs:
