@@ -8,7 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: jhh250219/lottina-api
-  DOCKERFILE: Dockerfile
+  DOCKERFILE: apps/api/Dockerfile
 
 jobs:
   build-and-deploy:
