@@ -7,6 +7,7 @@ from .aachener_kinder import AachenerKinderCrawler
 from .gruen_metropole import GruenMetropoleCrawler
 from .nrw_tourismus import NrwTourismusCrawler
 from .rur_eifel import RurEifelCrawler
+from .roetgen_event import RoetgenEventCrawler
 from .base import BaseCrawler
 
 CRAWLERS: tuple[Type[BaseCrawler], ...] = (
@@ -15,6 +16,7 @@ CRAWLERS: tuple[Type[BaseCrawler], ...] = (
     GruenMetropoleCrawler,
     NrwTourismusCrawler,
     RurEifelCrawler,
+    RoetgenEventCrawler,
 )
 
 

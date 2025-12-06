@@ -28,26 +28,4 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push API
-        uses: docker/build-push-action@v4
-        with:
-          context: ./apps/api
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/lottina-api:dev
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/lottina-api:${{ github.sha }}
-          build-args: |
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-
-      - name: Build & Push Worker
-        uses: docker/build-push-action@v4
-        with:
-          context: ./apps/worker
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/lottina-worker:dev
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/lottina-worker:${{ github.sha }}
-          build-args: |
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
+    

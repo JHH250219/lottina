@@ -1,21 +1,116 @@
-# Python
+# -----------------------------------------------------------------------------
+# Python & Flask allgemein
+# -----------------------------------------------------------------------------
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.db
-*.env
-
-# Virtualenv
-venv/
-.env/
-.venv/
-
-# Docker
+*.pdb
+*.egg-info/
+*.egg
 *.log
-*.pid
-*.seed
 *.bak
+*.swp
+*.swo
+*.tmp
+*.orig
 
-# macOS
+# -----------------------------------------------------------------------------
+# Lokale Umgebungen & virtuelle Envs
+# -----------------------------------------------------------------------------
+.env
+.env.local
+.env.production
+.venv/
+venv/
+ENV/
+env/
+pip-wheel-metadata/
+instance/
 .DS_Store
+
+# -----------------------------------------------------------------------------
+# SQLite / lokale DB-Dateien
+# -----------------------------------------------------------------------------
+*.sqlite3
+*.db
+apps/api/lottina_api/lottina_local.sqlite3
+apps/api/lottina_api/lottina_local_backup.sqlite3
+
+# -----------------------------------------------------------------------------
+# Uploads & generierte Medien
+# -----------------------------------------------------------------------------
+apps/api/lottina_api/uploads/
+apps/api/lottina_api/static/uploads/
+apps/api/lottina_api/static/images/uploads/
+uploads/
+*.png
+*.jpg
+*.jpeg
+*.webp
+!apps/api/lottina_api/static/img/        # statische Assets aus Repo beibehalten
+
+# -----------------------------------------------------------------------------
+# Caches & temporäre Dateien
+# -----------------------------------------------------------------------------
+.cache/
+__pycache__/
+.mypy_cache/
+pytest_cache/
+.coverage
+htmlcov/
+*.coverage
+.tox/
+*.egg-info/
+*.pytest_cache/
+
+# -----------------------------------------------------------------------------
+# Build / Distribution
+# -----------------------------------------------------------------------------
+build/
+dist/
+*.tar.gz
+*.whl
+
+# -----------------------------------------------------------------------------
+# VSCode / IDE / OS spezifisch
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# -----------------------------------------------------------------------------
+# Docker / Deployment Artefakte
+# -----------------------------------------------------------------------------
+docker-compose.override.yml
+*.env.*
+*.local.yml
+*.pid
+*.sock
+*.log
+sliplane/
+sliplane_tmp/
+tmp/
+*.crt
+*.pem
+
+# -----------------------------------------------------------------------------
+# Alembic & Migrations (nur Runtime-Artefakte)
+# -----------------------------------------------------------------------------
+migrations/versions/*.pyc
+migrations/__pycache__/
+migrations/.DS_Store
+
+# -----------------------------------------------------------------------------
+# OCR / Crawling / Data Dumps
+# -----------------------------------------------------------------------------
+*.json
+*.csv
+*.xml
+data/
+crawlers/cache/
+crawlers/tmp/
+ocr_tmp/
+ocr_server.log

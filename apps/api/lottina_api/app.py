@@ -56,7 +56,31 @@ from .ocr_client import run_ocr
 # ---------------------------------------------------------------------------
 # Konfiguration
 # ---------------------------------------------------------------------------
-load_dotenv()
+import logging
+from dotenv import load_dotenv
+import os
+from pathlib import Path
+from sqlalchemy import create_engine
+
+# --- Environment laden ---
+env = os.getenv("ENV", "local").strip()
+env_file = f".env.{env}"
+if Path(env_file).exists():
+    load_dotenv(env_file, override=True)
+    print(f"🔧 Lottina: Environment '{env}' geladen aus {env_file}")
+else:
+    load_dotenv(override=True)
+    print(f"⚠️  Lottina: Kein .env.{env} gefunden – nutze Standard .env")
+
+# ---------------------------------------------------------------------------
+# Flask App Grundkonfiguration
+# ---------------------------------------------------------------------------
+app = Flask(
+    __name__,
+    template_folder="templates",
+    static_folder="static",
+)
+
 EMAIL_RX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _SLUG_REPLACEMENTS = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
 
@@ -67,54 +91,82 @@ def slugify_value(value: str | None, *, fallback: str = "organisation") -> str:
     value = re.sub(r"[^a-z0-9]+", "-", value).strip("-")
     return value or fallback
 
-app = Flask(
-    __name__,
-    template_folder="templates",
-    static_folder="static",
-)
+# ---------------------------------------------------------------------------
+# Datenbank-Setup mit Fallback
+# ---------------------------------------------------------------------------
+PRIMARY_DB_URI = os.getenv("DATABASE_URL")
+FALLBACK_DB_URI = os.getenv("FALLBACK_DATABASE_URL")
 
-# Datenbank-Setup
-PRIMARY_DB_URI   = os.getenv("DATABASE_URL")
-FALLBACK_DB_URI  = os.getenv("FALLBACK_DATABASE_URL")
+# Lokaler Fallback, falls kein explizites Fallback gesetzt
 if not FALLBACK_DB_URI:
     FALLBACK_DB_URI = f"sqlite:///{Path(__file__).resolve().parent / 'lottina_local.sqlite3'}"
 
 resolved_db_uri = PRIMARY_DB_URI or FALLBACK_DB_URI
 fallback_in_use = False
+
 if PRIMARY_DB_URI:
     try:
         with create_engine(PRIMARY_DB_URI, future=True).connect():
-            pass
-    except Exception as exc:  # OperationalError, etc.
-        app.logger.warning("Primary database unavailable (%s). Falling back to %s", exc, FALLBACK_DB_URI)
+            print(f"✅ Verbunden mit PRIMARY DB: {PRIMARY_DB_URI}")
+    except Exception as exc:
+        app.logger.warning(
+            "⚠️  Primäre Datenbank nicht erreichbar (%s). Fallback auf SQLite: %s", exc, FALLBACK_DB_URI
+        )
         resolved_db_uri = FALLBACK_DB_URI
         fallback_in_use = True
 else:
+    print("ℹ️  Keine PRIMARY_DB_URI definiert – verwende SQLite.")
     fallback_in_use = True
 
 app.config["SQLALCHEMY_DATABASE_URI"] = resolved_db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# ---------------------------------------------------------------------------
+# App Secrets & Integrationen
+# ---------------------------------------------------------------------------
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
+
+# Mail-Konfiguration
 app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
 app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 25))
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USE_SSL"] = False
+app.config["MAIL_USE_TLS"] = bool(int(os.getenv("MAIL_USE_TLS", "1")))
+app.config["MAIL_USE_SSL"] = bool(int(os.getenv("MAIL_USE_SSL", "0")))
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
-app.config["STRIPE_PRICE_MONTHLY"] = os.getenv("STRIPE_PRICE_MONTHLY", "price_1SWFfnRx44l32FoJcn2FrXst")
-app.config["STRIPE_PRICE_YEARLY"] = os.getenv("STRIPE_PRICE_YEARLY", "price_1SXn4dRx44l32FoJBE3K15gw")
-app.config["FEEDBACK_ALERT_RECIPIENT"] = os.getenv("FEEDBACK_ALERT_RECIPIENT", "hello@lottina.de")
 
-# DB + Migrationssystem initialisieren
+# Stripe-Konfiguration
+app.config["STRIPE_PRICE_MONTHLY"] = os.getenv(
+    "STRIPE_PRICE_MONTHLY", "price_1SWFfnRx44l32FoJcn2FrXst"
+)
+app.config["STRIPE_PRICE_YEARLY"] = os.getenv(
+    "STRIPE_PRICE_YEARLY", "price_1SXn4dRx44l32FoJBE3K15gw"
+)
+
+# Feedback-Mails
+app.config["FEEDBACK_ALERT_RECIPIENT"] = os.getenv(
+    "FEEDBACK_ALERT_RECIPIENT", "hello@lottina.de"
+)
+
+# ---------------------------------------------------------------------------
+# Erweiterungen initialisieren
+# ---------------------------------------------------------------------------
 db.init_app(app)
 migrate = Migrate(app, db)
 mail = Mail(app)
+
+# Preise (Default-Werte, falls .env leer)
 MONTHLY_PRICE_EUR = Decimal(os.getenv("MEMBERSHIP_PRICE_MONTHLY_EUR", "1.99"))
 YEARLY_PRICE_EUR = Decimal(os.getenv("MEMBERSHIP_PRICE_YEARLY_EUR", "19.99"))
+
+# Blueprints
 app.register_blueprint(sitemap_bp)
 app.register_blueprint(organisations_bp)
+
+# Log-Ausgabe zum Überblick
+print(f"📦 Aktive Datenbank: {resolved_db_uri}")
+if fallback_in_use:
+    print("⚠️  Achtung: Fallback-Datenbank (SQLite) aktiv!")
 
 
 FEEDBACK_KIND_FEEDBACK = "feedback"
