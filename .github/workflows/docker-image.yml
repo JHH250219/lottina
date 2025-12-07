@@ -37,10 +37,11 @@ jobs:
           file: ${{ env.DOCKERFILE }}
           push: true
           tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dev
           build-args: |
             APP_ENV=production
-          no-cache: true
 
       - name: Trigger Sliplane deploy
         env:
