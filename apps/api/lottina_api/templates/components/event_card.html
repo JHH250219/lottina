@@ -1,0 +1,93 @@
+{% set offer_type_value = event.type.value if event.type else '' %}
+{% set is_permanent = offer_type_value == 'permanent' %}
+<article class="event-card rounded-3xl border border-lottina-primary/10 bg-white shadow-lg overflow-hidden"
+         data-event-card
+         data-event-url="{{ url_for('event_detail', event_id=event.id) }}"
+         tabindex="0"
+         role="link"
+         aria-label="{{ event.title or 'Event ohne Titel' }}">
+  <div class="event-card__layout">
+    <div class="event-card__media bg-lottina-primary/5">
+      <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.png') }}"
+           alt="{{ event.title or 'Event Bild' }}"
+           class="event-card__image">
+      <div class="event-card__date-badge {% if is_permanent %}event-card__date-badge--permanent{% endif %}">
+        {% if is_permanent %}
+          <span class="inline-flex items-center gap-2 font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-300"></span>
+            Immer für dich da
+          </span>
+        {% elif event.dt_start %}
+          {{ event.dt_start | shortdate }}
+        {% else %}
+          Termin folgt
+        {% endif %}
+      </div>
+    </div>
+    <div class="event-card__body">
+      <div class="flex flex-wrap items-center gap-2 text-[0.7rem] uppercase tracking-[0.18em] text-lottina-primary/60">
+        {% if event.categories %}
+          <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-lottina-accent/15 text-lottina-primary font-semibold">
+            {{ event.categories[0].name }}
+          </span>
+        {% endif %}
+        {% if event.is_free %}
+          <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+            Kostenlos
+          </span>
+        {% endif %}
+        {% if event.is_outdoor %}
+          <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+            Outdoor
+          </span>
+        {% endif %}
+      </div>
+      <div>
+        <h3 class="text-2xl font-bold text-lottina-primary mb-2">
+          {{ event.title or "Event ohne Titel" }}
+        </h3>
+        <p class="text-sm text-lottina-primary/70 line-clamp-4">
+          {{ event.description or event.summary or "Alle Details findest du auf der Eventseite." }}
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-3 text-xs text-lottina-primary/70">
+        {% if event.location %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+            {{ event.location.name or event.location.address or event.location.city or "Ort folgt" }}
+          </span>
+        {% endif %}
+        {% if event.dt_start %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+            {{ event.dt_start | smartdate }}
+          </span>
+        {% endif %}
+        {% if event.categories %}
+          {% for c in event.categories[:2] %}
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+              {{ c.name }}
+            </span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if current_user.is_authenticated and current_user.is_admin %}
+    <div class="event-card__admin" data-event-admin>
+      <button type="button" class="event-card__delete" data-delete-toggle>
+        Event löschen
+      </button>
+      <div class="event-card__confirm" data-delete-confirm hidden>
+        <p class="event-card__confirm-text">Event endgültig löschen?</p>
+        <div class="event-card__confirm-actions">
+          <form method="post"
+                action="{{ url_for('event_delete', event_id=event.id) }}"
+                data-delete-form>
+            <input type="hidden" name="redirect" value="{{ redirect_path }}{% if redirect_query %}?{{ redirect_query }}{% endif %}">
+            <button type="submit" class="event-card__confirm-delete">Löschen</button>
+          </form>
+          <button type="button" class="event-card__confirm-cancel" data-delete-cancel>Behalten</button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</article>
