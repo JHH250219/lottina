@@ -4,12 +4,13 @@ from flask import (
     abort, send_file, session, Response
 )
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, and_, or_, create_engine
+from sqlalchemy import func, and_, or_, create_engine, case
 from flask_migrate import Migrate
 import stripe
 from .models import (
     db,
     Offer,
+    OfferAvailability,
     Location,
     User,
     Category,
@@ -25,10 +26,12 @@ from .models import (
     organisation_users,
     ORGANISATION_ROLE_ADMIN,
 )
+from .permanent import sync_permanent_availability, opening_hours_text
 from .sitemap import sitemap_bp
 from .organisations import organisations_bp
 from jinja2 import TemplateNotFound
 from datetime import datetime, timedelta, timezone
+from math import ceil
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
 from flask_login import (
@@ -45,6 +48,7 @@ import mimetypes
 import click
 from itertools import zip_longest
 from werkzeug.utils import secure_filename
+from urllib.parse import urlencode
 from .utils import (
     allowed,
     save_upload,
@@ -142,6 +146,7 @@ app.config["STRIPE_PRICE_MONTHLY"] = os.getenv(
 app.config["STRIPE_PRICE_YEARLY"] = os.getenv(
     "STRIPE_PRICE_YEARLY", "price_1SXn4dRx44l32FoJBE3K15gw"
 )
+app.config["STRIPE_WEBHOOK_SECRET"] = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 # Feedback-Mails
 app.config["FEEDBACK_ALERT_RECIPIENT"] = os.getenv(
@@ -256,9 +261,11 @@ if fallback_in_use and resolved_db_uri.startswith("sqlite"):
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_FOLDER = BASE_DIR / "uploads"
 IMAGE_FOLDER = UPLOAD_FOLDER / "images"
+PROFILE_IMAGE_FOLDER = UPLOAD_FOLDER / "profile"
 IMAGE_FOLDER.mkdir(parents=True, exist_ok=True)
 ORG_LOGO_FOLDER = IMAGE_FOLDER / "org"
 ORG_LOGO_FOLDER.mkdir(parents=True, exist_ok=True)
+PROFILE_IMAGE_FOLDER.mkdir(parents=True, exist_ok=True)
 
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024  # 12 MB
 app.config["UPLOAD_FOLDER"] = str(UPLOAD_FOLDER)
@@ -567,6 +574,136 @@ def _has_value(value):
 # Stripe config
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
+def _plan_key_for_price(price_id: str | None) -> str | None:
+    if not price_id:
+        return None
+    price_id = price_id.strip()
+    if price_id == (app.config.get("STRIPE_PRICE_MONTHLY") or "").strip():
+        return "monthly"
+    if price_id and price_id == (app.config.get("STRIPE_PRICE_YEARLY") or "").strip():
+        return "yearly"
+    return None
+
+
+def _resolve_user_from_metadata(metadata: dict | None, fallback_email: str | None = None) -> User | None:
+    metadata = metadata or {}
+    user_id = metadata.get("user_id") or metadata.get("userId")
+    user = None
+    if user_id:
+        try:
+            user = User.query.get(int(user_id))
+        except (TypeError, ValueError):
+            app.logger.warning("Ungültige user_id in Stripe-Metadaten: %s", user_id)
+    if not user and fallback_email:
+        fallback_email = fallback_email.strip().lower()
+        if fallback_email:
+            user = User.query.filter(func.lower(User.email) == fallback_email).first()
+    return user
+
+
+def _update_membership_until(user: User, period_end_timestamp: int | None) -> bool:
+    if not user or not period_end_timestamp:
+        return False
+    period_end = datetime.fromtimestamp(period_end_timestamp, tz=timezone.utc)
+    current_until = user.premium_until
+    changed = False
+    # Nur anpassen, wenn wir ein späteres Ende erhalten oder noch nichts gesetzt haben
+    if not current_until or period_end > current_until:
+        user.premium_until = period_end
+        changed = True
+    new_is_premium = bool(user.premium_until and user.premium_until > datetime.now(timezone.utc))
+    if user.is_premium != new_is_premium:
+        user.is_premium = new_is_premium
+        changed = True
+    db.session.add(user)
+    return changed
+
+
+def _extract_period_end_from_invoice(invoice: dict) -> int | None:
+    lines = (invoice or {}).get("lines", {}).get("data", [])
+    if not lines:
+        return None
+    period = lines[0].get("period") or {}
+    return period.get("end")
+
+
+def _handle_checkout_completed(session_data: dict) -> bool:
+    metadata = session_data.get("metadata") or {}
+    email = (
+        (session_data.get("customer_details") or {}).get("email")
+        or session_data.get("customer_email")
+    )
+    user = _resolve_user_from_metadata(metadata, email)
+    if not user:
+        app.logger.warning("Stripe Checkout ohne zuordenbaren User (Session %s)", session_data.get("id"))
+        return False
+
+    period_end_ts = None
+    subscription_id = session_data.get("subscription")
+    if subscription_id:
+        try:
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            subscription_meta = subscription.get("metadata") or {}
+            if not metadata.get("user_id") and subscription_meta.get("user_id"):
+                metadata["user_id"] = subscription_meta["user_id"]
+            period_end_ts = subscription.get("current_period_end")
+        except Exception:  # noqa: BLE001
+            app.logger.exception("Stripe Subscription %s konnte nicht geladen werden", subscription_id)
+
+    if not period_end_ts:
+        period_end_ts = _extract_period_end_from_invoice(session_data)
+
+    updated = _update_membership_until(user, period_end_ts)
+    if updated:
+        db.session.commit()
+        app.logger.info("Premium bis %s für User %s gesetzt (Checkout)", user.premium_until, user.id)
+    return updated
+
+
+def _handle_invoice_paid(invoice: dict) -> bool:
+    metadata = invoice.get("metadata") or {}
+    email = invoice.get("customer_email")
+    user = _resolve_user_from_metadata(metadata, email)
+
+    subscription_id = invoice.get("subscription")
+    subscription_meta = {}
+    if subscription_id:
+        try:
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            subscription_meta = subscription.get("metadata") or {}
+            if not metadata:
+                metadata = subscription_meta
+            if not user:
+                user = _resolve_user_from_metadata(subscription_meta, email)
+        except Exception:  # noqa: BLE001
+            app.logger.exception("Stripe Subscription %s konnte nicht geladen werden", subscription_id)
+
+    if not user and email:
+        user = _resolve_user_from_metadata({}, email)
+
+    if not user:
+        app.logger.warning("Stripe Invoice ohne zuordenbaren User (Invoice %s)", invoice.get("id"))
+        return False
+
+    period_end_ts = _extract_period_end_from_invoice(invoice)
+    if not period_end_ts and subscription_id:
+        try:
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            period_end_ts = subscription.get("current_period_end")
+        except Exception:  # noqa: BLE001
+            app.logger.exception("Subscription %s konnte nicht geladen werden, um period_end zu bestimmen", subscription_id)
+
+    updated = _update_membership_until(user, period_end_ts)
+    if updated:
+        db.session.commit()
+        app.logger.info(
+            "Premium bis %s für User %s gesetzt (Invoice %s)",
+            user.premium_until,
+            user.id,
+            invoice.get("id"),
+        )
+    return updated
+
 # ---------------------------------------------------------------------------
 # Globale Template-Variablen
 # ---------------------------------------------------------------------------
@@ -614,7 +751,7 @@ def index():
     try:
         events = (
             db.session.query(Offer)
-            .filter(or_(Offer.source != "manual", Offer.status == OfferStatus.published))
+            .filter(Offer.status == OfferStatus.published)
             .order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
             .limit(9)
             .all()
@@ -733,6 +870,12 @@ def results():
     q        = request.args.get("q", "").strip()
     date_str = request.args.get("date")
     cats     = request.args.getlist("cats[]")
+    page     = request.args.get("page", type=int) or 1
+    if page < 1:
+        page = 1
+    per_page = 50
+    chunk_span = 2
+    chunk_size = per_page * chunk_span
     def _parse_age_param(name):
         value = request.args.get(name)
         if not value:
@@ -756,7 +899,7 @@ def results():
         db.session
         .query(Offer)
         .join(Location, Offer.location_id == Location.id, isouter=True)
-        .filter(or_(Offer.source != "manual", Offer.status == OfferStatus.published))
+        .filter(Offer.status == OfferStatus.published)
     )
 
     playground_clause = or_(
@@ -779,8 +922,16 @@ def results():
 
     # Datum
     if day_start and day_end:
+        target_date = day_start.date()
+        permanent_subq = (
+            db.session.query(OfferAvailability.offer_id)
+            .filter(OfferAvailability.day == target_date)
+        )
         qry = qry.filter(
-            and_(Offer.dt_start >= day_start, Offer.dt_start < day_end)
+            or_(
+                and_(Offer.dt_start >= day_start, Offer.dt_start < day_end),
+                Offer.id.in_(permanent_subq),
+            )
         )
     else:
         qry = qry.filter(or_(Offer.dt_start.is_(None), Offer.dt_start >= today_cutoff))
@@ -805,8 +956,27 @@ def results():
             Offer.dt_end.is_(None),
         )
 
+    filtered_qry = qry
+    stats_row = filtered_qry.with_entities(
+        func.count(Offer.id).label("total"),
+        func.coalesce(func.sum(case((Offer.is_free.is_(True), 1), else_=0)), 0).label("free"),
+        func.coalesce(func.sum(case((Offer.is_outdoor.is_(True), 1), else_=0)), 0).label("outdoor"),
+        func.coalesce(func.sum(case((Offer.type == OfferType.permanent, 1), else_=0)), 0).label("permanent"),
+    ).first()
+    total_results = stats_row.total or 0
+    free_results = int(stats_row.free or 0)
+    outdoor_results = int(stats_row.outdoor or 0)
+    permanent_count = int(stats_row.permanent or 0)
+    total_pages = max(1, ceil(total_results / per_page)) if total_results else 1
+    if page > total_pages:
+        page = total_pages
+    chunk_offset = (page - 1) * per_page if total_results else 0
+
     qry = qry.order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
-    events = qry.limit(1000).all()
+    events_chunk = qry.offset(chunk_offset).limit(chunk_size).all()
+    events = events_chunk[:per_page]
+    prefetched_events = events_chunk[per_page:]
+    next_prefetch_page = page + 1 if prefetched_events and page < total_pages else None
 
     # Kategorienliste für Sidebar
     categories = [
@@ -850,6 +1020,12 @@ def results():
                 "source": ev.source,
                 "offer_type": offer_type_value,
             })
+    hero_stats = [
+        {"label": "Ergebnisse gesamt", "value": total_results},
+        {"label": "davon kostenlos", "value": free_results},
+        {"label": "Outdoor Treffer", "value": outdoor_results},
+        {"label": "Immer offen", "value": permanent_count},
+    ]
 
     favorite_offer_ids = set()
     if current_user.is_authenticated and events:
@@ -860,15 +1036,54 @@ def results():
         )
         favorite_offer_ids = {str(row.offer_id) for row in user_favorites}
 
+    redirect_params = request.args.to_dict(flat=False)
+    redirect_params.pop("partial", None)
+    redirect_query = urlencode(redirect_params, doseq=True)
+    redirect_path = request.path
+    base_page_params = {key: list(value) for key, value in redirect_params.items()}
+
+    def _page_url(target_page: int) -> str:
+        params = {key: list(value) for key, value in base_page_params.items()}
+        if target_page <= 1:
+            params.pop("page", None)
+        else:
+            params["page"] = [str(target_page)]
+        query = urlencode(params, doseq=True)
+        return f"{request.path}{'?' + query if query else ''}"
+
+    prev_page_url = _page_url(page - 1) if page > 1 else None
+    next_page_url = _page_url(page + 1) if page < total_pages else None
+
+    if request.args.get("partial") == "1":
+        return jsonify(
+            {
+                "page": page,
+                "total_pages": total_pages,
+                "page_html": render_template("results/_event_cards.html", events=events, redirect_query=redirect_query, redirect_path=redirect_path),
+                "prefetch_html": render_template("results/_event_cards.html", events=prefetched_events, redirect_query=redirect_query, redirect_path=redirect_path),
+                "prefetch_page": next_prefetch_page if next_prefetch_page and next_prefetch_page <= total_pages else None,
+            }
+        )
+
     return render_template(
         "results.html",
         events=events,
+        prefetched_events=prefetched_events,
         coords=coords,
         categories=categories,
         date_filter=date_str or "",
         playground_ids=playground_ids,
         permanent_ids=permanent_ids,
         favorite_offer_ids=favorite_offer_ids,
+        hero_stats=hero_stats,
+        total_results=total_results,
+        page=page,
+        total_pages=total_pages,
+        prefetch_page=next_prefetch_page,
+        redirect_query=redirect_query,
+        redirect_path=redirect_path,
+        prev_page_url=prev_page_url,
+        next_page_url=next_page_url,
     )
 
 
@@ -881,7 +1096,7 @@ def karte():
         .filter(
             Location.lat.isnot(None),
             Location.lon.isnot(None),
-            or_(Offer.source != "manual", Offer.status == OfferStatus.published),
+            Offer.status == OfferStatus.published,
         )
         .order_by(Offer.updated_at.desc().nullslast(), Offer.id.desc())
         .all()
@@ -1000,6 +1215,10 @@ def sichtbar_werden():
 def impressum():
     return render_template("impressum.html")
 
+@app.get("/datenschutz")
+def datenschutz():
+    return render_template("datenschutz.html")
+
 @app.get("/vorgaben")
 def vorgaben():
     return render_template("vorgaben.html")
@@ -1007,7 +1226,7 @@ def vorgaben():
 @app.route("/event/<uuid:event_id>")
 def event_detail(event_id):
     event = Offer.query.get_or_404(event_id)
-    if event.source == "manual" and event.status != OfferStatus.published:
+    if event.status != OfferStatus.published:
         if not current_user.is_authenticated or not current_user.is_admin:
             abort(404)
     is_favorite = False
@@ -1024,9 +1243,14 @@ def event_detail(event_id):
         meta_description = event.description[:150] + "..."
     else:
         meta_description = "Familienfreundliches Erlebnis auf lottina."
+    type_value = getattr(event.type, "value", event.type)
+    is_permanent = type_value == OfferType.permanent.value
+    opening_hours_label = opening_hours_text(event.opening_hours)
     return render_template(
         "event.html",
         event=event,
+        is_permanent=is_permanent,
+        opening_hours_label=opening_hours_label,
         canonical=canonical,
         meta_title=meta_title,
         meta_description=meta_description,
@@ -1034,6 +1258,21 @@ def event_detail(event_id):
         favorite_endpoint=url_for("favorite_offer_add", offer_id=event.id),
         register_url=url_for("register", next=request.full_path or request.path),
     )
+
+
+@app.post("/event/<uuid:event_id>/delete")
+@login_required
+def event_delete(event_id):
+    if not current_user.is_admin:
+        abort(403)
+    offer = Offer.query.get_or_404(event_id)
+    db.session.delete(offer)
+    db.session.commit()
+    flash("Event gelöscht.", "success")
+    redirect_target = request.form.get("redirect") or url_for("freigeben")
+    if not redirect_target.startswith("/"):
+        redirect_target = url_for("suchergebnisse")
+    return redirect(redirect_target)
 
 
 @app.route("/event/<uuid:event_id>/edit", methods=["GET", "POST"])
@@ -1204,6 +1443,7 @@ def edit_event(event_id):
 
         if not errors:
             try:
+                sync_permanent_availability(db.session, event)
                 db.session.commit()
                 flash("Event erfolgreich aktualisiert.", "success")
                 return redirect(url_for("event_detail", event_id=str(event.id)))
@@ -1292,7 +1532,20 @@ def ueber_uns():
         "Filter: Alter, Indoor/Outdoor, kostenfrei, barrierefrei, Sprache, Radius",
         "Hosting ausschließlich in der EU · DSGVO-konform",
     ]
-    return render_template("ueber_uns.html", team=team, values=values)
+    total_entries = db.session.query(func.count(Offer.id)).scalar() or 0
+    feedback_count = db.session.query(func.count(CommunityFeedback.id)).scalar() or 0
+    curated_manual = (
+        db.session.query(func.count(Offer.id))
+        .filter(Offer.source == "manual", Offer.status == OfferStatus.published)
+        .scalar()
+        or 0
+    )
+    impact_stats = [
+        {"label": "Datenbank-Einträge", "value": total_entries},
+        {"label": "Community-Feedbacks", "value": feedback_count},
+        {"label": "Kuratierte Events", "value": curated_manual},
+    ]
+    return render_template("ueber_uns.html", team=team, values=values, impact_stats=impact_stats)
 
 @app.get("/feedback")
 def feedback():
@@ -1571,6 +1824,31 @@ def dashboard_profile_update():
     return redirect(url_for("dashboard"))
 
 
+@app.post("/dashboard/profile/image")
+@login_required
+def dashboard_profile_image_upload():
+    file = request.files.get("profile_image")
+    if not file or not file.filename:
+        flash("Bitte wähle ein Bild aus.", "danger")
+        return redirect(url_for("dashboard"))
+    if not allowed(file.filename):
+        flash("Unterstützt werden JPG, JPEG, PNG oder WEBP.", "danger")
+        return redirect(url_for("dashboard"))
+    saved = save_upload(file, PROFILE_IMAGE_FOLDER)
+    old_image = (current_user.profile_image or "").strip()
+    if old_image:
+        old_path = (PROFILE_IMAGE_FOLDER / secure_filename(old_image)).resolve()
+        try:
+            if str(old_path).startswith(str(PROFILE_IMAGE_FOLDER.resolve())) and old_path.exists():
+                old_path.unlink()
+        except Exception:
+            pass
+    current_user.profile_image = saved.name
+    db.session.commit()
+    flash("Profilbild aktualisiert.", "success")
+    return redirect(url_for("dashboard"))
+
+
 @app.post("/dashboard/children")
 @login_required
 def dashboard_children_save():
@@ -1642,12 +1920,16 @@ def register():
         username = request.form.get("username", "").strip()
         email    = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        password_confirm = request.form.get("password_confirm", "")
 
         if not username or not email or not password:
             flash("Bitte alle Felder ausfüllen.", "danger")
             return render_template("register.html"), 400
         if len(password) < 8:
             flash("Passwort muss mindestens 8 Zeichen haben.", "danger")
+            return render_template("register.html"), 400
+        if password != password_confirm:
+            flash("Die eingegebenen Passwörter stimmen nicht überein.", "danger")
             return render_template("register.html"), 400
 
         try:
@@ -1767,23 +2049,29 @@ def _render_event_form(
 def event_erstellen():
     return _render_event_form({"form_mode": MODE_MANUAL})
 
-@app.route("/uploads/images/<path:fname>")
-def _serve_uploaded_image(fname):
+def _serve_uploaded_file(folder: Path, fname: str):
     safe_name = secure_filename(fname)
-
-    target_path = (IMAGE_FOLDER / fname).resolve()
-    base_path   = IMAGE_FOLDER.resolve()
+    target_path = (folder / safe_name).resolve()
+    base_path = folder.resolve()
     try:
         if not str(target_path).startswith(str(base_path)):
             abort(404)
     except Exception:
         abort(404)
-
     if not target_path.exists() or not target_path.is_file():
         abort(404)
-
     mimetype, _ = mimetypes.guess_type(target_path.name)
     return send_file(str(target_path), mimetype=mimetype, as_attachment=False)
+
+
+@app.route("/uploads/images/<path:fname>")
+def _serve_uploaded_image(fname):
+    return _serve_uploaded_file(IMAGE_FOLDER, fname)
+
+
+@app.route("/uploads/profile/<path:fname>")
+def serve_profile_image(fname):
+    return _serve_uploaded_file(PROFILE_IMAGE_FOLDER, fname)
 
 @app.post("/event-erstellen")
 def create_event():
@@ -1843,6 +2131,12 @@ def create_event():
             return None
         s = _re.sub(r"\s+", " ", s).strip()
         return s[:n]
+
+    def _fail(message: str):
+        if interactive_mode:
+            return _render_event_form(form_data, submission_error=message), 400
+        flash(message, "danger")
+        return redirect(url_for("event_erstellen")), 400
 
     # Bild
     image_url = (f.get("image_url") or "").strip() or None
@@ -1912,23 +2206,26 @@ def create_event():
 
     ag_min = ag_max = None
     age_group = (f.get("age_group") or "").strip()
+    if not age_group:
+        return _fail("Bitte gib eine Altersempfehlung an (z. B. ab 4 Jahren oder 4–8 Jahre).")
     m = re.search(r"\b(\d{1,2})\b", age_group)
     if m:
         ag_min = int(m.group(1))
 
     location_name_raw = (f.get("location") or "").strip()
+    if not location_name_raw:
+        return _fail("Bitte gib einen Ort oder eine Adresse an.")
     lat = _to_float(f.get("lat"))
     lon = _to_float(f.get("lon"))
 
-    if not location_name_raw or len(location_name_raw) > MAX_LOC_NAME:
-        addr_guess, city_guess = extract_addr_city_from_text(description_text)
-        location_name_raw = addr_guess or location_name_raw or city_guess or ""
+    if len(location_name_raw) > MAX_LOC_NAME:
+        location_name_raw = location_name_raw[:MAX_LOC_NAME]
 
     loc_name = shorten(location_name_raw, MAX_LOC_NAME)
     loc_addr = shorten(location_name_raw, MAX_LOC_ADDR)
 
     city_guess = None
-    if not city_guess:
+    if description_text:
         _, city_guess = extract_addr_city_from_text(description_text)
 
     location = None
@@ -2001,6 +2298,8 @@ def create_event():
     )
     offer.status = OfferStatus.draft
     db.session.add(offer)
+    db.session.flush()
+    sync_permanent_availability(db.session, offer)
 
     cat_name = (f.get("category") or "").strip()
     if cat_name:
@@ -2049,10 +2348,7 @@ def freigeben():
         abort(403)
     pending_offers = (
         db.session.query(Offer)
-        .filter(
-            Offer.status == OfferStatus.draft,
-            Offer.source == "manual",
-        )
+        .filter(Offer.status == OfferStatus.draft)
         .order_by(Offer.created_at.desc())
         .limit(200)
         .all()
@@ -2135,14 +2431,22 @@ def server_error(e):
     
 
 @app.route("/create-checkout-session", methods=["POST"])
+@login_required
 def create_checkout_session():
-    price_id = request.form.get("priceId") or app.config.get("STRIPE_PRICE_MONTHLY")
+    price_id = (request.form.get("priceId") or "").strip()
     if not price_id:
         flash("Kein Preis ausgewählt – bitte versuche es erneut.", "danger")
         return redirect(url_for("preise"))
 
+    plan_key = _plan_key_for_price(price_id)
+    if not plan_key:
+        flash("Unbekannter Preis – bitte lade die Seite neu und versuche es erneut.", "danger")
+        return redirect(url_for("preise"))
+
     success_url = url_for("checkout_success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = url_for("preise", _external=True)
+
+    metadata = {"plan": plan_key, "user_id": str(current_user.id), "price_id": price_id}
 
     try:
         session = stripe.checkout.Session.create(
@@ -2150,6 +2454,11 @@ def create_checkout_session():
             cancel_url=cancel_url,
             mode="subscription",
             line_items=[{"price": price_id, "quantity": 1}],
+            client_reference_id=str(current_user.id),
+            customer_email=current_user.email,
+            metadata=metadata,
+            subscription_data={"metadata": metadata},
+            allow_promotion_codes=True,
         )
     except Exception:
         app.logger.exception("Stripe Checkout konnte nicht erstellt werden")
@@ -2157,6 +2466,38 @@ def create_checkout_session():
         return redirect(url_for("preise"))
 
     return redirect(session.url, code=303)
+
+
+@app.post("/stripe/webhook")
+def stripe_webhook():
+    webhook_secret = app.config.get("STRIPE_WEBHOOK_SECRET")
+    payload = request.data
+    sig_header = request.headers.get("Stripe-Signature")
+
+    if not webhook_secret:
+        app.logger.error("STRIPE_WEBHOOK_SECRET nicht gesetzt – Webhook wird ignoriert")
+        return ("Webhook nicht konfiguriert", 500)
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except ValueError:
+        app.logger.warning("Stripe Webhook konnte nicht geparst werden")
+        return ("Ungültige Payload", 400)
+    except stripe.error.SignatureVerificationError:
+        app.logger.warning("Stripe Webhook Signatur ungültig")
+        return ("Ungültige Signatur", 400)
+
+    event_type = event.get("type")
+    data_object = event.get("data", {}).get("object", {})
+
+    if event_type == "checkout.session.completed":
+        _handle_checkout_completed(data_object)
+    elif event_type == "invoice.payment_succeeded":
+        _handle_invoice_paid(data_object)
+    else:
+        app.logger.debug("Stripe Webhook ignoriert (%s)", event_type)
+
+    return ("", 200)
 
 
 # ---------------------------------------------------------------------------

@@ -85,14 +85,14 @@
          {% if current_endpoint == 'ueber_uns' %}aria-current="page"{% endif %}>
         Über uns
       </a>
+      {% if current_user.is_admin %}
+        <a href="{{ url_for('freigeben') }}"
+           class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'freigeben' else '' }}"
+           {% if current_endpoint == 'freigeben' %}aria-current="page"{% endif %}>
+          Freigeben
+        </a>
+      {% endif %}
       {% if current_user.is_authenticated %}
-        {% if current_user.is_admin %}
-          <a href="{{ url_for('freigeben') }}"
-             class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'freigeben' else '' }}"
-             {% if current_endpoint == 'freigeben' %}aria-current="page"{% endif %}>
-            Freigeben
-          </a>
-        {% endif %}
         {% if current_user.organisations.count() %}
           {% set first_org = current_user.organisations.first() %}
           <a href="{{ url_for('organisations.organisation_dashboard', slug=first_org.slug) }}"

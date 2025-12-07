@@ -2,6 +2,7 @@
 {% block title %}Mein Profil – lottina Familienbereich{% endblock %}
 
 {% block content %}
+{% set is_premium = current_user.premium_active %}
 <div class="min-h-screen relative isolate overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
   <div class="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full bg-white/10 blur-[140px]"></div>
   <div class="pointer-events-none absolute bottom-0 left-4 h-72 w-72 rounded-full bg-[#ffffff]/10 blur-[120px]"></div>
@@ -15,10 +16,15 @@
         Hallo {{ current_user.firstname or current_user.username }}!
       </h1>
       <p class="text-sm sm:text-base text-white/80">
-        Verwalte dein Profil, plane Events und behalte dein Abo im Blick.
+        {% if is_premium %}
+          Verwalte dein Profil, plane Events und behalte dein Abo im Blick.
+        {% else %}
+          Deine Basis-Übersicht. Mit lottina Family schaltest du alle Features frei.
+        {% endif %}
       </p>
     </header>
 
+    {% if is_premium %}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="space-y-3">
@@ -74,9 +80,9 @@
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p class="text-xs uppercase tracking-[0.3em] text-white/60">Abo</p>
-              <p class="text-lg font-semibold text-white">{% if current_user.is_premium %}lottina Family{% else %}Kostenlos{% endif %}</p>
+              <p class="text-lg font-semibold text-white">{% if current_user.premium_active %}lottina Family{% else %}Kostenlos{% endif %}</p>
             </div>
-            {% if current_user.is_premium %}
+            {% if current_user.premium_active %}
               <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200/60 bg-emerald-100/20 px-4 py-2 text-emerald-100 text-sm font-semibold">
                 ✅ Premium aktiv
               </span>
@@ -106,6 +112,24 @@
         </div>
       </div>
     </section>
+    {% else %}
+    <section class="dashboard-card p-8 text-center space-y-5">
+      <p class="text-xs uppercase tracking-[0.35em] text-white/60">Profil</p>
+      <h2 class="text-3xl font-semibold text-white">{{ current_user.firstname or current_user.username }}</h2>
+      <p class="text-sm text-white/70">{{ current_user.email }}</p>
+    </section>
+    <section class="dashboard-card p-10 text-center space-y-4">
+      <p class="text-xs uppercase tracking-[0.4em] text-white/60">Mehr entdecken</p>
+      <h2 class="text-3xl font-semibold text-white">Werde jetzt lottina Family-Mitglied</h2>
+      <p class="text-white/75 text-sm max-w-2xl mx-auto">
+        Favoriten speichern, Kinderprofile anlegen und Premium-Filter nutzen – alles für entspannte Familienplanung.
+      </p>
+      <a href="{{ url_for('preise') }}"
+         class="inline-flex items-center justify-center gap-3 rounded-full bg-white text-[#0f2f2c] text-lg font-bold px-8 py-4 tracking-[0.2em] shadow-xl hover:-translate-y-0.5 transition">
+        Jetzt Mitglied werden
+      </a>
+    </section>
+    {% endif %}
 
     {% if current_user.organisations.count() %}
       {% set first_org = current_user.organisations.first() %}
@@ -345,6 +369,7 @@
   }
 </style>
 
+{% if is_premium %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const childrenList = document.getElementById("childrenList");
@@ -480,4 +505,5 @@
     });
   });
 </script>
+{% endif %}
 {% endblock %}

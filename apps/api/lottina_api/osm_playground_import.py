@@ -14,6 +14,11 @@ from typing import Iterable, Optional, Tuple
 
 import requests
 
+try:
+    from .permanent import sync_permanent_availability
+except ImportError:  # pragma: no cover
+    from permanent import sync_permanent_availability
+
 logger = logging.getLogger(__name__)
 
 OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter"
@@ -177,6 +182,8 @@ def persist_offers(
 
         if category not in offer.categories:
             offer.categories.append(category)
+
+        sync_permanent_availability(session, offer)
 
     return (inserted, updated)
 

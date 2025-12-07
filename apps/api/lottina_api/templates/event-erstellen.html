@@ -148,7 +148,7 @@
         <h3 class="wizard-step__title">Wo findet es statt?</h3>
         <label class="wizard-label">
           Ort oder Adresse
-          <input type="text" name="location" value="{{ form_data.get('location', '') }}" class="wizard-input" placeholder="z. B. Stadtpark, Museum">
+          <input type="text" name="location" value="{{ form_data.get('location', '') }}" class="wizard-input" placeholder="z. B. Stadtpark, Museum" required>
         </label>
         <label class="wizard-label">
           Maps-Link (optional)
@@ -162,6 +162,25 @@
 
       <div class="wizard-step" data-step="5">
         <p class="wizard-step__eyebrow">Frage 6</p>
+        <h3 class="wizard-step__title">Für welches Alter eignet sich das Erlebnis?</h3>
+        <label class="wizard-label">
+          Altersempfehlung
+          <input type="text"
+                 name="age_group"
+                 value="{{ form_data.get('age_group', '') }}"
+                 class="wizard-input"
+                 placeholder="z. B. ab 4 Jahren oder 4–8 Jahre"
+                 required>
+        </label>
+        <p class="text-xs text-white/70">Bitte gib eine Altersspanne oder Mindestalter an – das hilft Familien bei der Planung.</p>
+        <div class="wizard-actions">
+          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
+          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" data-step="6">
+        <p class="wizard-step__eyebrow">Frage 7</p>
         <h3 class="wizard-step__title">Was kostet das Erlebnis?</h3>
         <div class="wizard-grid">
           <label class="wizard-label">
@@ -187,8 +206,8 @@
         </div>
       </div>
 
-      <div class="wizard-step" data-step="6">
-        <p class="wizard-step__eyebrow">Frage 7</p>
+      <div class="wizard-step" data-step="7">
+        <p class="wizard-step__eyebrow">Frage 8</p>
         <h3 class="wizard-step__title">Wie erreichen wir euch?</h3>
         <label class="wizard-label">
           Kontakt (E-Mail, Telefon)
@@ -204,8 +223,8 @@
         </div>
       </div>
 
-      <div class="wizard-step" data-step="7">
-        <p class="wizard-step__eyebrow">Frage 8</p>
+      <div class="wizard-step" data-step="8">
+        <p class="wizard-step__eyebrow">Frage 9</p>
         <h3 class="wizard-step__title">Füge ein Bild hinzu.</h3>
         <div class="wizard-image">
           <label class="wizard-btn wizard-btn--primary cursor-pointer w-full text-center">
@@ -220,7 +239,7 @@
         </div>
       </div>
 
-      <div class="wizard-step" data-step="8">
+      <div class="wizard-step" data-step="9">
         <p class="wizard-step__eyebrow">Zusammenfassung</p>
         <h3 class="wizard-step__title">Passt alles?</h3>
         <div class="wizard-summary">
@@ -244,6 +263,10 @@
             <div>
               <dt>Ort</dt>
               <dd data-summary="location">–</dd>
+            </div>
+            <div>
+              <dt>Altersempfehlung</dt>
+              <dd data-summary="age_group">–</dd>
             </div>
             <div>
               <dt>Preisinfo</dt>

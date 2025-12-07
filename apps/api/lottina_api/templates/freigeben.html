@@ -9,26 +9,18 @@
       <h1 class="text-3xl font-lottina font-bold">Freigeben</h1>
       <p class="text-sm text-lottina-primary/70">Prüfe neue Einreichungen, bevor sie für die Community sichtbar werden.</p>
     </header>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="space-y-3">
-          {% for category, message in messages %}
-            <div class="rounded-2xl px-4 py-3 text-sm {% if category == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-100{% elif category == 'danger' %}bg-red-50 text-red-800 border border-red-100{% else %}bg-white border border-lottina-primary/10{% endif %}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-
     <div class="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
       <div class="space-y-5">
         {% if pending_offers %}
           {% for offer in pending_offers %}
             <article class="rounded-[32px] border border-lottina-primary/10 bg-white shadow-sm p-6 space-y-4">
-              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+                <div class="freigeben-offer__image">
+                  <img src="{{ offer.image or url_for('static', filename='img/oma-paper-512.png') }}"
+                       alt="Poster von {{ offer.title or 'Event' }}"
+                       loading="lazy">
+                </div>
+                <div class="flex-1">
                   <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/50">Einreichung</p>
                   <h2 class="text-xl font-semibold">{{ offer.title or "Ohne Titel" }}</h2>
                   <p class="text-sm text-lottina-primary/70">{{ offer.summary or offer.description or "Keine Beschreibung" }}</p>
@@ -142,4 +134,27 @@
     </div>
   </div>
 </div>
+<style>
+  .freigeben-offer__image {
+    width: 110px;
+    height: 110px;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid rgba(15, 47, 44, 0.08);
+    background: rgba(15, 47, 44, 0.05);
+    flex-shrink: 0;
+  }
+  .freigeben-offer__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @media (max-width: 640px) {
+    .freigeben-offer__image {
+      width: 100%;
+      height: 180px;
+    }
+  }
+</style>
 {% endblock %}

@@ -83,6 +83,14 @@ class User(db.Model, UserMixin):
         lazy="dynamic",
     )
 
+    @property
+    def premium_active(self) -> bool:
+        return bool(self.is_admin or self.is_premium)
+
+    @property
+    def has_premium_access(self) -> bool:
+        return self.premium_active
+
     # Helpers
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
@@ -542,6 +550,12 @@ class Offer(db.Model):
         cascade="all, delete-orphan",
         lazy="dynamic",
     )
+    availabilities = db.relationship(
+        "OfferAvailability",
+        back_populates="offer",
+        cascade="all, delete-orphan",
+        lazy="dynamic",
+    )
 
     # Many-to-Many
     categories = db.relationship("Category", secondary=offer_categories, lazy="joined")
@@ -554,3 +568,30 @@ class Offer(db.Model):
 
     def __repr__(self):
         return f"<Offer {self.title} {self.id}>"
+
+
+class OfferAvailability(db.Model):
+    __tablename__ = "offer_availabilities"
+
+    id = db.Column(db.Integer, primary_key=True)
+    offer_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("offers.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    day = db.Column(db.Date, nullable=False, index=True)
+    opens_at = db.Column(db.Time)
+    closes_at = db.Column(db.Time)
+    note = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+
+    offer = db.relationship("Offer", back_populates="availabilities")
+
+    __table_args__ = (
+        db.UniqueConstraint("offer_id", "day", name="uq_offer_availabilities_offer_day"),
+    )
+
+    def __repr__(self):
+        return f"<OfferAvailability {self.offer_id} {self.day}>"

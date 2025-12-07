@@ -1,104 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Suchergebnisse – Familien-Events & Freizeitideen | lottina{% endblock %}
 
-{% macro filter_panel() %}
-  <form method="get" class="space-y-6">
-    <div class="space-y-2">
-      <label for="filter-q" class="text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/70">Suche</label>
-      <input id="filter-q"
-             name="q"
-             value="{{ request.args.get('q','') }}"
-             type="text"
-             placeholder="z. B. Flohmarkt, Coding Workshop …"
-             class="w-full rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary placeholder:text-lottina-primary/40 focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
-    </div>
-
-    <div class="space-y-2">
-      <label for="filter-date" class="text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/70">Datum</label>
-      <input id="filter-date"
-             name="date"
-             value="{{ request.args.get('date','') }}"
-             type="date"
-             class="w-full rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
-    </div>
-
-    <div class="space-y-2">
-      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/70">Alter der Kinder</p>
-      <div class="grid grid-cols-2 gap-3">
-        <input type="number"
-               name="age_min"
-               min="0"
-               max="18"
-               value="{{ request.args.get('age_min','') }}"
-               placeholder="Min"
-               class="rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
-        <input type="number"
-               name="age_max"
-               min="0"
-               max="18"
-               value="{{ request.args.get('age_max','') }}"
-               placeholder="Max"
-               class="rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
-      </div>
-    </div>
-
-    {% if categories %}
-    <div class="space-y-2">
-      <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/60">
-        <span>Kategorien</span>
-      </div>
-      <div class="rounded-3xl border border-lottina-primary/10 bg-white p-3 max-h-48 overflow-y-auto space-y-2">
-        {% for cat in categories %}
-          <label class="flex items-center gap-2 text-sm text-lottina-primary/80">
-            <input type="checkbox"
-                   name="cats[]"
-                   value="{{ cat }}"
-                   class="rounded text-lottina-accent focus:ring-lottina-accent"
-                   {% if cat in active_cats %}checked{% endif %}>
-            <span>{{ cat }}</span>
-          </label>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    <div class="space-y-2">
-      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/70">Highlights</p>
-      <div class="rounded-3xl border border-lottina-primary/10 bg-white p-3 space-y-2 text-sm text-lottina-primary">
-        <label class="flex items-center gap-2">
-          <input type="checkbox" name="free" value="1"
-                 class="rounded text-lottina-accent focus:ring-lottina-accent"
-                 {% if request.args.get('free') == '1' %}checked{% endif %}>
-          Kostenlos
-        </label>
-        <label class="flex items-center gap-2">
-          <input type="checkbox" name="outdoor" value="1"
-                 class="rounded text-lottina-accent focus:ring-lottina-accent"
-                 {% if request.args.get('outdoor') == '1' %}checked{% endif %}>
-          Outdoor
-        </label>
-        <label class="flex items-center gap-2">
-          <input type="checkbox" name="always" value="1"
-                 class="rounded text-lottina-accent focus:ring-lottina-accent"
-                 {% if request.args.get('always') == '1' %}checked{% endif %}>
-          Immer offen
-        </label>
-      </div>
-    </div>
-
-    <div class="flex gap-2 pt-2">
-      <button type="submit"
-              class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-lottina-accent px-4 py-2 text-sm font-semibold text-white shadow hover:-translate-y-0.5 transition">
-        Anwenden
-      </button>
-      <a href="{{ url_for('suchergebnisse') }}"
-         class="flex-1 inline-flex items-center justify-center rounded-2xl border border-lottina-primary/15 px-4 py-2 text-sm font-semibold text-lottina-primary/70 hover:border-lottina-primary/40 transition">
-        Reset
-      </a>
-    </div>
-  </form>
-{% endmacro %}
-
 {% block content %}
 {% set active_cats = request.args.getlist('cats[]') %}
 {% set has_active_filters = active_cats
@@ -146,15 +48,8 @@
         <h1 class="text-3xl md:text-4xl font-lottina font-bold leading-tight drop-shadow">
           {{ request.args.get('q') or "Alle Familien-Events" }}
         </h1>
-        <p class="text-sm md:text-base text-white/80 max-w-3xl">
-          Nutze Filter, um genau die passenden Events zu finden. Wir zeigen dir Ergebnisse in Echtzeit – kuratiert und werbefrei.
-        </p>
       </div>
       <div class="flex flex-wrap gap-3 text-sm">
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/15 border border-white/25">
-          <span class="inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
-          {{ events|length }} Ergebnisse{% if summary %} · {{ summary|join(" · ") }}{% endif %}
-        </span>
         {% if has_active_filters %}
           <a href="{{ url_for('suchergebnisse') }}"
              class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-white/35 text-sm font-semibold text-white/90 hover:bg-white/10 transition">
@@ -167,6 +62,87 @@
           Filter öffnen
         </button>
       </div>
+      {% if hero_stats %}
+        <div class="hero-stats">
+          {% for stat in hero_stats %}
+            <div class="hero-stat">
+              <p class="hero-stat__value" data-hero-counter data-target="{{ stat.value }}">0</p>
+              <p class="hero-stat__label">{{ stat.label }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="hidden lg:block mt-12">
+      <div class="rounded-3xl border border-white/20 bg-white/15 backdrop-blur-lg shadow-2xl overflow-hidden">
+        <div class="p-6 space-y-6">
+          <div class="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-white/75">
+            <span>Filter im Überblick</span>
+          </div>
+          <div class="grid grid-cols-12 gap-4 text-sm">
+            <div class="col-span-12 md:col-span-4">
+              <label class="text-xs uppercase tracking-[0.3em] text-white/70">Was suchst du?</label>
+              <input type="text" name="q" form="filters-hero"
+                     value="{{ request.args.get('q','') }}"
+                     placeholder="Workshops, Märkte, Parks..."
+                     class="mt-2 w-full rounded-2xl border border-white/25 bg-white/10 px-4 py-2 text-sm text-white placeholder:text-white/60 focus:border-white focus:ring-2 focus:ring-white/60">
+            </div>
+            <div class="col-span-6 md:col-span-3">
+              <label class="text-xs uppercase tracking-[0.3em] text-white/70">Datum</label>
+              <input type="date" name="date" form="filters-hero"
+                     value="{{ request.args.get('date','') }}"
+                     class="mt-2 w-full rounded-2xl border border-white/25 bg-white/10 px-4 py-2 text-sm text-white focus:border-white focus:ring-2 focus:ring-white/60">
+            </div>
+            <div class="col-span-6 md:col-span-3">
+              <label class="text-xs uppercase tracking-[0.3em] text-white/70">Alter (ab/bis)</label>
+              <div class="mt-2 grid grid-cols-2 gap-2">
+                <input type="number" name="age_min" form="filters-hero"
+                       value="{{ request.args.get('age_min','') }}"
+                       min="0" max="18"
+                       placeholder="ab"
+                       class="rounded-2xl border border-white/25 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/70 focus:border-white focus:ring-2 focus:ring-white/60">
+                <input type="number" name="age_max" form="filters-hero"
+                       value="{{ request.args.get('age_max','') }}"
+                       min="0" max="18"
+                       placeholder="bis"
+                       class="rounded-2xl border border-white/25 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/70 focus:border-white focus:ring-2 focus:ring-white/60">
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-2 flex flex-col justify-end gap-2">
+              <button type="submit" form="filters-hero"
+                      class="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-lottina-primary shadow hover:-translate-y-0.5 transition">
+                Aktualisieren
+              </button>
+              <a href="{{ url_for('suchergebnisse') }}"
+                 class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/35 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 transition">
+                Zurücksetzen
+              </a>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-white">
+            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/15 border border-white/30 cursor-pointer">
+              <input type="checkbox" name="free" value="1" form="filters-hero"
+                     class="rounded text-lottina-primary focus:ring-white"
+                     {% if request.args.get('free') == '1' %}checked{% endif %}>
+              Kostenlos
+            </label>
+            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/15 border border-white/30 cursor-pointer">
+              <input type="checkbox" name="outdoor" value="1" form="filters-hero"
+                     class="rounded text-lottina-primary focus:ring-white"
+                     {% if request.args.get('outdoor') == '1' %}checked{% endif %}>
+              Outdoor
+            </label>
+            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/15 border border-white/30 cursor-pointer">
+              <input type="checkbox" name="always" value="1" form="filters-hero"
+                     class="rounded text-lottina-primary focus:ring-white"
+                     {% if request.args.get('always') == '1' %}checked{% endif %}>
+              Immer offen
+            </label>
+          </div>
+        </div>
+      </div>
+      <form id="filters-hero" class="hidden" method="get"></form>
     </div>
 
     {% if has_active_filters %}
@@ -212,101 +188,49 @@
   </div>
 </section>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="bg-[#f6fbf8]">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 pt-6">
-        <div class="space-y-3">
-          {% for category, message in messages %}
-            <div class="rounded-2xl px-4 py-3 text-sm font-medium
-                        {% if category == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-100{% elif category == 'danger' %}bg-red-50 text-red-800 border border-red-100{% else %}bg-white border border-lottina-primary/10 text-lottina-primary{% endif %}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  {% endif %}
-{% endwith %}
-
 <div class="bg-[#f6fbf8] py-12">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 grid gap-8 lg:grid-cols-[280px,1fr]">
-    <aside class="hidden lg:block">
-      <div class="rounded-3xl border border-lottina-primary/10 bg-white p-6 shadow-lg">
-        {{ filter_panel() }}
-      </div>
-    </aside>
-
-    <section class="space-y-6">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 space-y-8">
+    <section class="space-y-8">
       {% if events %}
-        <div class="grid gap-6 md:grid-cols-2">
-          {% for event in events %}
-            <article class="result-card result-card--landscape relative overflow-hidden rounded-3xl border border-lottina-primary/10 bg-white shadow-lg" data-result-card>
-              <a href="{{ url_for('event_detail', event_id=event.id) }}" class="block h-full">
-                {% set is_favorite = (favorite_offer_ids and (event.id|string in favorite_offer_ids)) %}
-                <div class="result-card__layout">
-                  <div class="result-card__media relative overflow-hidden rounded-3xl md:rounded-2xl">
-                    <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.png') }}"
-                         alt="{{ event.title or 'Event Bild' }}"
-                         data-result-image
-                         class="result-card__image transition-transform duration-300 hover:scale-[1.02]">
-                    <div class="absolute top-3 left-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">
-                      {% if event.dt_start %}
-                        {{ event.dt_start | shortdate }}
-                      {% else %}
-                        Termin folgt
-                      {% endif %}
-                    </div>
-                    <button type="button"
-                            class="favorite-toggle absolute top-3 right-3 inline-flex items-center justify-center rounded-full border border-white/70 bg-white/80 text-lottina-primary/70 p-2 shadow transition hover:text-red-500 {% if is_favorite %}favorite-toggle--active{% endif %}"
-                            data-favorite-toggle
-                            data-event-id="{{ event.id }}"
-                            data-authenticated="{{ 1 if current_user.is_authenticated else 0 }}"
-                            data-login-url="{{ url_for('login', next=request.full_path or request.path) }}"
-                            data-endpoint="{{ url_for('favorite_offer_add', offer_id=event.id) }}"
-                            aria-pressed="{{ 'true' if is_favorite else 'false' }}"
-                            title="Event speichern">
-                      <span class="sr-only">Event speichern</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
-                        <path d="M12 21s-6-3.35-8.5-7.05C1.5 11.25 1.25 7.5 3.75 5.5 5.75 4 8 4.75 9 6c1-1.25 3.25-2 5.25-.5 2.5 2 2.25 5.75.25 8.45C18 17.65 12 21 12 21Z" stroke="currentColor" fill="currentColor"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="result-card__body space-y-3 flex flex-col">
-                    <div class="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.18em] text-lottina-primary/60">
-                      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-lottina-accent/15 text-lottina-primary font-semibold">
-                        {{ event.categories[0].name if event.categories else 'Event' }}
-                      </span>
-                      {% if event.duration %}
-                        <span>{{ event.duration }}</span>
-                      {% endif %}
-                    </div>
-                    <h3 class="text-lg font-semibold leading-snug text-lottina-primary">
-                      {{ event.title or "Event ohne Titel" }}
-                    </h3>
-                    <p class="text-sm text-lottina-primary/70 line-clamp-4">
-                      {{ event.description or event.summary or "Mehr Details auf der Eventseite." }}
-                    </p>
-                    <div class="mt-auto flex flex-wrap gap-2 text-xs text-lottina-primary/70">
-                      {% if event.location %}
-                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
-                          {{ event.location.name or event.location.address or event.location.city or "Ort folgt" }}
-                        </span>
-                      {% endif %}
-                      {% if event.categories %}
-                        {% for c in event.categories[:2] %}
-                          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
-                            {{ c.name }}
-                          </span>
-                        {% endfor %}
-                      {% endif %}
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </article>
-          {% endfor %}
+        <div class="event-grid gap-6"
+             id="resultsGrid"
+             data-current-page="{{ page }}"
+             data-total-pages="{{ total_pages }}"
+             data-total-results="{{ total_results }}">
+          {% with events=events %}
+            {% include "results/_event_cards.html" %}
+          {% endwith %}
         </div>
+        <div id="prefetchContainer"
+             data-prefetch-page="{{ prefetch_page or '' }}"
+             hidden>
+          {% if prefetched_events %}
+            {% with events=prefetched_events %}
+              {% include "results/_event_cards.html" %}
+            {% endwith %}
+          {% endif %}
+        </div>
+        {% if total_pages > 1 %}
+          <nav class="results-pagination" data-pagination>
+            <a href="{{ prev_page_url or '#' }}"
+               class="results-pagination__nav {% if page == 1 %}is-disabled{% endif %}"
+               data-page-control="prev"
+               data-page="{{ page - 1 }}"
+               {% if page == 1 %}aria-disabled="true" tabindex="-1"{% endif %}>
+              Zurück
+            </a>
+            <p class="results-pagination__status" data-pagination-status>
+              Seite {{ page }} / {{ total_pages }}
+            </p>
+            <a href="{{ next_page_url or '#' }}"
+               class="results-pagination__nav {% if page == total_pages %}is-disabled{% endif %}"
+               data-page-control="next"
+               data-page="{{ page + 1 }}"
+               {% if page == total_pages %}aria-disabled="true" tabindex="-1"{% endif %}>
+              Weiter
+            </a>
+          </nav>
+        {% endif %}
       {% else %}
         <div class="rounded-3xl border border-lottina-primary/10 bg-white p-8 text-center shadow space-y-6">
           <p class="text-lg font-semibold text-lottina-primary">Keine Ergebnisse gefunden.</p>
@@ -358,72 +282,584 @@
     border-color: rgba(248, 113, 113, 0.5);
     background: rgba(255, 255, 255, 0.9);
   }
-  .result-card__layout {
+  .event-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .event-grid--loading {
+    opacity: 0.35;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  @media (min-width: 1024px) {
+    .event-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .event-card {
+    height: 100%;
+    display: flex;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
+  }
+  .event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 25px 50px rgba(15, 47, 44, 0.15);
+  }
+  .event-card:focus-visible {
+    outline: 3px solid rgba(15, 118, 110, 0.6);
+    outline-offset: 3px;
+  }
+  .event-card__admin {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 0.5rem;
+    z-index: 5;
+    align-items: flex-end;
+  }
+  .event-card__delete {
+    border-radius: 999px;
+    border: 1px solid #dc2626;
+    background: rgba(255, 255, 255, 0.95);
+    color: #dc2626;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .event-card__delete:hover {
+    background: #dc2626;
+    color: #fff;
+    box-shadow: 0 12px 20px rgba(220, 38, 38, 0.25);
+  }
+  .event-card__confirm {
+    width: 220px;
+    border-radius: 1rem;
+    border: 1px solid rgba(15, 47, 44, 0.15);
+    background: #fff;
+    box-shadow: 0 25px 50px rgba(15, 47, 44, 0.18);
+    padding: 0.9rem;
+    text-align: left;
+  }
+  .event-card__confirm-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f2f2c;
+    margin-bottom: 0.75rem;
+  }
+  .event-card__confirm-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .event-card__confirm-actions form {
+    margin: 0;
+  }
+  .event-card__confirm-delete {
+    border: none;
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: #dc2626;
+    color: #fff;
+    cursor: pointer;
+  }
+  .event-card__confirm-cancel {
+    border: 1px solid rgba(15, 47, 44, 0.2);
+    border-radius: 999px;
+    padding: 0.4rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f2f2c;
+    cursor: pointer;
+  }
+  .hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  .hero-stat {
+    flex: 1 1 140px;
+    min-width: 140px;
+  }
+  .hero-stat__value {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: #fff;
+  }
+  .hero-stat__label {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .event-card__layout {
+    display: flex;
+    flex-direction: column;
     height: 100%;
   }
-  .result-card__media {
-    width: 100%;
+  .event-card__media {
+    position: relative;
+    border-bottom: 1px solid rgba(15, 47, 44, 0.06);
   }
-  .result-card__image {
+  .event-card__image {
     width: 100%;
-    height: 100%;
+    height: 280px;
     object-fit: cover;
     display: block;
   }
-  .result-card--landscape .result-card__media {
-    aspect-ratio: 16 / 9;
+  .event-card__date-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #0f2f2c;
+    box-shadow: 0 10px 25px rgba(15, 47, 44, 0.12);
   }
-  @media (min-width: 768px) {
-    .result-card--portrait .result-card__layout {
-      display: grid;
-      grid-template-columns: minmax(0, 260px) 1fr;
-      gap: 1.5rem;
-      align-items: stretch;
+  .event-card__date-badge--permanent {
+    background: linear-gradient(120deg, #0f2f2c, #1e7b62 55%, #8be84f);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .event-card__favorite {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.85);
+    padding: 0.45rem;
+    color: rgba(15, 47, 44, 0.7);
+    box-shadow: 0 15px 35px rgba(15, 47, 44, 0.15);
+    transition: color 0.2s ease;
+  }
+  .event-card__body {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 100%;
+  }
+  .results-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .results-pagination__nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(15, 47, 44, 0.15);
+    border-radius: 999px;
+    padding: 0.55rem 1.5rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    background: white;
+    color: #0f2f2c;
+    font-weight: 600;
+    transition: background 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+  }
+  .results-pagination__nav.is-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .results-pagination__nav:not(.is-disabled):hover {
+    background: #0f2f2c;
+    color: white;
+  }
+  .results-pagination__status {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: rgba(15, 47, 44, 0.6);
+  }
+  @media (min-width: 1024px) {
+    .event-card__layout {
+      flex-direction: row;
     }
-    .result-card--portrait .result-card__media {
-      height: 100%;
+    .event-card__media {
+      flex: 0 0 45%;
+      border-bottom: none;
+      border-right: 1px solid rgba(15, 47, 44, 0.06);
     }
-    .result-card--portrait .result-card__image {
+    .event-card__image {
       height: 100%;
+      min-height: 320px;
     }
   }
 </style>
 
-<!-- Mobile Drawer -->
-<div id="mobileFilterDrawer" class="fixed inset-0 z-[70] hidden lg:hidden">
-  <div class="absolute inset-0 bg-black/50"></div>
-  <div class="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl p-6 shadow-2xl space-y-4">
+<button id="mobileFilterFab"
+        class="lg:hidden fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-lottina-primary text-white shadow-2xl flex items-center justify-center">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 8h12M9 12h6M11 16h2M12 20v-4" />
+  </svg>
+</button>
+{% if current_user.is_authenticated %}
+  <a href="{{ url_for('event_erstellen') }}"
+     class="lg:hidden fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] flex items-center justify-center text-3xl text-white font-bold"
+     aria-label="Neues Event erstellen">
+    +
+  </a>
+{% endif %}
+
+<div id="mobileFilterModal" class="lg:hidden fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/50" data-filter-modal-close></div>
+  <div class="absolute inset-x-4 bottom-6 rounded-3xl bg-white shadow-2xl p-6 space-y-4 max-h-[80vh] overflow-y-auto">
     <div class="flex items-center justify-between">
       <p class="text-sm font-semibold text-lottina-primary">Filter</p>
-      <button type="button" id="mobileFilterClose" class="rounded-full border border-lottina-primary/10 p-2 text-lottina-primary hover:bg-lottina-primary/5 transition">
+      <button type="button" data-filter-modal-close class="rounded-full border border-lottina-primary/10 p-2 text-lottina-primary hover:bg-lottina-primary/5 transition">
         Schließen
       </button>
     </div>
-    {{ filter_panel() }}
+    <div class="space-y-4">
+      <div class="space-y-2">
+        <label class="text-xs uppercase tracking-[0.3em] text-lottina-primary/70">Was suchst du?</label>
+        <input type="text" name="q" form="filters-hero"
+               value="{{ request.args.get('q','') }}"
+               placeholder="Workshops, Märkte, Parks..."
+               class="w-full rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
+      </div>
+      <div class="space-y-2">
+        <label class="text-xs uppercase tracking-[0.3em] text-lottina-primary/70">Datum</label>
+        <input type="date" name="date" form="filters-hero"
+               value="{{ request.args.get('date','') }}"
+               class="w-full rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
+      </div>
+      <div class="space-y-2">
+        <label class="text-xs uppercase tracking-[0.3em] text-lottina-primary/70">Alter</label>
+        <div class="grid grid-cols-2 gap-3">
+          <input type="number" name="age_min" form="filters-hero"
+                 value="{{ request.args.get('age_min','') }}"
+                 min="0" max="18"
+                 placeholder="ab"
+                 class="rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
+          <input type="number" name="age_max" form="filters-hero"
+                 value="{{ request.args.get('age_max','') }}"
+                 min="0" max="18"
+                 placeholder="bis"
+                 class="rounded-2xl border border-lottina-primary/15 bg-lottina-background px-4 py-2.5 text-sm text-lottina-primary focus:border-lottina-accent focus:ring-2 focus:ring-lottina-accent">
+        </div>
+      </div>
+      {% if categories %}
+        <div class="space-y-2">
+          <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/70">Kategorien</p>
+          <div class="rounded-3xl border border-lottina-primary/10 bg-white p-3 max-h-48 overflow-y-auto space-y-2">
+            {% for cat in categories %}
+              <label class="flex items-center gap-2 text-sm text-lottina-primary/80">
+                <input type="checkbox" name="cats[]" value="{{ cat }}" form="filters-hero"
+                       class="rounded text-lottina-accent focus:ring-lottina-accent"
+                       {% if cat in active_cats %}checked{% endif %}>
+                <span>{{ cat }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+      <div class="space-y-2">
+        <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/70">Highlights</p>
+        <div class="rounded-3xl border border-lottina-primary/10 bg-white p-3 space-y-2 text-sm text-lottina-primary">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="free" value="1" form="filters-hero"
+                   class="rounded text-lottina-accent focus:ring-lottina-accent"
+                   {% if request.args.get('free') == '1' %}checked{% endif %}>
+            Kostenlos
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="outdoor" value="1" form="filters-hero"
+                   class="rounded text-lottina-accent focus:ring-lottina-accent"
+                   {% if request.args.get('outdoor') == '1' %}checked{% endif %}>
+            Outdoor
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="always" value="1" form="filters-hero"
+                   class="rounded text-lottina-accent focus:ring-lottina-accent"
+                   {% if request.args.get('always') == '1' %}checked{% endif %}>
+            Immer offen
+          </label>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2 pt-2">
+        <button type="submit" form="filters-hero"
+                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-lottina-accent px-4 py-2 text-sm font-semibold text-white shadow hover:-translate-y-0.5 transition">
+          Anwenden
+        </button>
+        <a href="{{ url_for('suchergebnisse') }}"
+           class="inline-flex items-center justify-center rounded-2xl border border-lottina-primary/15 px-4 py-2 text-sm font-semibold text-lottina-primary/70 hover:border-lottina-primary/40 transition">
+          Reset
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-  (function() {
-    const drawer = document.getElementById("mobileFilterDrawer");
-    const openBtn = document.getElementById("mobileFilterToggle");
-    const closeBtn = document.getElementById("mobileFilterClose");
-    const backdrop = drawer?.querySelector("div");
-
-    const openDrawer = () => drawer?.classList.remove("hidden");
-    const closeDrawer = () => drawer?.classList.add("hidden");
-
-    openBtn?.addEventListener("click", openDrawer);
-    closeBtn?.addEventListener("click", closeDrawer);
-    backdrop?.addEventListener("click", closeDrawer);
-  })();
-</script>
-
-<script>
   document.addEventListener("DOMContentLoaded", () => {
+    const grid = document.getElementById("resultsGrid");
+    const pagination = document.querySelector("[data-pagination]");
+    const prefetchContainer = document.getElementById("prefetchContainer");
+    const parsePage = (value) => {
+      const parsed = parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    const state = {
+      currentPage: parsePage(grid?.dataset.currentPage || "1") || 1,
+      totalPages: parsePage(grid?.dataset.totalPages || "1") || 1,
+      totalResults: parsePage(grid?.dataset.totalResults || "0") || 0,
+      prefetchPage: parsePage(prefetchContainer?.dataset?.prefetchPage || ""),
+      isFetching: false,
+    };
+
+    const bindEventCards = () => {
+      if (!grid) return;
+      const cards = grid.querySelectorAll("[data-event-card]");
+      cards.forEach((card) => {
+        const url = card.dataset.eventUrl;
+        if (!url) return;
+        const navigate = () => window.location.assign(url);
+        card.addEventListener("click", (event) => {
+          if (event.target.closest("[data-event-admin]")) return;
+          navigate();
+        });
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" && !event.target.closest("[data-event-admin]")) {
+            event.preventDefault();
+            navigate();
+          }
+        });
+      });
+      grid.querySelectorAll("[data-delete-toggle]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const adminBox = button.closest("[data-event-admin]");
+          const confirmBox = adminBox?.querySelector("[data-delete-confirm]");
+          if (confirmBox) {
+            confirmBox.hidden = false;
+            button.hidden = true;
+          }
+        });
+      });
+      grid.querySelectorAll("[data-delete-cancel]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const adminBox = button.closest("[data-event-admin]");
+          const confirmBox = adminBox?.querySelector("[data-delete-confirm]");
+          const toggle = adminBox?.querySelector("[data-delete-toggle]");
+          if (confirmBox) confirmBox.hidden = true;
+          if (toggle) toggle.hidden = false;
+        });
+      });
+      grid.querySelectorAll("[data-delete-form]").forEach((form) => {
+        form.addEventListener("click", (event) => event.stopPropagation());
+      });
+    };
+
+    const updatePrefetch = (page, html) => {
+      if (!prefetchContainer) {
+        state.prefetchPage = null;
+        return;
+      }
+      if (page && html?.trim()) {
+        prefetchContainer.dataset.prefetchPage = page;
+        prefetchContainer.innerHTML = html;
+        state.prefetchPage = parsePage(page);
+      } else {
+        prefetchContainer.dataset.prefetchPage = "";
+        prefetchContainer.innerHTML = "";
+        state.prefetchPage = null;
+      }
+    };
+
+    const updateUrl = (page) => {
+      const url = new URL(window.location.href);
+      if (page <= 1) {
+        url.searchParams.delete("page");
+      } else {
+        url.searchParams.set("page", page);
+      }
+      history.pushState({}, "", url);
+    };
+
+    const updatePaginationUI = () => {
+      if (!pagination) return;
+      const status = pagination.querySelector("[data-pagination-status]");
+      if (status) {
+        status.textContent = `Seite ${state.currentPage} / ${state.totalPages}`;
+      }
+      const prevButton = pagination.querySelector('[data-page-control="prev"]');
+      const nextButton = pagination.querySelector('[data-page-control="next"]');
+      if (prevButton) {
+        prevButton.dataset.page = String(state.currentPage - 1);
+        prevButton.disabled = state.currentPage <= 1;
+      }
+      if (nextButton) {
+        nextButton.dataset.page = String(state.currentPage + 1);
+        nextButton.disabled = state.currentPage >= state.totalPages;
+      }
+    };
+
+    const replaceEvents = (html) => {
+      if (!grid) return;
+      grid.innerHTML = html;
+      grid.dataset.currentPage = String(state.currentPage);
+      bindEventCards();
+    };
+
+    const buildFetchUrl = (page) => {
+      const url = new URL(window.location.href);
+      if (page <= 1) {
+        url.searchParams.delete("page");
+      } else {
+        url.searchParams.set("page", page);
+      }
+      url.searchParams.set("partial", "1");
+      return url;
+    };
+
+    const fetchPage = async (targetPage, { replace = true } = {}) => {
+      if (!grid) return;
+      if (replace && state.isFetching) return;
+      if (replace) {
+        state.isFetching = true;
+        grid.classList.add("event-grid--loading");
+      }
+      try {
+        const url = buildFetchUrl(targetPage);
+        const response = await fetch(url.toString(), {
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        if (!response.ok) throw new Error("Request failed");
+        const data = await response.json();
+        updatePrefetch(data.prefetch_page, data.prefetch_html);
+        if (Number.isFinite(data.total_pages)) {
+          state.totalPages = data.total_pages;
+        }
+        if (replace) {
+          state.currentPage = data.page || targetPage;
+          replaceEvents(data.page_html || "");
+          updateUrl(state.currentPage);
+          updatePaginationUI();
+        }
+      } catch (error) {
+        console.error("Pagination fetch failed", error);
+        if (replace) {
+          const fallback = buildFetchUrl(targetPage);
+          fallback.searchParams.delete("partial");
+          window.location.href = fallback.toString();
+        }
+      } finally {
+        if (replace) {
+          state.isFetching = false;
+          grid.classList.remove("event-grid--loading");
+        }
+      }
+    };
+
+    const navigateToPage = (targetPage) => {
+      if (!grid) return;
+      if (!targetPage || targetPage === state.currentPage || targetPage < 1 || targetPage > state.totalPages) {
+        return;
+      }
+      const prefetchedHtml = prefetchContainer?.innerHTML?.trim();
+      if (state.prefetchPage === targetPage && prefetchedHtml) {
+        state.currentPage = targetPage;
+        replaceEvents(prefetchedHtml);
+        updateUrl(state.currentPage);
+        updatePaginationUI();
+        updatePrefetch(null, "");
+        fetchPage(targetPage, { replace: false });
+      } else {
+        fetchPage(targetPage);
+      }
+    };
+
+    pagination?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-page]");
+      if (!button) return;
+      event.preventDefault();
+      const targetPage = parseInt(button.dataset.page, 10);
+      navigateToPage(targetPage);
+    });
+
+    window.addEventListener("popstate", () => window.location.reload());
+
+    bindEventCards();
+    updatePaginationUI();
+
+    const heroCounters = document.querySelectorAll("[data-hero-counter]");
+    if (heroCounters.length) {
+      const formatNumber = (value) => new Intl.NumberFormat("de-DE").format(Math.max(0, value));
+      const animateCounter = (el) => {
+        const target = parseInt(el.dataset.target, 10) || 0;
+        const duration = 1400;
+        const start = performance.now();
+        const tick = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = Math.floor(eased * target);
+          el.textContent = formatNumber(current);
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+          } else {
+            el.textContent = formatNumber(target);
+          }
+        };
+        requestAnimationFrame(tick);
+      };
+
+      if (!("IntersectionObserver" in window)) {
+        heroCounters.forEach((el) => {
+          const target = parseInt(el.dataset.target, 10) || 0;
+          el.textContent = formatNumber(target);
+        });
+      } else {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting && entry.target.dataset.animated !== "true") {
+                entry.target.dataset.animated = "true";
+                animateCounter(entry.target);
+              }
+            });
+          },
+          { threshold: 0.4 }
+        );
+        heroCounters.forEach((el) => observer.observe(el));
+      }
+    }
+
     const favoriteButtons = document.querySelectorAll("[data-favorite-toggle]");
     favoriteButtons.forEach((button) => {
       const endpoint = button.dataset.endpoint;
@@ -467,32 +903,18 @@
         }
       });
     });
-  });
-</script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const cards = document.querySelectorAll("[data-result-card]");
-    cards.forEach((card) => {
-      const img = card.querySelector("[data-result-image]");
-      if (!img) return;
+    const fab = document.getElementById("mobileFilterFab");
+    const modal = document.getElementById("mobileFilterModal");
+    const toggleModal = (open) => {
+      if (!modal) return;
+      modal.classList.toggle("hidden", !open);
+      document.body.classList.toggle("overflow-hidden", open);
+    };
 
-      const applyOrientation = () => {
-        const { naturalWidth: w, naturalHeight: h } = img;
-        if (!w || !h) return;
-        const portrait = h > w;
-        card.classList.toggle("result-card--portrait", portrait);
-        card.classList.toggle("result-card--landscape", !portrait);
-      };
-
-      if (img.complete) {
-        applyOrientation();
-      } else {
-        img.addEventListener("load", applyOrientation, { once: true });
-        img.addEventListener("error", () => {
-          card.classList.add("result-card--landscape");
-        }, { once: true });
-      }
+    fab?.addEventListener("click", () => toggleModal(true));
+    modal?.querySelectorAll("[data-filter-modal-close]").forEach((el) => {
+      el.addEventListener("click", () => toggleModal(false));
     });
   });
 </script>

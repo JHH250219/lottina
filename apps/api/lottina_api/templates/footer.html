@@ -27,7 +27,7 @@
         <h3 class="text-white/80 font-semibold tracking-wide uppercase text-xs">Rechtliches</h3>
         <ul class="space-y-2 text-white/70">
           <li><a href="/impressum" class="footer-link">Impressum</a></li>
-          <li><a href="/datenschutz" class="footer-link">Datenschutzerklärung</a></li>
+          <li><a href="{{ url_for('datenschutz') }}" class="footer-link">Datenschutzerklärung</a></li>
           <li><a href="/nutzungsbedingungen" class="footer-link">Nutzungsbedingungen</a></li>
         </ul>
       </div>
@@ -47,7 +47,7 @@
         <ul class="space-y-2 text-white/70">
           <li><a href="/results?free=1" class="footer-link">Kostenlose Events</a></li>
           <li><a href="/results?outdoor=1" class="footer-link">Outdoor-Tipps</a></li>
-          <li><a href="/results?cats[]=today" class="footer-link">Heute in deiner Stadt</a></li>
+          <li><a href="/results?always=1" class="footer-link">Immer für dich da</a></li>
         </ul>
       </div>
     </div>

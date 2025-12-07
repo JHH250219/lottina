@@ -14,6 +14,7 @@ from ..models import (
     Category,
     Location,
     Offer,
+    OfferStatus,
     OfferType,
     SourceType,
     db,
@@ -98,6 +99,7 @@ class BaseCrawler:
                 source_url=payload.source_url,
                 title=payload.title,
                 type=OfferType.event,
+                status=OfferStatus.draft,
             )
             db.session.add(offer)
             created = True

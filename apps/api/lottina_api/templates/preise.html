@@ -17,7 +17,7 @@
       <h1 class="text-3xl md:text-5xl font-bold text-lottina-primary leading-tight">Mitgliedschaft für {{ monthly_price_text }} € im Monat</h1>
       <p class="max-w-2xl mx-auto text-base md:text-lg text-lottina-primary/80">
         lottina bleibt kostenlos zum Entdecken – und wer mehr möchte, schaltet für nur {{ monthly_price_text }} € zusätzliche Vorteile frei.
-        Wir sammeln gerade dein Feedback, welche Features wir zuerst freischalten sollen.
+      
       </p>
     </div>
 
@@ -29,19 +29,11 @@
         <div class="mt-6 text-3xl font-bold text-lottina-primary">0 €</div>
         <p class="text-xs text-lottina-primary/60">für immer</p>
         <ul class="mt-8 space-y-3 text-sm text-lottina-primary/85 flex-1">
-          <li>✔️ Events stöbern &amp; filtern</li>
-          <li>✔️ Karte &amp; Suchvorschläge testen</li>
-          <li>✔️ News zu lokalen Highlights lesen</li>
+          <li>• Events stöbern &amp; filtern</li>
+          <li>• Karte &amp; Suchvorschläge testen</li>
+          <li>• Events in den Kalender übertragen</li>
         </ul>
-        <div class="mt-8">
-          <a href="{{ url_for('register') }}"
-             class="inline-flex w-full items-center justify-center gap-3 rounded-full border border-lottina-primary/10 px-6 py-3 text-sm font-semibold text-lottina-primary transition hover:-translate-y-0.5 hover:bg-lottina-primary/5">
-            Konto erstellen
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
+        
       </article>
 
       <article class="relative rounded-3xl border border-[#1b493a] bg-gradient-to-br from-[#13352d] via-[#0f2f2c] to-[#1f6d5c] p-6 text-white shadow-2xl flex flex-col scale-[1.02] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_35px_95px_rgba(18,53,45,0.55)]">
@@ -58,7 +50,7 @@
           <li>• Alle Funktionen des freien Zugangs</li>
           <li>• Persönliche Empfehlungen</li>
           <li>• Favoriten &amp; Erinnerungen</li>
-          <li>• Exklusive Kartenlayer</li>
+          <li>• Kinderprofile anlegen</li>
         </ul>
         <div class="mt-8">
           {% if current_user.is_authenticated %}
@@ -100,8 +92,7 @@
         </div>
         <ul class="mt-8 space-y-2 text-sm text-lottina-primary/85 flex-1">
           <li>• Alle Vorteile der monatlichen Mitgliedschaft</li>
-          <li>• Early-Access zu neuen Features</li>
-          <li>• Exklusive Community-Aktionen</li>
+          <li>• Preisvorteil gegenüber monatlichem Abo</li>
         </ul>
         <div class="mt-8">
           {% if current_user.is_authenticated %}

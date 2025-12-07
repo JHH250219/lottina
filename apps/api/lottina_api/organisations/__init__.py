@@ -559,7 +559,7 @@ def organisation_events_new(slug):
                     source_type=SourceType.manual,
                     external_id=external_id,
                     type=OfferType.event,
-                    status=OfferStatus.published,
+                    status=OfferStatus.draft,
                     created_by_user_id=current_user.id,
                     organizer_id=organisation.id,
                     organisation_id=organisation.id,

@@ -17,6 +17,34 @@
   {% endif %}
 {% endif %}
 {% set location_text = location_parts|join(", ") %}
+{% set calendar_location = location_text %}
+{% if not calendar_location and location %}
+  {% set calendar_location = location.name or location.address or location.city %}
+{% endif %}
+{% set date_label = event.dt_start | smartdate if event.dt_start else None %}
+{% set time_label = None %}
+{% if event.dt_start %}
+  {% if event.dt_end %}
+    {% if event.dt_end.date() == event.dt_start.date() %}
+      {% set time_label = event.dt_start.strftime("%H:%M") ~ " – " ~ event.dt_end.strftime("%H:%M") ~ " Uhr" %}
+    {% else %}
+      {% set time_label = event.dt_start.strftime("%H:%M") ~ " Uhr · bis " ~ event.dt_end.strftime("%d.%m. %H:%M") ~ " Uhr" %}
+    {% endif %}
+  {% else %}
+    {% set time_label = event.dt_start.strftime("%H:%M") ~ " Uhr" %}
+  {% endif %}
+{% endif %}
+{% set calendar_description %}
+{% if date_label %}Datum: {{ date_label }}{% endif %}
+{% if time_label %}Zeit: {{ time_label }}{% endif %}
+{% if calendar_location %}Ort: {{ calendar_location }}{% endif %}
+{% if event.summary %}
+Info: {{ event.summary | striptags }}
+{% elif event.description %}
+Info: {{ event.description | striptags }}
+{% endif %}
+{% endset %}
+{% set calendar_description = calendar_description.strip() %}
 
 <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white pt-32 pb-16">
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
@@ -40,12 +68,16 @@
         {{ event.title or "Event ohne Titel" }}
       </h1>
       <div class="flex flex-wrap gap-3 text-sm text-white/85">
-        {% if event.dt_start %}
+        {% if is_permanent %}
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30 bg-white/10 text-white uppercase tracking-[0.2em]">
+            Immer für dich da
+          </span>
+        {% elif event.dt_start %}
           <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30">
             {{ event.dt_start | smartdate }}
           </span>
         {% endif %}
-        {% if event.dt_end and event.dt_end.date() != event.dt_start.date() %}
+        {% if (not is_permanent) and event.dt_start and event.dt_end and event.dt_end.date() != event.dt_start.date() %}
           <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30">
             bis {{ event.dt_end | smartdate }}
           </span>
@@ -89,13 +121,19 @@
       <div class="rounded-3xl border border-lottina-primary/10 bg-white p-5 shadow space-y-4 text-sm text-lottina-primary">
         <h2 class="text-lg font-semibold text-lottina-primary">Kurzinfo</h2>
         <dl class="space-y-3">
-          {% if event.dt_start %}
+          {% if is_permanent %}
+            <div>
+              <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Status</dt>
+              <dd class="font-semibold">Immer für dich da</dd>
+            </div>
+          {% endif %}
+          {% if event.dt_start and not is_permanent %}
             <div>
               <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Datum</dt>
               <dd class="font-semibold">{{ event.dt_start | smartdate }}</dd>
             </div>
           {% endif %}
-          {% if event.dt_start and event.dt_end %}
+          {% if event.dt_start and event.dt_end and not is_permanent %}
             <div>
               <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Zeit</dt>
               <dd>{{ event.dt_start.strftime("%H:%M") }} – {{ event.dt_end.strftime("%H:%M") }}</dd>
@@ -130,6 +168,12 @@
               <dd>Kostenlos</dd>
             </div>
           {% endif %}
+          {% if opening_hours_label %}
+            <div>
+              <dt class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Öffnungszeiten</dt>
+              <dd>{{ opening_hours_label }}</dd>
+            </div>
+          {% endif %}
         </dl>
         <div class="pt-3">
           <div class="relative inline-block w-full">
@@ -146,8 +190,9 @@
                 <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
                    data-calendar-provider="google"
                    data-title="{{ event.title }}"
-                   data-location="{{ location_text }}"
-                   data-description="{{ (event.summary or event.description or '') | striptags }}"
+                   data-location="{{ calendar_location or '' }}"
+                   data-description="{{ calendar_description | striptags }}"
+                   data-uid="{{ event.id }}"
                    data-start="{{ event.dt_start.isoformat() if event.dt_start else '' }}"
                    data-end="{{ event.dt_end.isoformat() if event.dt_end else '' }}"
                    data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
@@ -156,8 +201,9 @@
                 <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
                    data-calendar-provider="apple"
                    data-title="{{ event.title }}"
-                   data-location="{{ location_text }}"
-                   data-description="{{ (event.summary or event.description or '') | striptags }}"
+                   data-location="{{ calendar_location or '' }}"
+                   data-description="{{ calendar_description | striptags }}"
+                   data-uid="{{ event.id }}"
                    data-start="{{ event.dt_start.isoformat() if event.dt_start else '' }}"
                    data-end="{{ event.dt_end.isoformat() if event.dt_end else '' }}"
                    data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
@@ -166,8 +212,9 @@
                 <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
                    data-calendar-provider="ics"
                    data-title="{{ event.title }}"
-                   data-location="{{ location_text }}"
-                   data-description="{{ (event.summary or event.description or '') | striptags }}"
+                   data-location="{{ calendar_location or '' }}"
+                   data-description="{{ calendar_description | striptags }}"
+                   data-uid="{{ event.id }}"
                    data-start="{{ event.dt_start.isoformat() if event.dt_start else '' }}"
                    data-end="{{ event.dt_end.isoformat() if event.dt_end else '' }}"
                    data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
@@ -181,26 +228,33 @@
     </aside>
 
     <div class="order-2 lg:order-1 space-y-6">
-      {% if event.image %}
-        <div class="rounded-3xl overflow-hidden border border-lottina-primary/10 shadow">
-          <img src="{{ event.image }}" alt="{{ event.title }}" class="w-full h-72 object-cover">
+      {% if event.image or event.description %}
+        <div class="event-detail-card event-detail-card--landscape rounded-3xl border border-lottina-primary/10 bg-white shadow overflow-hidden" data-event-card>
+          {% if event.image %}
+            <div class="event-detail-card__media relative">
+              <img src="{{ event.image }}"
+                   alt="{{ event.title }}"
+                   class="event-detail-card__image"
+                   data-event-image>
+            </div>
+          {% endif %}
+          <div class="event-detail-card__body space-y-4 p-6">
+            {% if categories %}
+              <div class="flex flex-wrap gap-2 text-xs text-lottina-primary">
+                {% for cat in categories %}
+                  <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/15">
+                    {{ cat.name }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% if event.description %}
+              <article class="text-sm leading-relaxed text-lottina-primary/80">
+                {{ event.description | safe }}
+              </article>
+            {% endif %}
+          </div>
         </div>
-      {% endif %}
-
-      {% if categories %}
-        <div class="flex flex-wrap gap-2 text-xs text-lottina-primary">
-          {% for cat in categories %}
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/15">
-              {{ cat.name }}
-            </span>
-          {% endfor %}
-        </div>
-      {% endif %}
-
-      {% if event.description %}
-        <article class="rounded-3xl border border-lottina-primary/10 bg-white p-6 shadow text-sm leading-relaxed text-lottina-primary/80">
-          {{ event.description | safe }}
-        </article>
       {% endif %}
     </div>
   </div>
@@ -272,7 +326,72 @@
   .favorite-toggle--active svg {
     transform: scale(1.05);
   }
+  .event-detail-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .event-detail-card__media {
+    width: 100%;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(15, 47, 44, 0.05);
+  }
+  .event-detail-card__image {
+    width: 100%;
+    height: auto;
+    max-height: 720px;
+    object-fit: cover;
+    display: block;
+  }
+  .event-detail-card--landscape .event-detail-card__media {
+    max-height: 440px;
+  }
+  @media (min-width: 768px) {
+    .event-detail-card--portrait {
+      flex-direction: row;
+      gap: 2rem;
+    }
+    .event-detail-card--portrait .event-detail-card__media {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: min(360px, 48%);
+      border-bottom: none;
+      border-right: 1px solid rgba(15, 47, 44, 0.05);
+    }
+    .event-detail-card--portrait .event-detail-card__image {
+      width: 100%;
+      height: auto;
+      max-height: none;
+    }
+  }
 </style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const cards = document.querySelectorAll("[data-event-card]");
+    cards.forEach((card) => {
+      const img = card.querySelector("[data-event-image]");
+      if (!img) return;
+
+      const applyOrientation = () => {
+        const { naturalWidth: w, naturalHeight: h } = img;
+        if (!w || !h) return;
+        const isPortrait = h > w;
+        card.classList.toggle("event-detail-card--portrait", isPortrait);
+        card.classList.toggle("event-detail-card--landscape", !isPortrait);
+      };
+
+      if (img.complete) {
+        applyOrientation();
+      } else {
+        img.addEventListener("load", applyOrientation, { once: true });
+        img.addEventListener("error", () => {
+          card.classList.add("event-detail-card--landscape");
+        }, { once: true });
+      }
+    });
+  });
+</script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -331,7 +450,7 @@
     const formatDate = (value) => {
       if (!value) return "";
       try {
-        const date = new Date(value);
+        const date = value instanceof Date ? value : new Date(value);
         return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
       } catch {
         return "";
@@ -340,30 +459,48 @@
 
     const buildGoogleLink = ({ title, start, end, location, description, url }) => {
       const base = "https://calendar.google.com/calendar/render?action=TEMPLATE";
+      const startStr = formatDate(start);
+      const endStr = formatDate(end || start) || startStr;
       const params = new URLSearchParams({
         text: title || "Event",
-        dates: `${formatDate(start)}/${formatDate(end || start)}`,
+        dates: `${startStr}/${endStr}`,
         details: `${description || ""}\n${url || ""}`.trim(),
         location: location || "",
       });
       return `${base}&${params.toString()}`;
     };
 
-    const buildICS = ({ title, start, end, location, description, url }) => {
+    const escapeICS = (value = "") =>
+      String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/\r\n/g, "\\n")
+        .replace(/\n/g, "\\n")
+        .replace(/,/g, "\\,")
+        .replace(/;/g, "\\;");
+
+    const buildICS = ({ title, start, end, location, description, url, uid }) => {
       const dtStart = formatDate(start);
-      const dtEnd = formatDate(end || start);
-      return [
+      const dtEnd = formatDate(end || start) || dtStart;
+      const dtStamp = formatDate(new Date());
+      const desc = description || "";
+      const descWithUrl = `${desc}${url ? "\n" + url : ""}`.trim();
+      const lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
+        "PRODID:-//Lottina//Events//DE",
         "BEGIN:VEVENT",
-        `SUMMARY:${title || "Event"}`,
-        `DTSTART:${dtStart}`,
-        `DTEND:${dtEnd}`,
-        `DESCRIPTION:${(description || "") + (url ? "\\n" + url : "")}`,
-        `LOCATION:${location || ""}`,
+        `UID:${escapeICS(uid || url || Date.now())}`,
+        `DTSTAMP:${dtStamp}`,
+        dtStart ? `DTSTART:${dtStart}` : "",
+        dtEnd ? `DTEND:${dtEnd}` : "",
+        `SUMMARY:${escapeICS(title || "Event")}`,
+        descWithUrl ? `DESCRIPTION:${escapeICS(descWithUrl)}` : "",
+        `LOCATION:${escapeICS(location || "")}`,
+        url ? `URL:${escapeICS(url)}` : "",
         "END:VEVENT",
         "END:VCALENDAR",
-      ].join("\\n");
+      ];
+      return lines.filter(Boolean).join("\\r\\n");
     };
 
     const downloadICS = (content, filename = "event.ics") => {
@@ -411,6 +548,7 @@
           start: link.dataset.start,
           end: link.dataset.end,
           url: link.dataset.url,
+          uid: link.dataset.uid,
         };
         const handler = handlers[provider];
         if (handler) handler(data);

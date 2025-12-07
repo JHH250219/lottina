@@ -2,124 +2,134 @@
 {% block title %}Über uns – lottina Team & Mission{% endblock %}
 
 {% block content %}
-
-<!-- Hero -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
-  <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.3),_rgba(0,0,0,0))]"></div>
-  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-20 lg:py-28 grid lg:grid-cols-12 gap-12 items-center">
-    <div class="lg:col-span-7 space-y-6">
-      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-sm font-semibold tracking-wide uppercase">
-        <span class="h-2 w-2 rounded-full bg-lottina-accent"></span>
-        Über uns
-      </span>
-      <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg text-white">
-        Wir digitalisieren das Freizeit-Leben von Familien &amp; Vereinen.
-      </h1>
-      <p class="text-lg text-white/80 max-w-2xl">
-        lottina holt die analogen Glücksmomente deiner Stadt ins Netz – kuratiert, DSGVO-konform und mit Liebe zum Detail. Wir sind selbst Eltern und bauen die Plattform, die wir uns immer gewünscht haben.
-      </p>
-      <div class="flex flex-wrap gap-2 text-sm">
-        <span class="hero-chip">Familienzentriert</span>
-        <span class="hero-chip">Kommunal verankert</span>
-        <span class="hero-chip">Made in EU</span>
-        <span class="hero-chip">Offline → Online</span>
+<div class="bg-lottina-background text-lottina-primary">
+  <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+    <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-20 lg:py-28 grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] items-center">
+      <div class="space-y-6">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.35em]">
+          Team lottina
+        </span>
+        <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
+          Wir holen das analoge Freizeitleben von Vereinen &amp; Familien ins Netz.
+        </h1>
+        <p class="text-base sm:text-lg text-white/85 max-w-2xl leading-relaxed">
+          lottina ist die Plattform, die wir uns als Eltern immer gewünscht haben: kuratiert, werbefrei, DSGVO-konform
+          und mit echter Liebe zu lokalen Initiativen. Wir digitalisieren Poster, Flyer und Newsletter – und machen daraus
+          erlebbare Freizeit-Pläne.
+        </p>
+        <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+          <span class="hero-chip">Familienzentriert</span>
+          <span class="hero-chip">Kommunal verankert</span>
+          <span class="hero-chip">Poster → Kalender</span>
+          <span class="hero-chip">Hosting in der EU</span>
+        </div>
       </div>
-    
     </div>
-    <div class="lg:col-span-5 space-y-6">
-      <div class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-lottina-primary/15 px-6 py-6">
-        <h2 class="text-lg font-semibold">Warum wir losgelegt haben</h2>
-        <p class="mt-3 text-sm text-lottina-primary/80 leading-relaxed">
-          Wochenlange WhatsApp-Recherchen, dunkle Vereins-Schwarze Bretter und niemand weiß, welche Workshops am Wochenende stattfinden. Wir entwickeln lottina, damit Familien Freizeit schnell finden und Vereine sichtbar bleiben – ohne an zusätzlicher Technik zu scheitern.
+  </section>
+
+  <section class="py-20 bg-gradient-to-br from-[#041614] via-[#0c2d29] to-[#104a40] text-white">
+    <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-10 text-center">
+      <div class="space-y-3">
+        <p class="inline-flex justify-center items-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
+          Echtzeit-Stats
+        </p>
+        <h2 class="text-3xl lg:text-4xl font-bold">Unser Impact wächst täglich</h2>
+        <p class="text-white/75 max-w-3xl mx-auto text-base">
+          Die Zahlen stammen direkt aus unserer Produktions-Datenbank. Sobald wir Events freischalten oder Feedback erhalten, steigen sie mit.
         </p>
       </div>
-      <div class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-lottina-primary/15 px-6 py-6">
-        <h3 class="text-base font-semibold">Unser Impact in Zahlen</h3>
-        <div class="mt-4 grid grid-cols-2 gap-4">
-          <div class="stat-card">
-            <span class="stat-value">180+</span>
-            <span class="stat-label">kuratiere Events</span>
+      <div class="grid gap-6 sm:grid-cols-3">
+        {% for stat in impact_stats %}
+          <div class="rounded-[32px] border border-white/15 bg-white/5 px-6 py-10 shadow-[0_25px_60px_rgba(0,0,0,0.45)]">
+            <p class="stat-value text-white text-4xl lg:text-5xl font-extrabold tracking-tight drop-shadow-lg" data-target="{{ stat.value }}">
+              0
+            </p>
+            <p class="mt-3 text-xs uppercase tracking-[0.4em] text-white/70">
+              {{ stat.label }}
+            </p>
           </div>
-          <div class="stat-card">
-            <span class="stat-value">60%</span>
-            <span class="stat-label">OCR-Eingaben</span>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 bg-gradient-to-b from-[#f4fdf8] via-lottina-background to-[#eefbf4]">
+    <div class="max-w-5xl mx-auto px-6 lg:px-10 text-center space-y-6">
+      <h2 class="text-3xl font-bold">Unser Auftrag</h2>
+      <p class="text-base text-lottina-primary/75 leading-relaxed">
+        Vereine, Jugendhäuser und Kulturinitiativen leisten Unfassbares – aber analog. lottina füllt die Lücke zwischen Flyer und digitaler Sichtbarkeit.
+        Wir übersetzen Poster, Social-Media-Schnipsel und PDF-Newsletter in erlebbare Freizeit-Pläne.
+      </p>
+    </div>
+    <div class="max-w-6xl mx-auto px-6 lg:px-10 mt-10 grid gap-6 lg:grid-cols-3">
+      <article class="mission-card">
+        <h3>Poster werden suchbar</h3>
+        <p>Unsere OCR erfasst Aushänge in Sekunden. Veranstaltungen tauchen sofort im Kalender auf.</p>
+      </article>
+      <article class="mission-card">
+        <h3>Alles an einem Ort</h3>
+        <p>Meta-Suche über Stadtportale, Vereinspostfächer, Flyer, Instagram. Familien planen in Minuten.</p>
+      </article>
+      <article class="mission-card">
+        <h3>DSGVO & Werbefrei</h3>
+        <p>Hosting ausschließlich in der EU, keine Ad-Tracker. Daten gehören seit Tag eins den Familien – nicht Algorithmen.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="py-16 bg-white">
+    <div class="max-w-6xl mx-auto px-6 lg:px-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] items-center">
+      <div class="space-y-5">
+        <h2 class="text-3xl font-bold text-lottina-primary">Was uns antreibt</h2>
+        <p class="text-sm text-lottina-primary/70 leading-relaxed">
+          Wir lösen unser eigenes Problem: gemeinsame Freizeit mit Kindern sinnvoll, stressfrei und spontan planbar machen. Unsere Werte sind
+          die Leitplanken – ob bei der Produktentwicklung, bei Partnerschaften oder in der Kommunikation mit Städten und Vereinen.
+        </p>
+        <div class="grid gap-3 sm:grid-cols-2">
+          {% for claim in values %}
+            <div class="rounded-2xl border border-lottina-primary/15 bg-lottina-primary/5 px-4 py-3 text-sm text-lottina-primary/80">
+              {{ claim }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="rounded-3xl border border-lottina-primary/10 bg-lottina-highlight/25 p-8 space-y-4 shadow-xl">
+        <p class="text-xs uppercase tracking-[0.35em] text-lottina-primary/60">Timeline</p>
+        <div class="space-y-4 text-sm text-lottina-primary/75">
+          <div>
+            <p class="font-semibold text-lottina-primary/90">2023 · Idee</p>
+            <p>Poster sammeln, Bubble-Maps in der Küche, erste Eltern-Fokusgruppen.</p>
           </div>
-          <div class="stat-card">
-            <span class="stat-value">12</span>
-            <span class="stat-label">Stadtteile aktiv</span>
+          <div>
+            <p class="font-semibold text-lottina-primary/90">2024 · MVP</p>
+            <p>OCR, Event-Freigabe, Community-Feedback, DSGVO-Review und Beta-Start.</p>
           </div>
-          <div class="stat-card">
-            <span class="stat-value">0</span>
-            <span class="stat-label">Tracking-Tools</span>
+          <div>
+            <p class="font-semibold text-lottina-primary/90">2025 · Ausbau</p>
+            <p>Mehr Städte, Organisations-Features, API für kommunale Kalender.</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- Mission and Story -->
-<section class="py-16 bg-gradient-to-b from-[#f4fdf8] via-lottina-background to-[#eefbf4]">
-  <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center space-y-6">
-    <h2 class="text-3xl font-bold text-lottina-primary leading-tight">Unser Auftrag</h2>
-    <p class="text-base text-lottina-primary/75 leading-relaxed">
-      Vereine, Jugendhäuser und Kulturinitiativen leisten Unfassbares – aber analog. lottina füllt die Lücke zwischen Flyer und digitaler Sichtbarkeit. Wir übersetzen Poster, Social-Media-Schnipsel und PDF-Newsletter in erlebbare Freizeit-Pläne.
-    </p>
-  </div>
-  <div class="max-w-5xl mx-auto px-6 lg:px-10 mt-10 grid sm:grid-cols-2 gap-6">
-    <article class="feature-card feature-card--accent">
-      <div class="feature-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
-        </svg>
+  <section class="bg-lottina-background/60 py-16">
+    <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-10">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-3xl font-bold text-lottina-primary">Das Team hinter lottina</h2>
+          <p class="text-sm text-lottina-primary/70 max-w-2xl">
+            Wir sind Eltern, Entwicklerinnen, Pädagogen und Community-Builder – eine Mischung aus Startup-Drive und Vereins-Erfahrung.
+          </p>
+        </div>
+        <a href="{{ url_for('sichtbar_werden') }}" class="inline-flex items-center gap-2 rounded-full border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/10 transition">
+          Mitmachen
+        </a>
       </div>
-      <h3>Poster werden suchbar</h3>
-      <p>Unsere OCR erfasst Aushänge in Sekunden. Veranstaltungen tauchen sofort im Kalender auf.</p>
-      <span class="feature-link">Digitalisierung ohne Aufwand</span>
-    </article>
-    <article class="feature-card feature-card--secondary">
-      <div class="feature-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6l4 2"/>
-        </svg>
-      </div>
-      <h3>Alles an einem Ort</h3>
-      <p>Meta-Suche über Stadtportale, Vereinspostfächer, Flyer, Instagram. Familien planen in Minuten.</p>
-      <span class="feature-link">Freizeit ohne Scroll-Marathon</span>
-    </article>
-  </div>
-  <div class="max-w-4xl mx-auto px-6 lg:px-10 mt-12">
-    
-  </div>
-</section>
-
-<!-- Team -->
-<section class="bg-white py-16">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <h2 class="text-3xl font-bold text-lottina-primary">Das Team hinter lottina</h2>
-        <p class="text-sm text-lottina-primary/70 max-w-2xl">
-          Wir sind Eltern, Entwicklerinnen, Pädagogen und Community-Builder – eine Mischung aus Startup-Drive und Vereins-Erfahrung.
-        </p>
-      </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
-        </svg>
-      </a>
-    </div>
-    <div class="mt-10 flex flex-col items-center">
-      <div class="w-full max-w-md md:w-1/3 lg:w-1/4 rounded-3xl overflow-hidden shadow-2xl border border-lottina-primary/15">
-        <img src="{{ url_for('static', filename='ueber_uns_team.jpg') }}" alt="Team lottina" class="w-full h-auto object-cover" loading="lazy">
-      </div>
-      <p class="text-sm text-lottina-primary/60 mt-3 text-center">
-        Das Team hinter lottina: Eltern, Macherinnen und Ehrenamtliche, die ihre Freizeitliebe teilen.
-      </p>
-    </div>
-    <div class="mt-12 grid gap-6 md:grid-cols-2">
-      {% for member in (team or []) %}
-        <article class="event-card h-full">
-          <div class="space-y-2">
+      <div class="grid gap-6 md:grid-cols-2">
+        {% for member in (team or []) %}
+          <article class="rounded-3xl bg-white shadow-2xl border border-lottina-primary/10 p-6 space-y-3">
             <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/10 text-xs font-semibold uppercase tracking-wide text-lottina-primary/70">
               Team
             </span>
@@ -128,76 +138,78 @@
             <p class="text-sm text-lottina-primary/75 leading-relaxed">
               {{ member.bio }}
             </p>
-          </div>
-        </article>
-      {% else %}
-        <article class="event-card h-full">
-          <h3 class="text-xl font-semibold text-lottina-primary">Wir stellen uns vor</h3>
-          <p class="text-sm text-lottina-primary/75 mt-3">
-            Unser Kernteam kombiniert Produkt, Design, Pädagogik und kommunale Verwaltung. Schreib uns – wir erzählen dir gern mehr.
-          </p>
-        </article>
-      {% endfor %}
-    </div>
-    <p class="mt-8 text-sm text-lottina-primary/65">
-      Wir lösen unser eigenes Problem: freie Zeit mit Kindern sinnvoll und stressfrei gestalten.
-    </p>
-  </div>
-</section>
-
-<!-- Partners -->
-<section class="py-16 text-lottina-primary bg-gradient-to-b from-[#eefbf4] via-lottina-background to-[#f6fef9]">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-8">
-    <div class="flex flex-wrap items-baseline justify-between gap-4">
-      <div>
-        <h2 class="text-3xl font-bold">Mit wem wir zusammenarbeiten</h2>
-        <p class="text-sm text-lottina-primary/80 max-w-2xl">
-          lottina verbindet Kommunen, Verlage und Vereine – immer mit dem Ziel, Familien neue Freizeit-Impulse zu geben.
+          </article>
+        {% else %}
+          <article class="rounded-3xl bg-white shadow-2xl border border-lottina-primary/10 p-6 space-y-3">
+            <h3 class="text-xl font-semibold text-lottina-primary">Wir stellen uns vor</h3>
+            <p class="text-sm text-lottina-primary/75">
+              Unser Kernteam kombiniert Produkt, Design, Pädagogik und kommunale Verwaltung. Schreib uns – wir erzählen dir gern mehr.
+            </p>
+          </article>
+        {% endfor %}
+      </div>
+      <div class="flex flex-col items-center space-y-3">
+        <div class="w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl border border-lottina-primary/15 bg-white">
+          <img src="{{ url_for('static', filename='ueber_uns_team.jpg') }}" alt="Team lottina" class="w-full h-auto object-cover" loading="lazy">
+        </div>
+        <p class="text-xs text-lottina-primary/60 text-center">
+          Das Team hinter lottina: Eltern, Macherinnen und Ehrenamtliche, die ihre Freizeitliebe teilen.
         </p>
       </div>
-      <a href="/kontakt" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold hover:bg-lottina-highlight/30 transition" data-contact-trigger>
-        Kontakt aufnehmen
-      </a>
     </div>
-    <div class="grid md:grid-cols-3 gap-6">
-      <a href="/kommunen" class="feature-card">
-        <div class="feature-icon bg-lottina-accent/25 text-lottina-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v18m9-9H3"/>
-          </svg>
-        </div>
-        <h3>Kommunen</h3>
-        <p>Wir machen familienfreundliche Angebote sichtbar, messbar und teilbar – in bestehenden Portalen oder als White-Label.</p>
-        <span class="feature-link">Mehr erfahren</span>
-      </a>
-      <a href="{{ url_for('event_erstellen') }}" class="feature-card feature-card--accent">
-        <div class="feature-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15"/>
-          </svg>
-        </div>
-        <h3 class="text-lottina-primary">Vereine &amp; Initiativen</h3>
-        <p class="text-lottina-primary/80">Poster hochladen, Termin abstimmen, fertig. Kein Login-Marathon – wir begleiten euch vom Flyer zum Event-Eintrag.</p>
-        <span class="feature-link text-lottina-primary">Poster hochladen</span>
-      </a>
-      <a href="/kontakt" class="feature-card feature-card--secondary">
-        <div class="feature-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.1 7.93a1 1 0 0 1 .32-1.38L11.4 1.8a1 1 0 0 1 1 0l7.97 4.75a1 1 0 0 1 .32 1.38L12.82 20.4a1 1 0 0 1-1.64 0L3.1 7.93ZM12 9v4"/>
-          </svg>
-        </div>
-        <h3>Medien &amp; Partner</h3>
-        <p>Wir vernetzen regionale Kalender, Newsletter und Familienportale. Lass uns sprechen, wie wir Inhalte teilen können.</p>
-        <span class="feature-link">Kooperation starten</span>
-      </a>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- Final CTA -->
+  <section class="py-16 text-lottina-primary bg-gradient-to-b from-[#eefbf4] via-lottina-background to-[#f6fef9]">
+    <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-10">
+      <div class="flex flex-wrap items-baseline justify-between gap-4">
+        <div>
+          <h2 class="text-3xl font-bold">Mit wem wir zusammenarbeiten</h2>
+          <p class="text-sm text-lottina-primary/80 max-w-2xl">
+            lottina verbindet Kommunen, Verlage und Vereine – immer mit dem Ziel, Familien neue Freizeit-Impulse zu geben.
+          </p>
+        </div>
+        <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold hover:bg-lottina-highlight/30 transition" data-contact-trigger>
+          Kontakt aufnehmen
+        </a>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <article class="feature-card">
+          <div class="feature-icon bg-lottina-accent/25 text-lottina-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v18m9-9H3"/>
+            </svg>
+          </div>
+          <h3>Kommunen</h3>
+          <p>Wir machen familienfreundliche Angebote sichtbar, messbar und teilbar – in bestehenden Portalen oder als White-Label.</p>
+          <span class="feature-link">Mehr erfahren</span>
+        </article>
+        <article class="feature-card feature-card--accent">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+          </div>
+          <h3>Vereine &amp; Initiativen</h3>
+          <p>Poster hochladen, Termin abstimmen, fertig. Kein Login-Marathon – wir begleiten euch vom Flyer zum Event-Eintrag.</p>
+          <span class="feature-link">Poster hochladen</span>
+        </article>
+        <article class="feature-card feature-card--secondary">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.1 7.93a1 1 0 0 1 .32-1.38L11.4 1.8a1 1 0 0 1 1 0l7.97 4.75a1 1 0 0 1 .32 1.38L12.82 20.4a1 1 0 0 1-1.64 0L3.1 7.93ZM12 9v4"/>
+            </svg>
+          </div>
+          <h3>Medien &amp; Partner</h3>
+          <p>Wir vernetzen regionale Kalender, Newsletter und Familienportale. Lass uns sprechen, wie wir Inhalte teilen können.</p>
+          <span class="feature-link">Kooperation starten</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
 <section class="bg-white py-16">
-  <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center space-y-6">
-    <h2 class="text-3xl font-bold text-lottina-primary">Lass uns Deutschlands Freizeit sichtbar machen</h2>
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center space-y-6">
+      <h2 class="text-3xl font-bold text-lottina-primary">Lass uns Deutschlands Freizeit sichtbar machen</h2>
     <p class="text-base text-lottina-primary/75 max-w-2xl mx-auto">
       Wir suchen Kommunen, Förderpartner, Vereine und Menschen, die Freizeit für Familien zugänglich machen wollen.
     </p>
@@ -211,5 +223,86 @@
     </div>
   </div>
 </section>
+
+<script>
+  (function () {
+    const counters = document.querySelectorAll(".stat-value");
+    if (!counters.length) return;
+
+    const formatNumber = (value) =>
+      new Intl.NumberFormat("de-DE").format(Math.max(0, value));
+
+    const animateCounter = (el) => {
+      const target = parseInt(el.dataset.target, 10) || 0;
+      const duration = 1400;
+      const start = performance.now();
+
+      const tick = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.floor(eased * target);
+        el.textContent = formatNumber(current);
+        if (progress < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          el.textContent = formatNumber(target);
+        }
+      };
+
+      requestAnimationFrame(tick);
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      counters.forEach((el) => (el.textContent = formatNumber(el.dataset.target)));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.target.dataset.animated !== "true") {
+            entry.target.dataset.animated = "true";
+            animateCounter(entry.target);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    counters.forEach((el) => observer.observe(el));
+  })();
+</script>
+
+<style>
+  .hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.12);
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  .mission-card {
+    border-radius: 28px;
+    border: 1px solid rgba(15, 47, 44, 0.08);
+    background: rgba(255, 255, 255, 0.94);
+    padding: 1.75rem;
+    box-shadow: 0 25px 60px rgba(15, 47, 44, 0.08);
+  }
+  .mission-card h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .mission-card p {
+    font-size: 0.95rem;
+    color: rgba(15, 47, 44, 0.75);
+  }
+</style>
 
 {% endblock %}

@@ -33,11 +33,113 @@
   <link rel="manifest" href="{{ url_for('static', filename='img/favicon_io/site.webmanifest') }}">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon_io/favicon.ico') }}">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .flash-stack {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .flash-message {
+      min-width: 240px;
+      max-width: 360px;
+      border-radius: 1rem;
+      padding: 0.95rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      backdrop-filter: blur(16px) saturate(140%);
+      background: linear-gradient(135deg, rgba(15, 47, 44, 0.85), rgba(15, 47, 44, 0.7));
+      box-shadow: 0 30px 60px rgba(7, 20, 17, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: flash-slide-in 0.55s ease forwards, flash-slide-out 0.55s ease forwards 5s;
+    }
+    .flash-message::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .flash-message--success {
+      background: linear-gradient(135deg, rgba(5, 150, 105, 0.85), rgba(16, 185, 129, 0.65));
+    }
+    .flash-message--danger {
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.85), rgba(248, 113, 113, 0.65));
+    }
+    .flash-message--info {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.85), rgba(125, 211, 252, 0.65));
+    }
+    @keyframes flash-slide-in {
+      from {
+        transform: translateX(120%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    @keyframes flash-slide-out {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(120%);
+        opacity: 0;
+      }
+    }
+    @media (max-width: 640px) {
+      .flash-stack {
+        left: 0;
+        right: 0;
+        align-items: center;
+        top: 1rem;
+      }
+      .flash-message {
+        width: calc(100% - 2rem);
+        max-width: none;
+      }
+    }
+  </style>
   
 </head>
 
 <body class="{% if request.endpoint == 'results' %}page-enter{% endif %} min-h-screen flex flex-col font-lottina bg-lottina-background text-lottina-primary antialiased">
   {% include "header.html" %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack" aria-live="polite">
+        {% for category, message in messages %}
+          {% if category == 'success' %}
+            {% set variant = 'success' %}
+            {% set emoji = '✨' %}
+          {% elif category == 'danger' %}
+            {% set variant = 'danger' %}
+            {% set emoji = '⚠️' %}
+          {% elif category == 'info' %}
+            {% set variant = 'info' %}
+            {% set emoji = '💬' %}
+          {% else %}
+            {% set variant = 'info' %}
+            {% set emoji = '💡' %}
+          {% endif %}
+          <div class="flash-message flash-message--{{ variant }}" data-flash-message>
+            <span role="img" aria-label="Status">{{ emoji }}</span>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <!-- Einheitlicher, breiter Container für Seiteninhalte -->
   <main class="flex-grow">
@@ -189,6 +291,17 @@
         const body = encodeURIComponent(lines.join("\n"));
         mailButton.href = `mailto:hello@lottina.de?subject=${subject}&body=${body}`;
         closeModal();
+      });
+    });
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("[data-flash-message]").forEach((el) => {
+        el.addEventListener("animationend", (event) => {
+          if (event.animationName === "flash-slide-out") {
+            el.remove();
+          }
+        });
       });
     });
   </script>

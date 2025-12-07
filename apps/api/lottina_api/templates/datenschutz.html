@@ -1,32 +1,109 @@
 {% extends "base.html" %}
-{% block title %}Datenschutzerklärung – FamilienRadar{% endblock %}
+{% block title %}Datenschutzerklärung – lottina{% endblock %}
 
 {% block content %}
-<section class="max-w-4xl mx-auto px-4 py-12 text-gray-800">
-  <h1 class="text-3xl font-bold mb-6">Datenschutzerklärung</h1>
+<div class="min-h-screen bg-lottina-background text-lottina-primary">
+  <div class="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 py-16 space-y-12">
 
-  <p class="mb-4">
-    Der Schutz Ihrer persönlichen Daten ist uns ein besonderes Anliegen. Wir verarbeiten Ihre Daten daher ausschließlich auf Grundlage der gesetzlichen Bestimmungen (DSGVO, TMG).
-  </p>
+    <header class="space-y-4 pt-12">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-accent/20 text-xs font-semibold uppercase tracking-[0.3em]">
+        Rechtliches
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-lottina font-bold leading-tight drop-shadow-lg">
+        Datenschutzerklärung
+      </h1>
+      <p class="text-sm sm:text-base text-lottina-primary/80 max-w-2xl">
+        Wir verarbeiten personenbezogene Daten ausschließlich im Rahmen der geltenden Datenschutzgesetze (DSGVO, BDSG, TMG).
+        Nachfolgend erfährst du, welche Informationen wir auf lottina erheben, wie wir sie nutzen und welche Rechte du hast.
+      </p>
+    </header>
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">Kontakt mit uns</h2>
-  <p class="mb-4">
-    Wenn Sie per Formular auf der Website oder per E-Mail Kontakt mit uns aufnehmen, werden Ihre angegebenen Daten zwecks Bearbeitung der Anfrage und für den Fall von Anschlussfragen sechs Monate bei uns gespeichert.
-  </p>
+    <section class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-lottina-primary/15 px-6 sm:px-8 py-10 space-y-8">
+      <div class="space-y-2">
+        <h2 class="text-2xl font-semibold">Verantwortlicher</h2>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Lottina<br>
+          Jan Haveneth &amp; Anne Sophie Haveneth<br>
+          Jungchenbüchel 60, 52156 Monschau, Deutschland<br>
+          E-Mail: <a href="mailto:hello@lottina.de" class="font-medium text-lottina-accent hover:text-lottina-primary">hello@lottina.de</a>
+        </p>
+      </div>
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">Cookies</h2>
-  <p class="mb-4">
-    Unsere Website verwendet HTTP-Cookies, um nutzerspezifische Daten zu speichern. Cookies richten keinen Schaden an.
-  </p>
+      <div class="space-y-2">
+        <h3 class="text-xl font-semibold">Hosting & Zugriffsdaten</h3>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Unsere Website wird in der EU gehostet. Bei jedem Aufruf speichern wir automatisch Zugriffsdaten (IP-Adresse, Datum/Uhrzeit,
+          Browser, Referrer, besuchte Seiten). Diese Server-Logfiles dienen der technischen Bereitstellung und zur Abwehr von Angriffen.
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse).
+        </p>
+      </div>
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">Ihre Rechte</h2>
-  <p class="mb-4">
-    Ihnen stehen grundsätzlich die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerruf und Widerspruch zu. Wenn Sie glauben, dass die Verarbeitung Ihrer Daten gegen das Datenschutzrecht verstößt, können Sie sich bei der Aufsichtsbehörde beschweren.
-  </p>
+      <div class="space-y-4">
+        <h3 class="text-xl font-semibold">Welche Daten erfassen wir?</h3>
+        <div class="rounded-2xl bg-lottina-primary/5 border border-lottina-primary/10 p-4 space-y-2 text-sm text-lottina-primary/75 leading-relaxed">
+          <p class="font-semibold text-lottina-primary">Nutzungsdaten</p>
+          <p>Wir messen anonyme Nutzungsstatistiken (z. B. aufgerufene Seiten, Filter) um unsere Angebote zu verbessern.</p>
+        </div>
+        <div class="rounded-2xl bg-lottina-primary/5 border border-lottina-primary/10 p-4 space-y-2 text-sm text-lottina-primary/75 leading-relaxed">
+          <p class="font-semibold text-lottina-primary">Registrierung & Login</p>
+          <p>Für Nutzerkonten speichern wir E-Mail, Passwort-Hash, freiwillige Profildaten (Name, Stadt, Kinderprofile) und Metadaten
+             zu gespeicherten Favoriten. Ohne diese Angaben können keine personalisierten Funktionen bereitgestellt werden.</p>
+        </div>
+        <div class="rounded-2xl bg-lottina-primary/5 border border-lottina-primary/10 p-4 space-y-2 text-sm text-lottina-primary/75 leading-relaxed">
+          <p class="font-semibold text-lottina-primary">Kontakt- & Feedbackformulare</p>
+          <p>Nachrichten, Wunschstädte oder Community-Feedback enthalten E-Mail-Adresse, Stadt und Freitext. Wir verwenden diese
+             ausschließlich zur Bearbeitung deiner Anfrage.</p>
+        </div>
+        <div class="rounded-2xl bg-lottina-primary/5 border border-lottina-primary/10 p-4 space-y-2 text-sm text-lottina-primary/75 leading-relaxed">
+          <p class="font-semibold text-lottina-primary">Uploads</p>
+          <p>Wenn du Poster oder Profilbilder hochlädst, verarbeiten wir die Datei auf eigenen Servern. Optional durchgeführte
+             OCR-Analysen dienen nur der Formular-Vorbefüllung.</p>
+        </div>
+      </div>
 
-  <h2 class="text-2xl font-semibold mt-8 mb-4">Kontakt für Datenschutzanfragen</h2>
-  <p>
-    info@familienradar.de
-  </p>
-</section>
+      <div class="space-y-4">
+        <h3 class="text-xl font-semibold">Cookies & Tools</h3>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Wir nutzen essentielle Cookies, um Sessions und Logins abzusichern. Analyse- oder Marketing-Cookies kommen derzeit nicht zum Einsatz.
+          Drittinhalte (z. B. eingebettete Karten) werden nur geladen, wenn sie technisch erforderlich sind. Rechtsgrundlagen sind Art. 6 Abs. 1 lit. b und f DSGVO.
+        </p>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Sollte in Zukunft ein Consent-Tool oder weitere Dienste (z. B. Newsletter, Analytics) eingesetzt werden, informieren wir hier mit Details zu
+          Anbieter, Zweck und Widerspruchsmöglichkeiten.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="text-xl font-semibold">Speicherdauer</h3>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Wir speichern personenbezogene Daten nur so lange, wie es zur Bereitstellung der Plattform oder zur Erfüllung gesetzlicher Pflichten nötig ist.
+          Nutzerkonten lassen sich jederzeit über hello@lottina.de löschen. Gesetzliche Aufbewahrungsfristen (z. B. bei Rechnungsdaten) bleiben unberührt.
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-xl font-semibold">Deine Rechte</h3>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit sowie Widerspruch gegen die Verarbeitung
+          personenbezogener Daten (Art. 15–21 DSGVO). Darüber hinaus kannst du erteilte Einwilligungen jederzeit widerrufen.
+        </p>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Beschwerden richtest du an die zuständige Aufsichtsbehörde (z. B. Landesbeauftragte für Datenschutz NRW).
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="text-xl font-semibold">Kontakt für Datenschutzanfragen</h3>
+        <p class="text-sm text-lottina-primary/75 leading-relaxed">
+          Schreibe an <a href="mailto:hello@lottina.de" class="font-medium text-lottina-accent hover:text-lottina-primary">hello@lottina.de</a>
+          oder postalisch an Lottina, Jungchenbüchel 60, 52156 Monschau. Wir kümmern uns zeitnah um dein Anliegen.
+        </p>
+      </div>
+    </section>
+
+    <footer class="text-xs text-lottina-primary/60">
+      Stand: {{ current_year | default("2025") }} · Wir aktualisieren diese Hinweise fortlaufend, sobald sich Prozesse oder Anbieter ändern.
+    </footer>
+  </div>
+</div>
 {% endblock %}
