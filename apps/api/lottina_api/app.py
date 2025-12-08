@@ -895,6 +895,7 @@ def results():
         day_start = day_end = None
     today_cutoff = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
+    is_premium_user = current_user.is_authenticated and getattr(current_user, "premium_active", False)
     qry = (
         db.session
         .query(Offer)
@@ -955,6 +956,16 @@ def results():
             Offer.dt_start.is_(None),
             Offer.dt_end.is_(None),
         )
+
+    free_teaser_events: list[Offer] = []
+    if not is_premium_user:
+        teaser_query = qry.filter(Offer.is_free.is_(True))
+        free_teaser_events = (
+            teaser_query.order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
+            .limit(3)
+            .all()
+        )
+        qry = qry.filter(or_(Offer.is_free.is_(False), Offer.is_free.is_(None)))
 
     filtered_qry = qry
     stats_row = filtered_qry.with_entities(
@@ -1084,6 +1095,8 @@ def results():
         redirect_path=redirect_path,
         prev_page_url=prev_page_url,
         next_page_url=next_page_url,
+        free_teaser_events=free_teaser_events,
+        is_premium_user=is_premium_user,
     )
 
 

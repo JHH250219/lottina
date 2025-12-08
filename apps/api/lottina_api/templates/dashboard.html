@@ -131,6 +131,7 @@
     </section>
     {% endif %}
 
+    {% if is_premium %}
     {% if current_user.organisations.count() %}
       {% set first_org = current_user.organisations.first() %}
       {% if first_org %}
@@ -323,6 +324,7 @@
         </a>
       </div>
     </section>
+    {% endif %}
   </div>
 </div>
 
