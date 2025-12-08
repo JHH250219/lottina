@@ -5,6 +5,7 @@ from flask import (
 )
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, and_, or_, create_engine, case
+from sqlalchemy.orm import selectinload
 from flask_migrate import Migrate
 import stripe
 from .models import (
@@ -76,6 +77,12 @@ else:
     load_dotenv(override=True)
     print(f"⚠️  Lottina: Kein .env.{env} gefunden – nutze Standard .env")
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
 # ---------------------------------------------------------------------------
 # Flask App Grundkonfiguration
 # ---------------------------------------------------------------------------
@@ -84,10 +91,10 @@ app = Flask(
     template_folder="templates",
     static_folder="static",
 )
+app.config["SKIP_OFFER_REVIEW"] = _env_flag("SKIP_OFFER_REVIEW", default=(env.lower() == "local"))
 
 EMAIL_RX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _SLUG_REPLACEMENTS = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
-
 def slugify_value(value: str | None, *, fallback: str = "organisation") -> str:
     value = (value or "").strip().lower()
     for src, dst in _SLUG_REPLACEMENTS.items():
@@ -571,6 +578,16 @@ def _has_value(value):
     return True
 
 
+def _skip_offer_review() -> bool:
+    return bool(app.config.get("SKIP_OFFER_REVIEW"))
+
+
+def _filter_visible_offers(query):
+    if _skip_offer_review():
+        return query
+    return query.filter(Offer.status == OfferStatus.published)
+
+
 # Stripe config
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
@@ -749,9 +766,10 @@ def _debug_db():
 @app.route("/")
 def index():
     try:
+        events_query = db.session.query(Offer)
+        events_query = _filter_visible_offers(events_query)
         events = (
-            db.session.query(Offer)
-            .filter(Offer.status == OfferStatus.published)
+            events_query
             .order_by(Offer.dt_start.asc().nulls_last(), Offer.id.desc())
             .limit(9)
             .all()
@@ -900,8 +918,8 @@ def results():
         db.session
         .query(Offer)
         .join(Location, Offer.location_id == Location.id, isouter=True)
-        .filter(Offer.status == OfferStatus.published)
     )
+    qry = _filter_visible_offers(qry)
 
     playground_clause = or_(
         func.lower(Category.slug) == "spielplatz",
@@ -1102,16 +1120,17 @@ def results():
 
 @app.get("/karte")
 def karte():
-    # Offers mit Koordinaten laden
-    offers = (
-        db.session.query(Offer)
-        .join(Location, Offer.location_id == Location.id)
+    # Locations mit Koordinaten laden
+    locations = (
+        db.session.query(Location)
         .filter(
             Location.lat.isnot(None),
             Location.lon.isnot(None),
-            Offer.status == OfferStatus.published,
         )
-        .order_by(Offer.updated_at.desc().nullslast(), Offer.id.desc())
+        .options(
+            selectinload(Location.offers).selectinload(Offer.categories)
+        )
+        .order_by(Location.created_at.desc().nullslast(), Location.id.desc())
         .all()
     )
 
@@ -1153,52 +1172,78 @@ def karte():
     for slug, name in base_categories:
         normalized_slug = (slug or "").strip().lower() or _slugify(name)
         category_lookup[normalized_slug] = name
+    category_lookup.setdefault("ort", "Ort")
+    assign_marker_color("ort")
 
     coords = []
-    for offer in offers:
-        location = offer.location
-        if not location:
-            continue
-
-        offer_type_value = getattr(offer.type, "value", offer.type)
-        is_permanent = offer_type_value == getattr(OfferType.permanent, "value", "permanent")
-        has_playground_category = any(
-            ((c.slug or "").lower() == "playground") or ((c.name or "").lower() == "spielplatz")
-            for c in (offer.categories or [])
-        )
+    for location in locations:
+        related_offers = list(location.offers or [])
+        visible_offers = [
+            offer
+            for offer in related_offers
+            if _skip_offer_review() or offer.status == OfferStatus.published
+        ]
+        representative_offer = visible_offers[0] if visible_offers else None
 
         categories = []
         category_labels = []
-        for cat in (offer.categories or []):
-            slug = (cat.slug or "").strip().lower() or _slugify(cat.name)
-            name = cat.name or slug
-            categories.append(slug)
-            category_labels.append(name)
-            category_lookup.setdefault(slug, name)
-            assign_marker_color(slug)
+        if visible_offers:
+            for offer in visible_offers:
+                for cat in (offer.categories or []):
+                    slug = (cat.slug or "").strip().lower() or _slugify(cat.name)
+                    name = cat.name or slug
+                    categories.append(slug)
+                    category_labels.append(name)
+                    category_lookup.setdefault(slug, name)
+                    assign_marker_color(slug)
 
-        primary_category_slug = categories[0] if categories else None
-        if not primary_category_slug and has_playground_category:
-            primary_category_slug = "spielplatz"
+        has_playground_category = any(slug in {"spielplatz", "playground"} for slug in categories)
+
+        if not categories:
+            categories = ["ort"]
+            category_labels = ["Ort"]
+            has_playground_category = False
+
+        primary_category_slug = categories[0] if categories else "ort"
         marker_color = assign_marker_color(primary_category_slug)
+
+        if representative_offer:
+            offer_type_value = getattr(representative_offer.type, "value", representative_offer.type)
+            is_permanent = offer_type_value == getattr(OfferType.permanent, "value", "permanent")
+            meta_line = "Immer offen" if is_permanent else "Termin folgt"
+            summary = representative_offer.summary or representative_offer.description or ""
+            detail_url = url_for("event_detail", event_id=str(representative_offer.id))
+            source = representative_offer.source
+        else:
+            offer_type_value = "location"
+            is_permanent = True
+            summary = ""
+            meta_line = location.city or "Standort"
+            query_value = (location.name or location.city or "").strip()
+            detail_url = url_for("suchergebnisse", q=query_value) if query_value else url_for("suchergebnisse")
+            source = "location"
+
+        if not summary:
+            summary = "Adresse: " + (location.address or location.city or "Noch keine Details")
 
         coords.append(
             {
-                "id": str(offer.id),
-                "title": offer.title or "Ohne Titel",
-                "summary": offer.summary or offer.description or "",
+                "id": f"loc-{location.id}",
+                "title": location.name or (representative_offer.title if representative_offer else "Unbekannter Ort"),
+                "summary": summary,
                 "lat": location.lat,
                 "lon": location.lon,
-                "url": url_for("event_detail", event_id=str(offer.id)),
+                "url": detail_url,
                 "address": location.address or location.city or "",
                 "location_name": location.name or "",
                 "categories": categories,
                 "category_labels": category_labels,
                 "is_playground": has_playground_category,
                 "is_permanent": is_permanent,
-                "source": offer.source,
+                "source": source,
                 "offer_type": offer_type_value,
                 "marker_color": marker_color,
+                "meta_line": meta_line,
             }
         )
 
@@ -1239,7 +1284,7 @@ def vorgaben():
 @app.route("/event/<uuid:event_id>")
 def event_detail(event_id):
     event = Offer.query.get_or_404(event_id)
-    if event.status != OfferStatus.published:
+    if event.status != OfferStatus.published and not _skip_offer_review():
         if not current_user.is_authenticated or not current_user.is_admin:
             abort(404)
     is_favorite = False
@@ -1563,12 +1608,12 @@ def ueber_uns():
     ]
     total_entries = db.session.query(func.count(Offer.id)).scalar() or 0
     feedback_count = db.session.query(func.count(CommunityFeedback.id)).scalar() or 0
-    curated_manual = (
+    curated_manual_qry = (
         db.session.query(func.count(Offer.id))
-        .filter(Offer.source == "manual", Offer.status == OfferStatus.published)
-        .scalar()
-        or 0
+        .filter(Offer.source == "manual")
     )
+    curated_manual_qry = _filter_visible_offers(curated_manual_qry)
+    curated_manual = curated_manual_qry.scalar() or 0
     impact_stats = [
         {"label": "Datenbank-Einträge", "value": total_entries},
         {"label": "Community-Feedbacks", "value": feedback_count},
