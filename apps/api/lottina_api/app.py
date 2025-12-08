@@ -2417,6 +2417,47 @@ def freigeben_publish(offer_id):
     return redirect(url_for("freigeben"))
 
 
+@app.post("/freigeben/publish_bulk")
+@login_required
+def freigeben_publish_bulk():
+    if not current_user.is_admin:
+        abort(403)
+
+    raw_ids = request.form.getlist("offer_ids")
+    valid_ids: list[uuid.UUID] = []
+    for raw in raw_ids:
+        try:
+            valid_ids.append(uuid.UUID(raw))
+        except (ValueError, AttributeError):
+            continue
+
+    if not valid_ids:
+        flash("Bitte wähle mindestens ein Event aus.", "danger")
+        return redirect(url_for("freigeben"))
+
+    offers = (
+        Offer.query.filter(
+            Offer.id.in_(valid_ids),
+            Offer.status == OfferStatus.draft,
+        ).all()
+    )
+
+    if not offers:
+        flash("Die ausgewählten Events konnten nicht veröffentlicht werden.", "danger")
+        return redirect(url_for("freigeben"))
+
+    for offer in offers:
+        offer.status = OfferStatus.published
+
+    db.session.commit()
+    count = len(offers)
+    flash(
+        f"{count} Event{'s' if count != 1 else ''} veröffentlicht.",
+        "success",
+    )
+    return redirect(url_for("freigeben"))
+
+
 @app.post("/freigeben/<uuid:offer_id>/archive")
 @login_required
 def freigeben_archive(offer_id):
