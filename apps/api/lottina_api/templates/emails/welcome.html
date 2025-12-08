@@ -81,11 +81,6 @@
                           <p style="margin:0 0 8px 0;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#e2ffdd;">Wichtige Links</p>
                           <a href="{{ url_for('impressum', _external=True) }}" style="display:block;margin:0 0 6px 0;color:#ffffff;font-size:13px;text-decoration:none;">Impressum</a>
                           <a href="{{ url_for('datenschutz', _external=True) }}" style="display:block;margin:0 0 6px 0;color:#ffffff;font-size:13px;text-decoration:none;">Datenschutz</a>
-                          {% if user %}
-                            <a href="{{ url_for('unsubscribe', user_id=user.id, _external=True) }}" style="display:block;margin:0 0 6px 0;color:#ffffff;font-size:13px;text-decoration:none;">Abmelden</a>
-                          {% else %}
-                            <a href="/unsubscribe" style="display:block;margin:0 0 6px 0;color:#ffffff;font-size:13px;text-decoration:none;">Abmelden</a>
-                          {% endif %}
                           <a href="mailto:hello@lottina.de" style="display:block;color:#ffffff;font-size:13px;text-decoration:none;">hello@lottina.de</a>
                         </td>
                       </tr>

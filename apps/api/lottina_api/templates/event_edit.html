@@ -43,41 +43,77 @@
             <p class="text-sm text-lottina-primary/70">Titel, Texte und Medien.</p>
           </div>
           <div class="grid gap-4 md:grid-cols-2">
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('title') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}" data-field-wrapper="title">
               Titel
-              <input type="text" name="title" value="{{ prefill.title }}" class="form-input">
+              <input type="text" name="title" value="{{ prefill.title }}" class="form-input {% if field_error %}form-input--error{% endif %}" data-field="title">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('summary') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Kurzbeschreibung
-              <input type="text" name="summary" value="{{ prefill.summary }}" class="form-input">
+              <input type="text" name="summary" value="{{ prefill.summary }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold md:col-span-2">
+            {% set field_error = field_errors.get('description') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold md:col-span-2 {% if field_error %}text-red-600{% endif %}">
               Ausführliche Beschreibung (HTML möglich)
-              <textarea name="description" rows="6" class="form-textarea">{{ prefill.description }}</textarea>
+              <textarea name="description" rows="6" class="form-textarea {% if field_error %}form-input--error{% endif %}">{{ prefill.description }}</textarea>
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('image') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Bild-URL
-              <input type="url" name="image" value="{{ prefill.image }}" class="form-input">
+              <input type="url" name="image" value="{{ prefill.image }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('maps_url') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Maps-URL / Kartenlink
-              <input type="url" name="maps_url" value="{{ prefill.maps_url }}" class="form-input">
+              <input type="url" name="maps_url" value="{{ prefill.maps_url }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('meeting_point') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Treffpunkt
-              <input type="text" name="meeting_point" value="{{ prefill.meeting_point }}" class="form-input">
+              <input type="text" name="meeting_point" value="{{ prefill.meeting_point }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('source') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Quelle (Name)
-              <input type="text" name="source" value="{{ prefill.source }}" class="form-input">
+              <input type="text" name="source" value="{{ prefill.source }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('source_url') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Quelle URL
-              <input type="url" name="source_url" value="{{ prefill.source_url }}" class="form-input">
+              <input type="url" name="source_url" value="{{ prefill.source_url }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('source_name') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Ansprechpartner / Quelle (Text)
-              <input type="text" name="source_name" value="{{ prefill.source_name }}" class="form-input">
+              <input type="text" name="source_name" value="{{ prefill.source_name }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
           </div>
         </div>
@@ -88,37 +124,69 @@
             <p class="text-sm text-lottina-primary/70">Termine, Altersangaben und Preisfelder.</p>
           </div>
           <div class="grid gap-4 md:grid-cols-2">
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('dt_start') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Start (Datum & Zeit)
-              <input type="datetime-local" name="dt_start" value="{{ prefill.dt_start }}" class="form-input">
+              <input type="datetime-local" name="dt_start" value="{{ prefill.dt_start }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('dt_end') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Ende (Datum & Zeit)
-              <input type="datetime-local" name="dt_end" value="{{ prefill.dt_end }}" class="form-input">
+              <input type="datetime-local" name="dt_end" value="{{ prefill.dt_end }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('price_value') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Preis (Standard)
-              <input type="number" step="0.01" name="price_value" value="{{ prefill.price_value }}" class="form-input">
+              <input type="number" step="0.01" name="price_value" value="{{ prefill.price_value }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('price_min') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Preis (Min)
-              <input type="number" step="0.01" name="price_min" value="{{ prefill.price_min }}" class="form-input">
+              <input type="number" step="0.01" name="price_min" value="{{ prefill.price_min }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('price_max') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Preis (Max)
-              <input type="number" step="0.01" name="price_max" value="{{ prefill.price_max }}" class="form-input">
+              <input type="number" step="0.01" name="price_max" value="{{ prefill.price_max }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('currency') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Währung
-              <input type="text" name="currency" value="{{ prefill.currency }}" class="form-input">
+              <input type="text" name="currency" value="{{ prefill.currency }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('target_age_min') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Alter (min)
-              <input type="number" name="target_age_min" value="{{ prefill.target_age_min }}" class="form-input">
+              <input type="number" name="target_age_min" value="{{ prefill.target_age_min }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('target_age_max') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Alter (max)
-              <input type="number" name="target_age_max" value="{{ prefill.target_age_max }}" class="form-input">
+              <input type="number" name="target_age_max" value="{{ prefill.target_age_max }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
           </div>
         </div>
@@ -126,30 +194,42 @@
         <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-4">
           <h2 class="text-lg font-semibold text-lottina-primary">Flags & Typen</h2>
           <div class="grid gap-4 md:grid-cols-3">
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('type') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Angebotstyp
-              <select name="type" class="form-select">
+              <select name="type" class="form-select {% if field_error %}form-input--error{% endif %}">
                 <option value="">Standard</option>
                 {% for value, label in offer_type_choices %}
                   <option value="{{ value }}" {% if prefill.type == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('status') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Status
-              <select name="status" class="form-select">
+              <select name="status" class="form-select {% if field_error %}form-input--error{% endif %}">
                 {% for value, label in status_choices %}
                   <option value="{{ value }}" {% if prefill.status == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('source_type') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Quellentyp
-              <select name="source_type" class="form-select">
+              <select name="source_type" class="form-select {% if field_error %}form-input--error{% endif %}">
                 {% for value, label in source_type_choices %}
                   <option value="{{ value }}" {% if prefill.source_type == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
           </div>
           <div class="grid gap-3 md:grid-cols-3">
@@ -179,25 +259,29 @@
             <p class="text-sm text-lottina-primary/70">Fülle diese Felder aus, um die Karte mit Koordinaten zu versorgen.</p>
           </div>
           <div class="grid gap-4 md:grid-cols-2">
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('location_name') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Ortsname
-              <input type="text" name="location_name" value="{{ prefill.location_name }}" class="form-input">
+              <input type="text" name="location_name" value="{{ prefill.location_name }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('location_address') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Adresse
-              <input type="text" name="location_address" value="{{ prefill.location_address }}" class="form-input">
+              <input type="text" name="location_address" value="{{ prefill.location_address }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('location_city') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Stadt
-              <input type="text" name="location_city" value="{{ prefill.location_city }}" class="form-input">
-            </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
-              Latitude
-              <input type="number" step="0.000001" name="location_lat" value="{{ prefill.location_lat }}" class="form-input">
-            </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
-              Longitude
-              <input type="number" step="0.000001" name="location_lon" value="{{ prefill.location_lon }}" class="form-input">
+              <input type="text" name="location_city" value="{{ prefill.location_city }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
           </div>
         </div>
@@ -209,18 +293,53 @@
               Mehrere Kategorien kannst du kommagetrennt eintragen. JSON Felder erwarten gültiges JSON (z. B. { "mo-fr": "10-18" }).
             </p>
           </div>
-          <label class="flex flex-col gap-2 text-sm font-semibold">
-            Kategorien (Kommagetrennt, z. B. Spielplatz, Museum)
-            <input type="text" name="categories" value="{{ prefill.categories }}" class="form-input">
-          </label>
+          <div class="space-y-2 text-sm font-semibold">
+            <div class="flex items-center justify-between">
+              <span>Kategorien auswählen</span>
+              <span class="text-xs font-normal text-lottina-primary/60" data-category-count></span>
+            </div>
+            <div class="rounded-2xl border border-lottina-primary/15 bg-white/60 p-4 space-y-3" data-category-picker>
+              <input type="hidden" name="categories" value="{{ prefill.categories }}" data-category-input>
+              <select class="form-select" data-category-select>
+                <option value="">Kategorie hinzufügen …</option>
+                {% for category in category_choices %}
+                  <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+              </select>
+              <div class="flex flex-wrap gap-2" data-category-pills>
+                {% set selected_categories = prefill.categories.split(',') if prefill.categories else [] %}
+                {% for category in selected_categories %}
+                  {% set cat_name = category.strip() %}
+                  {% if cat_name %}
+                    <button type="button"
+                            class="category-pill"
+                            data-category-pill
+                            data-value="{{ cat_name }}">
+                      <span>{{ cat_name }}</span>
+                      <span aria-hidden="true">×</span>
+                    </button>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <p class="text-xs font-normal text-lottina-primary/60">Klick auf eine Kategorie, um sie zu entfernen.</p>
+            </div>
+          </div>
           <div class="grid gap-4 md:grid-cols-2">
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('opening_hours_json') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Öffnungszeiten (JSON)
-              <textarea name="opening_hours_json" rows="6" class="form-textarea">{{ prefill.opening_hours_json }}</textarea>
+              <textarea name="opening_hours_json" rows="6" class="form-textarea {% if field_error %}form-input--error{% endif %}">{{ prefill.opening_hours_json }}</textarea>
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
-            <label class="flex flex-col gap-2 text-sm font-semibold">
+            {% set field_error = field_errors.get('holiday_hours_json') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Ferienzeiten (JSON)
-              <textarea name="holiday_hours_json" rows="6" class="form-textarea">{{ prefill.holiday_hours_json }}</textarea>
+              <textarea name="holiday_hours_json" rows="6" class="form-textarea {% if field_error %}form-input--error{% endif %}">{{ prefill.holiday_hours_json }}</textarea>
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
             </label>
           </div>
         </div>
@@ -237,6 +356,83 @@
     </div>
   </section>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const picker = document.querySelector("[data-category-picker]");
+    if (!picker) return;
+    const hiddenInput = picker.querySelector("[data-category-input]");
+    const select = picker.querySelector("[data-category-select]");
+    const pillsContainer = picker.querySelector("[data-category-pills]");
+    const countLabel = document.querySelector("[data-category-count]");
+
+    const parseValues = () =>
+      (hiddenInput.value || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item, index, arr) => item && arr.indexOf(item) === index);
+
+    const updateHiddenInput = (values) => {
+      hiddenInput.value = values.join(", ");
+      if (countLabel) {
+        countLabel.textContent = values.length
+          ? `${values.length} Kategorie${values.length === 1 ? "" : "n"} ausgewählt`
+          : "Keine Kategorie ausgewählt";
+      }
+    };
+
+    const renderPills = (values) => {
+      pillsContainer.innerHTML = "";
+      values.forEach((value) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "category-pill";
+        button.dataset.categoryPill = "1";
+        button.dataset.value = value;
+        button.innerHTML = `<span>${value}</span><span aria-hidden="true">×</span>`;
+        pillsContainer.appendChild(button);
+      });
+    };
+
+    const syncSelectOptions = (values) => {
+      Array.from(select.options).forEach((option) => {
+        if (!option.value) return;
+        option.disabled = values.includes(option.value);
+      });
+    };
+
+    const syncUI = () => {
+      const values = parseValues();
+      updateHiddenInput(values);
+      renderPills(values);
+      syncSelectOptions(values);
+    };
+
+    select.addEventListener("change", () => {
+      const value = select.value.trim();
+      if (!value) return;
+      const values = parseValues();
+      if (!values.includes(value)) {
+        values.push(value);
+        hiddenInput.value = values.join(", ");
+        syncUI();
+      }
+      select.value = "";
+    });
+
+    pillsContainer.addEventListener("click", (event) => {
+      const pill = event.target.closest("[data-category-pill]");
+      if (!pill) return;
+      event.preventDefault();
+      const value = pill.dataset.value;
+      const remaining = parseValues().filter((item) => item !== value);
+      hiddenInput.value = remaining.join(", ");
+      syncUI();
+    });
+
+    syncUI();
+  });
+</script>
 
 <style>
   .form-input,
@@ -256,6 +452,33 @@
     outline: none;
     border-color: #059669;
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+  }
+  .form-input--error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
+  }
+  .form-error {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #b91c1c;
+  }
+  .category-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 42, 67, 0.15);
+    background: rgba(15, 42, 67, 0.05);
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f2a43;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .category-pill:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+    border-color: rgba(220, 38, 38, 0.3);
   }
 </style>
 {% endblock %}

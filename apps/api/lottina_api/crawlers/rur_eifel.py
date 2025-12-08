@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Iterable, Optional
 from urllib.parse import urljoin
@@ -65,7 +66,7 @@ class RurEifelCrawler(BaseCrawler):
         title = self._text_or_none(soup.select_one("h1")) or "Event"
         description = self._extract_description(soup)
         image = self._hero_image(soup)
-        dt_start, dt_end, dt_time = self._extract_header_dates(soup)
+        dt_start, dt_end, start_time = self._extract_header_dates(soup)
         location_name, location_address = self._extract_location(soup)
 
         payload = EventPayload(
@@ -81,8 +82,8 @@ class RurEifelCrawler(BaseCrawler):
             location_address=location_address,
             categories=["Veranstaltungskalender"],
         )
-        if payload.dt_start and dt_time:
-            payload.dt_start = payload.dt_start.replace(hour=dt_time[0], minute=dt_time[1])
+        if payload.dt_start and start_time:
+            payload.dt_start = payload.dt_start.replace(hour=start_time[0], minute=start_time[1])
         return payload
 
     def _extract_description(self, soup: BeautifulSoup) -> Optional[str]:
@@ -96,9 +97,19 @@ class RurEifelCrawler(BaseCrawler):
     def _extract_header_dates(self, soup: BeautifulSoup):
         date_text = self._text_or_none(soup.select_one(".eventHeader__date--data .text"))
         time_text = self._text_or_none(soup.select_one(".eventHeader__time .data"))
-        dt = self._parse_date(date_text)
-        tm = self._parse_time(time_text)
-        return dt, None, tm
+        start_date, end_date = self._parse_date_range(date_text)
+        start_time, end_time = self._parse_time_range(time_text)
+
+        start_dt = start_date
+        end_dt = end_date
+        if start_dt and start_time:
+            start_dt = start_dt.replace(hour=start_time[0], minute=start_time[1])
+        if end_dt and end_time:
+            end_dt = end_dt.replace(hour=end_time[0], minute=end_time[1])
+        elif not end_dt:
+            end_dt = start_dt
+
+        return start_dt, end_dt, start_time
 
     def _extract_location(self, soup: BeautifulSoup):
         block = soup.select_one(".section--contact address .address__content")
@@ -152,6 +163,31 @@ class RurEifelCrawler(BaseCrawler):
             return int(hour), int(minute)
         except ValueError:
             return None
+
+    def _parse_date_range(self, text: Optional[str]):
+        if not text:
+            return None, None
+        parts = re.split(r"[–-]", text)
+        parts = [part.strip() for part in parts if part.strip()]
+        if not parts:
+            return None, None
+        start = self._parse_date(parts[0])
+        end = self._parse_date(parts[1]) if len(parts) > 1 else start
+        return start, end
+
+    def _parse_time_range(self, text: Optional[str]):
+        if not text:
+            return None, None
+        text = text.replace("Uhr", "")
+        parts = re.split(r"[–-]", text)
+        times = []
+        for part in parts:
+            parsed = self._parse_time(part.strip())
+            if parsed:
+                times.append(parsed)
+        start = times[0] if times else None
+        end = times[1] if len(times) > 1 else None
+        return start, end
 
     def _text_or_none(self, node) -> Optional[str]:
         if not node:

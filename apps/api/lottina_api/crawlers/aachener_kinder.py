@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from typing import Iterable, Optional, Tuple
 from urllib.parse import urljoin, urlparse
@@ -172,10 +173,18 @@ class AachenerKinderCrawler(BaseCrawler):
         return name, address, city
 
     def _parse_listing_date_range(self, card) -> Tuple[Optional[datetime], Optional[datetime]]:
+        time_nodes = [node for node in card.select("time") if node.get("datetime")]
+        parsed_times = [self._parse_iso_datetime(node.get("datetime")) for node in time_nodes]
+        parsed_times = [dt for dt in parsed_times if dt]
+        if parsed_times:
+            if len(parsed_times) == 1:
+                return parsed_times[0], None
+            return parsed_times[0], parsed_times[-1]
+
         start_text = self._text_or_none(card.select_one(".tribe-event-date-start"))
         end_text = self._text_or_none(card.select_one(".tribe-event-date-end"))
-        start = self._parse_german_date(start_text)
-        end = self._parse_german_date(end_text)
+        start = self._parse_flexible_date(start_text)
+        end = self._parse_flexible_date(end_text, fallback=start)
         return start, end
 
     def _parse_listing_venue(self, text: Optional[str]) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -192,20 +201,41 @@ class AachenerKinderCrawler(BaseCrawler):
     def _parse_schedule_text(self, text: Optional[str]) -> Tuple[Optional[datetime], Optional[datetime]]:
         if not text:
             return None, None
-        segments = [segment.strip() for segment in text.split("-") if segment.strip()]
-        if not segments:
+        # Typical format: "Montag, 09.12.2024, 15:00 – 17:00"
+        date_part, start_time, end_time = self._extract_times_from_schedule(text)
+        date_value = self._parse_flexible_date(date_part)
+        if not date_value:
             return None, None
-        start = self._parse_german_date(segments[0])
-        end = self._parse_german_date(segments[1]) if len(segments) > 1 else None
-        return start, end
+        start_dt = date_value
+        end_dt = None
+        if start_time:
+            start_dt = date_value.replace(hour=start_time[0], minute=start_time[1])
+        if end_time:
+            end_dt = date_value.replace(hour=end_time[0], minute=end_time[1])
+        return start_dt, end_dt
 
-    def _parse_german_date(self, text: Optional[str]) -> Optional[datetime]:
+    def _parse_flexible_date(self, text: Optional[str], fallback: Optional[datetime] = None) -> Optional[datetime]:
         if not text:
-            return None
-        try:
-            return datetime.strptime(text.strip(), "%d.%m.%Y")
-        except ValueError:
-            return None
+            return fallback
+        text = text.strip()
+        for fmt in ("%d.%m.%Y", "%d.%m.%y"):
+            try:
+                return datetime.strptime(text, fmt)
+            except ValueError:
+                continue
+        # Patterns like "7. Dezember" (without year)
+        match = re.search(r"(\d{1,2})\.\s*([A-Za-zäöüÄÖÜ]+)(?:\s+(\d{4}))?", text)
+        if match:
+            day = int(match.group(1))
+            month = self._month_from_name(match.group(2))
+            year = int(match.group(3)) if match.group(3) else (fallback.year if fallback else datetime.utcnow().year)
+            if month:
+                try:
+                    candidate = datetime(year, month, day)
+                    return candidate
+                except ValueError:
+                    return fallback
+        return fallback
 
     def _parse_iso_datetime(self, value: Optional[str]) -> Optional[datetime]:
         if not value:
@@ -214,6 +244,43 @@ class AachenerKinderCrawler(BaseCrawler):
             return datetime.fromisoformat(value)
         except ValueError:
             return None
+
+    def _month_from_name(self, value: str) -> Optional[int]:
+        normalized = (
+            value.lower()
+            .replace("ä", "ae")
+            .replace("ö", "oe")
+            .replace("ü", "ue")
+            .strip()
+        )
+        mapping = {
+            "jan": 1,
+            "feb": 2,
+            "mae": 3,
+            "mar": 3,
+            "apr": 4,
+            "mai": 5,
+            "may": 5,
+            "jun": 6,
+            "jul": 7,
+            "aug": 8,
+            "sep": 9,
+            "okt": 10,
+            "oct": 10,
+            "nov": 11,
+            "dez": 12,
+            "dec": 12,
+        }
+        return mapping.get(normalized[:3])
+
+    def _extract_times_from_schedule(self, text: str):
+        # returns (date_part, start_time_tuple, end_time_tuple)
+        parts = text.split("|")
+        date_part = parts[0].strip()
+        times = re.findall(r"(\d{1,2})[:.](\d{2})", text)
+        start_time = (int(times[0][0]), int(times[0][1])) if times else None
+        end_time = (int(times[1][0]), int(times[1][1])) if len(times) > 1 else None
+        return date_part, start_time, end_time
 
     def _make_external_id(self, url: str) -> str:
         parsed = urlparse(url)

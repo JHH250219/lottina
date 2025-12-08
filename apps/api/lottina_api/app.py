@@ -1316,6 +1316,7 @@ def edit_event(event_id):
     location_number_fields = {"location_lat": "lat", "location_lon": "lon"}
 
     errors: list[str] = []
+    field_errors: dict[str, str] = {}
 
     def _slugify_category(value: str) -> str:
         mapping = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
@@ -1346,6 +1347,7 @@ def edit_event(event_id):
                 setattr(event, field, parsed)
             except ValueError:
                 errors.append(f"Ungültiges Datum/Zeit für Feld '{field}'.")
+                field_errors[field] = "Ungültiges Datum/Zeit"
 
         for field in decimal_fields:
             raw = (request.form.get(field) or "").strip()
@@ -1356,6 +1358,7 @@ def edit_event(event_id):
                 setattr(event, field, Decimal(raw))
             except InvalidOperation:
                 errors.append(f"Ungültiger Zahlenwert für Feld '{field}'.")
+                field_errors[field] = "Ungültiger Zahlenwert"
 
         for field in integer_fields:
             raw = (request.form.get(field) or "").strip()
@@ -1366,6 +1369,7 @@ def edit_event(event_id):
                 setattr(event, field, int(raw))
             except ValueError:
                 errors.append(f"Ungültige Ganzzahl für Feld '{field}'.")
+                field_errors[field] = "Ungültige Ganzzahl"
 
         for field in bool_fields:
             setattr(event, field, request.form.get(field) == "on")
@@ -1376,6 +1380,7 @@ def edit_event(event_id):
                 event.type = OfferType(type_value)
             except ValueError:
                 errors.append("Ungültiger Angebotstyp.")
+                field_errors["type"] = "Ungültiger Typ"
 
         status_value = (request.form.get("status") or "").strip()
         if status_value:
@@ -1383,6 +1388,7 @@ def edit_event(event_id):
                 event.status = OfferStatus(status_value)
             except ValueError:
                 errors.append("Ungültiger Status.")
+                field_errors["status"] = "Ungültiger Status"
 
         source_type_value = (request.form.get("source_type") or "").strip()
         if source_type_value:
@@ -1390,6 +1396,7 @@ def edit_event(event_id):
                 event.source_type = SourceType(source_type_value)
             except ValueError:
                 errors.append("Ungültiger Quellentyp.")
+                field_errors["source_type"] = "Ungültiger Quellentyp"
 
         for form_name, attr_name in json_fields.items():
             raw = (request.form.get(form_name) or "").strip()
@@ -1400,6 +1407,7 @@ def edit_event(event_id):
                 setattr(event, attr_name, json.loads(raw))
             except json.JSONDecodeError as exc:
                 errors.append(f"JSON Feld '{form_name}': {exc.msg}")
+                field_errors[form_name] = "Ungültiges JSON"
 
         location_inputs_present = any(
             (request.form.get(name) or "").strip() for name in [*location_text_fields, *location_number_fields.keys()]
@@ -1422,6 +1430,7 @@ def edit_event(event_id):
                     setattr(event.location, attr_name, float(raw_val))
                 except ValueError:
                     errors.append(f"Ungültiger Zahlenwert für Feld '{form_name}'.")
+                    field_errors[form_name] = "Ungültiger Zahlenwert"
 
         categories_raw = request.form.get("categories", "") or ""
         category_names = [name.strip() for name in categories_raw.split(",") if name.strip()]
@@ -1500,6 +1509,11 @@ def edit_event(event_id):
     offer_type_choices = [(choice.value, choice.name.title()) for choice in OfferType]
     source_type_choices = [(choice.value, choice.name.title()) for choice in SourceType]
     status_choices = [(choice.value, choice.name.title()) for choice in OfferStatus]
+    category_choices = [
+        cat.name or cat.slug
+        for cat in Category.query.order_by(Category.name.asc()).all()
+        if (cat.name or cat.slug)
+    ]
 
     return render_template(
         "event_edit.html",
@@ -1507,9 +1521,11 @@ def edit_event(event_id):
         prefill=prefill,
         bool_states=bool_states,
         errors=errors,
+        field_errors=field_errors,
         offer_type_choices=offer_type_choices,
         source_type_choices=source_type_choices,
         status_choices=status_choices,
+        category_choices=category_choices,
     )
 
 @app.get("/ueber_uns")
@@ -2349,7 +2365,7 @@ def freigeben():
     pending_offers = (
         db.session.query(Offer)
         .filter(Offer.status == OfferStatus.draft)
-        .order_by(Offer.created_at.desc())
+        .order_by(Offer.dt_start.asc().nullslast(), Offer.created_at.asc().nullslast())
         .limit(200)
         .all()
     )

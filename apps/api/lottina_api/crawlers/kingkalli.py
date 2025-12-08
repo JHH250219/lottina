@@ -98,6 +98,12 @@ class KingKalliCrawler(BaseCrawler):
             if link.get_text(strip=True)
         ]
 
+        sched_start, sched_end = self._extract_schedule_times(soup, dt_start)
+        if sched_start:
+            dt_start = sched_start
+        if sched_end and not dt_end:
+            dt_end = sched_end
+
         image_url = self._extract_image(ld_event)
         if not image_url:
             hero_img = soup.select_one(".tribe-events-event-image img")
@@ -182,3 +188,70 @@ class KingKalliCrawler(BaseCrawler):
             if isinstance(first, dict):
                 return first.get("url") or first.get("@id")
         return None
+
+    def _extract_schedule_times(self, soup: BeautifulSoup, base_date: Optional[datetime]):
+        schedule = soup.select_one(".tribe-events-schedule")
+        if not schedule:
+            return None, None
+        text = schedule.get_text(" ", strip=True)
+        date_text, times = self._split_schedule(text)
+        date_value = self._parse_flexible_date(date_text, base_date)
+        if not date_value:
+            return None, None
+        if not times:
+            return date_value, None
+        start_dt = date_value.replace(hour=times[0][0], minute=times[0][1])
+        end_dt = None
+        if len(times) > 1:
+            end_dt = date_value.replace(hour=times[1][0], minute=times[1][1])
+        return start_dt, end_dt
+
+    def _split_schedule(self, text: str):
+        parts = text.split("|", 1)
+        date_part = parts[0].strip()
+        times = re.findall(r"(\d{1,2})[:.](\d{2})", text)
+        parsed = [(int(h), int(m)) for h, m in times]
+        return date_part, parsed
+
+    def _parse_flexible_date(self, text: str, fallback: Optional[datetime]):
+        if not text:
+            return fallback
+        match = re.search(r"(\d{1,2})\.\s*([A-Za-zäöüÄÖÜ]+)(?:\s+(\d{4}))?", text)
+        if match:
+            day = int(match.group(1))
+            month = self._month_from_name(match.group(2))
+            year = int(match.group(3)) if match.group(3) else (fallback.year if fallback else datetime.utcnow().year)
+            if month:
+                try:
+                    return datetime(year, month, day)
+                except ValueError:
+                    return fallback
+        return fallback
+
+    def _month_from_name(self, value: str) -> Optional[int]:
+        normalized = (
+            value.lower()
+            .replace("ä", "ae")
+            .replace("ö", "oe")
+            .replace("ü", "ue")
+            .strip()
+        )
+        mapping = {
+            "jan": 1,
+            "feb": 2,
+            "mar": 3,
+            "mae": 3,
+            "apr": 4,
+            "mai": 5,
+            "may": 5,
+            "jun": 6,
+            "jul": 7,
+            "aug": 8,
+            "sep": 9,
+            "okt": 10,
+            "oct": 10,
+            "nov": 11,
+            "dez": 12,
+            "dec": 12,
+        }
+        return mapping.get(normalized[:3])
