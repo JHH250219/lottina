@@ -538,6 +538,11 @@ class Offer(db.Model):
     organizer = db.relationship("Organizer", back_populates="offers", foreign_keys=[organizer_id])
     location = db.relationship("Location", back_populates="offers")
     organisation = db.relationship("Organizer", foreign_keys=[organisation_id], back_populates="managed_offers")
+    registration_required = db.Column(db.Boolean, server_default="false")
+    registration_methods = db.Column(db.JSON)
+    registration_contact = db.Column(db.String(300))
+    recurrence_rule = db.Column(db.String(200))
+
     groups = db.relationship(
         "OrganisationGroup",
         secondary=organisation_group_offers,
