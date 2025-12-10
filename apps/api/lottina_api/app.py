@@ -1344,6 +1344,7 @@ def edit_event(event_id):
         ("none", "Keine Wiederholung"),
         ("daily", "Täglich"),
         ("weekly", "Wöchentlich"),
+        ("biweekly", "Zweiwöchentlich"),
         ("monthly", "Monatlich"),
         ("quarterly", "Vierteljährlich"),
     ]
