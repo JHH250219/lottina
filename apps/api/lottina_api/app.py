@@ -1340,6 +1340,27 @@ def edit_event(event_id):
     if not current_user.is_admin:
         abort(403)
 
+    recurrence_frequency_choices = [
+        ("none", "Keine Wiederholung"),
+        ("daily", "Täglich"),
+        ("weekly", "Wöchentlich"),
+        ("monthly", "Monatlich"),
+        ("quarterly", "Vierteljährlich"),
+    ]
+    recurrence_frequency_values = {value for value, _ in recurrence_frequency_choices}
+    recurrence_weekday_choices = [
+        ("mo", "Montag"),
+        ("di", "Dienstag"),
+        ("mi", "Mittwoch"),
+        ("do", "Donnerstag"),
+        ("fr", "Freitag"),
+        ("sa", "Samstag"),
+        ("so", "Sonntag"),
+    ]
+    recurrence_weekday_values = {value for value, _ in recurrence_weekday_choices}
+
+    publish_and_redirect = request.form.get("publish_now") == "1" if request.method == "POST" else False
+
     text_fields = [
         "title",
         "summary",
@@ -1375,6 +1396,49 @@ def edit_event(event_id):
 
     errors: list[str] = []
     field_errors: dict[str, str] = {}
+
+    def _default_recurrence_slots() -> list[dict[str, str]]:
+        return [{"weekday": "mo", "start": "", "end": ""}]
+
+    def _parse_recurrence_rule(value: str | None) -> tuple[str, list[dict[str, str]]]:
+        if not value:
+            return ("none", [])
+        try:
+            data = json.loads(value)
+        except (TypeError, ValueError):
+            return ("none", [])
+        freq = str(data.get("frequency") or "none").lower()
+        raw_slots = data.get("slots") or []
+        slots: list[dict[str, str]] = []
+        for entry in raw_slots:
+            if not isinstance(entry, dict):
+                continue
+            weekday = str(entry.get("weekday") or "").strip().lower()
+            start_time = str(entry.get("start") or "").strip()
+            end_time = str(entry.get("end") or "").strip()
+            if weekday in recurrence_weekday_values:
+                slots.append({"weekday": weekday, "start": start_time, "end": end_time})
+        if freq not in recurrence_frequency_values:
+            freq = "none"
+        return (freq, slots)
+
+    def _parse_time_value(value: str | None) -> str | None:
+        value = (value or "").strip()
+        if not value:
+            return None
+        try:
+            parsed = datetime.strptime(value, "%H:%M")
+            return parsed.strftime("%H:%M")
+        except ValueError:
+            return None
+
+    def _set_recurrence_error(message: str) -> None:
+        errors.append(message)
+        field_errors.setdefault("recurrence", message)
+
+    recurrence_frequency, recurrence_slots = _parse_recurrence_rule(event.recurrence_rule)
+    if not recurrence_slots:
+        recurrence_slots = _default_recurrence_slots()
 
     def _slugify_category(value: str) -> str:
         mapping = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
@@ -1456,6 +1520,60 @@ def edit_event(event_id):
                 errors.append("Ungültiger Quellentyp.")
                 field_errors["source_type"] = "Ungültiger Quellentyp"
 
+        recurrence_rule_serialized: str | None = None
+        recurrence_frequency_value = (request.form.get("recurrence_frequency") or "none").strip().lower()
+        if recurrence_frequency_value not in recurrence_frequency_values:
+            _set_recurrence_error("Ungültiger Wiederholungsrhythmus ausgewählt.")
+            recurrence_frequency = "none"
+        else:
+            recurrence_frequency = recurrence_frequency_value
+
+        weekdays_input = request.form.getlist("recurrence_weekday[]")
+        starts_input = request.form.getlist("recurrence_start[]")
+        ends_input = request.form.getlist("recurrence_end[]")
+        recurrence_slots_input: list[dict[str, str]] = []
+        max_count = max(len(weekdays_input), len(starts_input), len(ends_input))
+        for idx in range(max_count):
+            weekday_raw = (weekdays_input[idx] if idx < len(weekdays_input) else "").strip().lower()
+            start_raw = (starts_input[idx] if idx < len(starts_input) else "").strip()
+            end_raw = (ends_input[idx] if idx < len(ends_input) else "").strip()
+            if not (weekday_raw or start_raw or end_raw):
+                continue
+            if weekday_raw not in recurrence_weekday_values:
+                _set_recurrence_error("Bitte wähle einen gültigen Wochentag.")
+                continue
+            start_time = _parse_time_value(start_raw)
+            end_time = _parse_time_value(end_raw)
+            if not start_time or not end_time:
+                _set_recurrence_error("Start- und Endzeit müssen im Format HH:MM angegeben werden.")
+                continue
+            if start_time >= end_time:
+                _set_recurrence_error("Die Endzeit muss nach der Startzeit liegen.")
+                continue
+            recurrence_slots_input.append(
+                {"weekday": weekday_raw, "start": start_time, "end": end_time}
+            )
+
+        if recurrence_frequency != "none" and not recurrence_slots_input:
+            _set_recurrence_error("Bitte füge mindestens einen Wochentag mit Zeitspanne hinzu.")
+
+        recurrence_slots = recurrence_slots_input or _default_recurrence_slots()
+
+        if (
+            recurrence_frequency != "none"
+            and recurrence_slots_input
+            and "recurrence" not in field_errors
+        ):
+            payload = {"frequency": recurrence_frequency, "slots": recurrence_slots_input}
+            serialized_rule = json.dumps(payload, separators=(",", ":"))
+            if len(serialized_rule) > 200:
+                _set_recurrence_error("Die Angaben zur Wiederholung sind zu umfangreich.")
+            else:
+                recurrence_rule_serialized = serialized_rule
+
+        if publish_and_redirect:
+            event.status = OfferStatus.published
+
         for form_name, attr_name in json_fields.items():
             raw = (request.form.get(form_name) or "").strip()
             if not raw:
@@ -1510,10 +1628,23 @@ def edit_event(event_id):
 
         if not errors:
             try:
+                if recurrence_frequency == "none" or not recurrence_rule_serialized:
+                    event.recurrence_rule = None
+                    event.is_recurring = False
+                    event.is_once = True
+                else:
+                    event.recurrence_rule = recurrence_rule_serialized
+                    event.is_recurring = True
+                    event.is_once = False
+
                 sync_permanent_availability(db.session, event)
                 db.session.commit()
-                flash("Event erfolgreich aktualisiert.", "success")
-                return redirect(url_for("event_detail", event_id=str(event.id)))
+                flash(
+                    "Event aktualisiert und veröffentlicht." if publish_and_redirect else "Event erfolgreich aktualisiert.",
+                    "success",
+                )
+                redirect_target = url_for("freigeben") if publish_and_redirect else url_for("event_detail", event_id=str(event.id))
+                return redirect(redirect_target)
             except Exception:
                 db.session.rollback()
                 errors.append("Speichern fehlgeschlagen. Bitte später erneut versuchen.")
@@ -1552,12 +1683,14 @@ def edit_event(event_id):
         "type": getattr(event.type, "value", ""),
         "status": getattr(event.status, "value", ""),
         "source_type": getattr(event.source_type, "value", ""),
+        "recurrence_frequency": recurrence_frequency,
     }
 
     if request.method == "POST":
         for key in list(prefill.keys()):
             if key in request.form:
                 prefill[key] = request.form.get(key, "")
+        prefill["recurrence_frequency"] = recurrence_frequency
 
     bool_states = {field: bool(getattr(event, field)) for field in bool_fields}
     if request.method == "POST":
@@ -1584,6 +1717,10 @@ def edit_event(event_id):
         source_type_choices=source_type_choices,
         status_choices=status_choices,
         category_choices=category_choices,
+        recurrence_frequency_choices=recurrence_frequency_choices,
+        recurrence_weekday_choices=recurrence_weekday_choices,
+        recurrence_frequency=prefill.get("recurrence_frequency", "none"),
+        recurrence_slots=recurrence_slots or _default_recurrence_slots(),
     )
 
 @app.get("/ueber_uns")

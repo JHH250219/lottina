@@ -269,7 +269,7 @@
             </label>
             {% set field_error = field_errors.get('location_address') %}
             <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Adresse
+            Straße
               <input type="text" name="location_address" value="{{ prefill.location_address }}" class="form-input {% if field_error %}form-input--error{% endif %}">
               {% if field_error %}
                 <span class="form-error">{{ field_error }}</span>
@@ -277,7 +277,7 @@
             </label>
             {% set field_error = field_errors.get('location_city') %}
             <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Stadt
+              PLZ, Stadt
               <input type="text" name="location_city" value="{{ prefill.location_city }}" class="form-input {% if field_error %}form-input--error{% endif %}">
               {% if field_error %}
                 <span class="form-error">{{ field_error }}</span>
@@ -288,9 +288,9 @@
 
         <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
           <div>
-            <h2 class="text-lg font-semibold text-lottina-primary">Kategorien & Öffnungszeiten</h2>
+            <h2 class="text-lg font-semibold text-lottina-primary">Kategorien & Zeiten</h2>
             <p class="text-sm text-lottina-primary/70">
-              Mehrere Kategorien kannst du kommagetrennt eintragen. JSON Felder erwarten gültiges JSON (z. B. { "mo-fr": "10-18" }).
+              Mehrere Kategorien kannst du kommagetrennt eintragen. Definiere darunter, wann sich das Event wiederholt.
             </p>
           </div>
           <div class="space-y-2 text-sm font-semibold">
@@ -324,30 +324,78 @@
               <p class="text-xs font-normal text-lottina-primary/60">Klick auf eine Kategorie, um sie zu entfernen.</p>
             </div>
           </div>
-          <div class="grid gap-4 md:grid-cols-2">
-            {% set field_error = field_errors.get('opening_hours_json') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Öffnungszeiten (JSON)
-              <textarea name="opening_hours_json" rows="6" class="form-textarea {% if field_error %}form-input--error{% endif %}">{{ prefill.opening_hours_json }}</textarea>
-              {% if field_error %}
-                <span class="form-error">{{ field_error }}</span>
-              {% endif %}
+
+          <div class="pt-6 border-t border-lottina-primary/10 space-y-4" data-recurrence>
+            <div>
+              <h3 class="text-base font-semibold text-lottina-primary">Wiederholungen</h3>
+              <p class="text-sm text-lottina-primary/70">Lege fest, in welchem Rhythmus und zu welchen Zeiten sich das Event wiederholt.</p>
+            </div>
+            {% set recurrence_error = field_errors.get('recurrence') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %}">
+              Rhythmus
+              <select name="recurrence_frequency"
+                      class="form-select {% if recurrence_error %}form-input--error{% endif %}"
+                      data-recurrence-frequency>
+                {% for value, label in recurrence_frequency_choices %}
+                  <option value="{{ value }}" {% if recurrence_frequency == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
             </label>
-            {% set field_error = field_errors.get('holiday_hours_json') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Ferienzeiten (JSON)
-              <textarea name="holiday_hours_json" rows="6" class="form-textarea {% if field_error %}form-input--error{% endif %}">{{ prefill.holiday_hours_json }}</textarea>
-              {% if field_error %}
-                <span class="form-error">{{ field_error }}</span>
-              {% endif %}
-            </label>
+            <div class="space-y-3" data-recurrence-slots-wrapper>
+              {% for slot in recurrence_slots %}
+                <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
+                     data-recurrence-slot>
+                  <label class="flex flex-col gap-1 text-sm font-semibold">
+                    Wochentag
+                    <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
+                      {% for value, label in recurrence_weekday_choices %}
+                        <option value="{{ value }}" {% if slot.weekday == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </label>
+                  <label class="flex flex-col gap-1 text-sm font-semibold">
+                    Startzeit
+                    <input type="time" name="recurrence_start[]" value="{{ slot.start }}" class="form-input" data-recurrence-start>
+                  </label>
+                  <label class="flex flex-col gap-1 text-sm font-semibold">
+                    Endzeit
+                    <input type="time" name="recurrence_end[]" value="{{ slot.end }}" class="form-input" data-recurrence-end>
+                  </label>
+                  <button type="button"
+                          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
+                          data-recurrence-remove
+                          title="Eintrag entfernen">
+                    &times;
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+            {% if recurrence_error %}
+              <span class="form-error">{{ recurrence_error }}</span>
+            {% endif %}
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button"
+                      data-recurrence-add
+                      class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5">
+                Weiteren Wochentag hinzufügen
+              </button>
+              <p class="text-xs text-lottina-primary/60">Zeiten bitte im Format HH:MM angeben.</p>
+            </div>
           </div>
+
+          {% set opening_error = field_errors.get('opening_hours_json') %}
+          {% set holiday_error = field_errors.get('holiday_hours_json') %}
+          {% set opening_populated = prefill.opening_hours_json %}
+          {% set holiday_populated = prefill.holiday_hours_json %}
         </div>
 
         <div class="flex items-center justify-end gap-4">
           <a href="{{ url_for('event_detail', event_id=event.id) }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
             Abbrechen
           </a>
+          <button type="submit" name="publish_now" value="1" class="inline-flex items-center gap-2 rounded-2xl bg-lottina-accent px-5 py-3 text-sm font-semibold text-lottina-primary shadow hover:bg-[#b8ff7a]">
+            Aktualisieren &amp; veröffentlichen
+          </button>
           <button type="submit" class="inline-flex items-center gap-2 rounded-2xl bg-lottina-primary px-6 py-3 text-sm font-semibold text-white shadow hover:bg-[#0c4a40]">
             Aktualisieren
           </button>
@@ -357,80 +405,166 @@
   </section>
 </div>
 
+<template id="recurrence-slot-template">
+  <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
+       data-recurrence-slot>
+    <label class="flex flex-col gap-1 text-sm font-semibold">
+      Wochentag
+      <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
+        {% for value, label in recurrence_weekday_choices %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm font-semibold">
+      Startzeit
+      <input type="time" name="recurrence_start[]" class="form-input" data-recurrence-start>
+    </label>
+    <label class="flex flex-col gap-1 text-sm font-semibold">
+      Endzeit
+      <input type="time" name="recurrence_end[]" class="form-input" data-recurrence-end>
+    </label>
+    <button type="button"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
+            data-recurrence-remove
+            title="Eintrag entfernen">
+      &times;
+    </button>
+  </div>
+</template>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const picker = document.querySelector("[data-category-picker]");
-    if (!picker) return;
-    const hiddenInput = picker.querySelector("[data-category-input]");
-    const select = picker.querySelector("[data-category-select]");
-    const pillsContainer = picker.querySelector("[data-category-pills]");
-    const countLabel = document.querySelector("[data-category-count]");
+    if (picker) {
+      const hiddenInput = picker.querySelector("[data-category-input]");
+      const select = picker.querySelector("[data-category-select]");
+      const pillsContainer = picker.querySelector("[data-category-pills]");
+      const countLabel = document.querySelector("[data-category-count]");
 
-    const parseValues = () =>
-      (hiddenInput.value || "")
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item, index, arr) => item && arr.indexOf(item) === index);
+      const parseValues = () =>
+        (hiddenInput.value || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item, index, arr) => item && arr.indexOf(item) === index);
 
-    const updateHiddenInput = (values) => {
-      hiddenInput.value = values.join(", ");
-      if (countLabel) {
-        countLabel.textContent = values.length
-          ? `${values.length} Kategorie${values.length === 1 ? "" : "n"} ausgewählt`
-          : "Keine Kategorie ausgewählt";
-      }
-    };
-
-    const renderPills = (values) => {
-      pillsContainer.innerHTML = "";
-      values.forEach((value) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "category-pill";
-        button.dataset.categoryPill = "1";
-        button.dataset.value = value;
-        button.innerHTML = `<span>${value}</span><span aria-hidden="true">×</span>`;
-        pillsContainer.appendChild(button);
-      });
-    };
-
-    const syncSelectOptions = (values) => {
-      Array.from(select.options).forEach((option) => {
-        if (!option.value) return;
-        option.disabled = values.includes(option.value);
-      });
-    };
-
-    const syncUI = () => {
-      const values = parseValues();
-      updateHiddenInput(values);
-      renderPills(values);
-      syncSelectOptions(values);
-    };
-
-    select.addEventListener("change", () => {
-      const value = select.value.trim();
-      if (!value) return;
-      const values = parseValues();
-      if (!values.includes(value)) {
-        values.push(value);
+      const updateHiddenInput = (values) => {
         hiddenInput.value = values.join(", ");
+        if (countLabel) {
+          countLabel.textContent = values.length
+            ? `${values.length} Kategorie${values.length === 1 ? "" : "n"} ausgewählt`
+            : "Keine Kategorie ausgewählt";
+        }
+      };
+
+      const renderPills = (values) => {
+        pillsContainer.innerHTML = "";
+        values.forEach((value) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "category-pill";
+          button.dataset.categoryPill = "1";
+          button.dataset.value = value;
+          button.innerHTML = `<span>${value}</span><span aria-hidden="true">×</span>`;
+          pillsContainer.appendChild(button);
+        });
+      };
+
+      const syncSelectOptions = (values) => {
+        Array.from(select.options).forEach((option) => {
+          if (!option.value) return;
+          option.disabled = values.includes(option.value);
+        });
+      };
+
+      const syncUI = () => {
+        const values = parseValues();
+        updateHiddenInput(values);
+        renderPills(values);
+        syncSelectOptions(values);
+      };
+
+      select.addEventListener("change", () => {
+        const value = select.value.trim();
+        if (!value) return;
+        const values = parseValues();
+        if (!values.includes(value)) {
+          values.push(value);
+          hiddenInput.value = values.join(", ");
+          syncUI();
+        }
+        select.value = "";
+      });
+
+      pillsContainer.addEventListener("click", (event) => {
+        const pill = event.target.closest("[data-category-pill]");
+        if (!pill) return;
+        event.preventDefault();
+        const value = pill.dataset.value;
+        const remaining = parseValues().filter((item) => item !== value);
+        hiddenInput.value = remaining.join(", ");
         syncUI();
-      }
-      select.value = "";
-    });
+      });
 
-    pillsContainer.addEventListener("click", (event) => {
-      const pill = event.target.closest("[data-category-pill]");
-      if (!pill) return;
-      event.preventDefault();
-      const value = pill.dataset.value;
-      const remaining = parseValues().filter((item) => item !== value);
-      hiddenInput.value = remaining.join(", ");
       syncUI();
-    });
+    }
 
-    syncUI();
+    const recurrenceSection = document.querySelector("[data-recurrence]");
+    if (recurrenceSection) {
+      const slotsWrapper = recurrenceSection.querySelector("[data-recurrence-slots-wrapper]");
+      const addButton = recurrenceSection.querySelector("[data-recurrence-add]");
+      const template = document.getElementById("recurrence-slot-template");
+      const frequencySelect = recurrenceSection.querySelector("[data-recurrence-frequency]");
+
+      const addSlot = (weekday = "", start = "", end = "") => {
+        if (!template || !slotsWrapper) return;
+        const fragment = template.content.cloneNode(true);
+        const slotEl = fragment.querySelector("[data-recurrence-slot]");
+        const weekdaySelect = slotEl?.querySelector("[data-recurrence-weekday]");
+        const startInput = slotEl?.querySelector("[data-recurrence-start]");
+        const endInput = slotEl?.querySelector("[data-recurrence-end]");
+        if (weekdaySelect) {
+          weekdaySelect.value = weekday || weekdaySelect.value;
+        }
+        if (startInput) {
+          startInput.value = start || "";
+        }
+        if (endInput) {
+          endInput.value = end || "";
+        }
+        slotsWrapper.appendChild(slotEl);
+      };
+
+      const ensureSlotPresence = () => {
+        if (!slotsWrapper.querySelector("[data-recurrence-slot]")) {
+          addSlot();
+        }
+      };
+
+      const toggleSlotsVisibility = () => {
+        const active = frequencySelect && frequencySelect.value !== "none";
+        slotsWrapper?.classList.toggle("hidden", !active);
+        addButton?.classList.toggle("hidden", !active);
+      };
+
+      addButton?.addEventListener("click", () => addSlot());
+
+      slotsWrapper?.addEventListener("click", (event) => {
+        const removeBtn = event.target.closest("[data-recurrence-remove]");
+        if (!removeBtn) return;
+        event.preventDefault();
+        const slot = removeBtn.closest("[data-recurrence-slot]");
+        if (slot) {
+          slot.remove();
+          ensureSlotPresence();
+        }
+      });
+
+      frequencySelect?.addEventListener("change", toggleSlotsVisibility);
+
+      ensureSlotPresence();
+      toggleSlotsVisibility();
+    }
   });
 </script>
 
