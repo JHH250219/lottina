@@ -1343,6 +1343,8 @@ def edit_event(event_id):
     if not current_user.is_admin:
         abort(403)
 
+    had_existing_recurrence = bool(event.recurrence_rule or event.recurring_series_id)
+
     recurrence_frequency_choices = [
         ("none", "Keine Wiederholung"),
         ("daily", "Täglich"),
@@ -1364,6 +1366,12 @@ def edit_event(event_id):
     recurrence_weekday_values = {value for value, _ in recurrence_weekday_choices}
 
     publish_and_redirect = request.form.get("publish_now") == "1" if request.method == "POST" else False
+
+    recurrence_scope_prefill = ""
+    if request.method == "POST":
+        recurrence_scope_prefill = (request.form.get("recurrence_update_scope") or "").strip().lower()
+        if recurrence_scope_prefill not in {"single", "series"}:
+            recurrence_scope_prefill = ""
 
     text_fields = [
         "title",
@@ -1834,8 +1842,11 @@ def edit_event(event_id):
                     event.is_recurring = True
                     event.is_once = False
 
+                apply_series_updates = not (had_existing_recurrence and recurrence_scope_prefill == "single")
                 sync_slots = recurrence_slots_input if recurrence_frequency != "none" else []
-                _sync_recurrence_instances(event, recurrence_frequency, sync_slots)
+                should_sync_series = recurrence_frequency == "none" or apply_series_updates
+                if should_sync_series:
+                    _sync_recurrence_instances(event, recurrence_frequency, sync_slots)
 
                 sync_permanent_availability(db.session, event)
                 db.session.commit()
@@ -1921,6 +1932,8 @@ def edit_event(event_id):
         recurrence_weekday_choices=recurrence_weekday_choices,
         recurrence_frequency=prefill.get("recurrence_frequency", "none"),
         recurrence_slots=recurrence_slots or _default_recurrence_slots(),
+        has_existing_recurrence=had_existing_recurrence,
+        recurrence_scope_prefill=recurrence_scope_prefill,
     )
 
 @app.get("/ueber_uns")

@@ -36,7 +36,14 @@
         </div>
       {% endif %}
 
-      <form method="post" class="space-y-10">
+      <form method="post"
+            class="space-y-10"
+            data-event-edit-form
+            data-recurring-event="{{ 1 if has_existing_recurrence else 0 }}">
+        <input type="hidden"
+               name="recurrence_update_scope"
+               value="{{ recurrence_scope_prefill }}"
+               data-recurrence-scope-input>
         <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
           <div>
             <h2 class="text-lg font-semibold text-lottina-primary">Basis</h2>
@@ -405,6 +412,43 @@
   </section>
 </div>
 
+{% if has_existing_recurrence %}
+<div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4"
+     data-recurrence-modal
+     aria-hidden="true">
+  <div class="absolute inset-0" data-recurrence-modal-cancel></div>
+  <div class="relative z-10 w-full max-w-md space-y-5 rounded-3xl bg-white p-6 text-lottina-primary shadow-2xl">
+    <div class="space-y-2">
+      <p class="text-sm font-semibold text-lottina-primary/70 uppercase tracking-[0.3em]">Wiederholungen</p>
+      <h3 class="text-2xl font-bold">Nur dieses Event oder ganze Serie?</h3>
+      <p class="text-sm text-lottina-primary/70">
+        Dieses Event ist Teil einer Serie. Möchtest du nur die aktuelle Veranstaltung speichern
+        oder alle zukünftigen Wiederholungen mit den neuen Angaben überschreiben?
+      </p>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <button type="button"
+              class="rounded-2xl border border-lottina-primary/20 px-4 py-3 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5"
+              data-recurrence-choice="single">
+        Nur dieses Event
+      </button>
+      <button type="button"
+              class="rounded-2xl bg-lottina-primary px-4 py-3 text-sm font-semibold text-white shadow hover:bg-[#0c4a40]"
+              data-recurrence-choice="series">
+        Alle Events der Serie
+      </button>
+    </div>
+    <div class="text-center">
+      <button type="button"
+              class="text-sm font-semibold text-lottina-primary/70 hover:text-lottina-primary"
+              data-recurrence-modal-cancel>
+        Abbrechen
+      </button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <template id="recurrence-slot-template">
   <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
        data-recurrence-slot>
@@ -435,6 +479,61 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const editForm = document.querySelector("[data-event-edit-form]");
+    const recurrenceScopeInput = editForm?.querySelector("[data-recurrence-scope-input]");
+    const recurrenceModal = document.querySelector("[data-recurrence-modal]");
+    const hasSeries = editForm?.dataset.recurringEvent === "1";
+
+    if (editForm && recurrenceScopeInput && recurrenceModal && hasSeries) {
+      let pendingSubmitter = null;
+
+      const openRecurrenceModal = () => {
+        recurrenceModal.classList.remove("hidden");
+        recurrenceModal.setAttribute("aria-hidden", "false");
+      };
+
+      const closeRecurrenceModal = () => {
+        recurrenceModal.classList.add("hidden");
+        recurrenceModal.setAttribute("aria-hidden", "true");
+      };
+
+      editForm.addEventListener("submit", (event) => {
+        if (recurrenceScopeInput.value) {
+          return;
+        }
+        event.preventDefault();
+        pendingSubmitter = event.submitter || null;
+        openRecurrenceModal();
+      });
+
+      const choiceButtons = recurrenceModal.querySelectorAll("[data-recurrence-choice]");
+      choiceButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          recurrenceScopeInput.value = button.dataset.recurrenceChoice || "series";
+          closeRecurrenceModal();
+          if (typeof editForm.requestSubmit === "function") {
+            if (pendingSubmitter) {
+              editForm.requestSubmit(pendingSubmitter);
+              pendingSubmitter = null;
+              return;
+            }
+            editForm.requestSubmit();
+            return;
+          }
+          editForm.submit();
+        });
+      });
+
+      const cancelButtons = recurrenceModal.querySelectorAll("[data-recurrence-modal-cancel]");
+      cancelButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          pendingSubmitter = null;
+          recurrenceScopeInput.value = "";
+          closeRecurrenceModal();
+        });
+      });
+    }
+
     const picker = document.querySelector("[data-category-picker]");
     if (picker) {
       const hiddenInput = picker.querySelector("[data-category-input]");
