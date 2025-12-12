@@ -31,7 +31,7 @@ from .permanent import sync_permanent_availability, opening_hours_text
 from .sitemap import sitemap_bp
 from .organisations import organisations_bp
 from jinja2 import TemplateNotFound
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from calendar import monthrange
 from math import ceil
 from dotenv import load_dotenv
@@ -1441,6 +1441,15 @@ def edit_event(event_id):
         try:
             parsed = datetime.strptime(value, "%H:%M")
             return parsed.strftime("%H:%M")
+        except ValueError:
+            return None
+
+    def _parse_date_value(value: str | None) -> date | None:
+        value = (value or "").strip()
+        if not value:
+            return None
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
         except ValueError:
             return None
 
