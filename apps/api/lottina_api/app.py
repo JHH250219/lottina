@@ -1412,13 +1412,13 @@ def edit_event(event_id):
     def _default_recurrence_slots() -> list[dict[str, str]]:
         return [{"weekday": "mo", "start": "", "end": ""}]
 
-    def _parse_recurrence_rule(value: str | None) -> tuple[str, list[dict[str, str]]]:
+    def _parse_recurrence_rule(value: str | None) -> tuple[str, list[dict[str, str]], str]:
         if not value:
-            return ("none", [])
+            return ("none", [], "")
         try:
             data = json.loads(value)
         except (TypeError, ValueError):
-            return ("none", [])
+            return ("none", [], "")
         freq = str(data.get("frequency") or "none").lower()
         raw_slots = data.get("slots") or []
         slots: list[dict[str, str]] = []
@@ -1432,7 +1432,9 @@ def edit_event(event_id):
                 slots.append({"weekday": weekday, "start": start_time, "end": end_time})
         if freq not in recurrence_frequency_values:
             freq = "none"
-        return (freq, slots)
+        until_raw = data.get("until")
+        until_value = until_raw.strip() if isinstance(until_raw, str) else ""
+        return (freq, slots, until_value)
 
     def _parse_time_value(value: str | None) -> str | None:
         value = (value or "").strip()
