@@ -32,6 +32,7 @@ from .sitemap import sitemap_bp
 from .organisations import organisations_bp
 from jinja2 import TemplateNotFound
 from datetime import datetime, timedelta, timezone
+from calendar import monthrange
 from math import ceil
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
@@ -187,6 +188,8 @@ FEEDBACK_KIND_LABELS = {
     FEEDBACK_KIND_FEEDBACK: "Feedback",
     FEEDBACK_KIND_CITY: "Wunschstadt / Aktivität",
 }
+
+RECURRENCE_GENERATION_DAYS = 90
 
 
 
@@ -1437,6 +1440,196 @@ def edit_event(event_id):
         errors.append(message)
         field_errors.setdefault("recurrence", message)
 
+    weekday_index_lookup = {"mo": 0, "di": 1, "mi": 2, "do": 3, "fr": 4, "sa": 5, "so": 6}
+
+    def _first_date_for_weekday(start_date, weekday_idx: int):
+        delta = (weekday_idx - start_date.weekday()) % 7
+        return start_date + timedelta(days=delta)
+
+    def _month_meta(date_value):
+        days_in_month = monthrange(date_value.year, date_value.month)
+        nth = (date_value.day - 1) // 7 + 1
+        is_last = date_value.day + 7 > days_in_month[1]
+        return nth, is_last
+
+    def _nth_weekday_of_month(year: int, month: int, weekday_idx: int, nth: int, prefer_last: bool):
+        days_in_month = monthrange(year, month)[1]
+        matches = []
+        for day in range(1, days_in_month + 1):
+            candidate = datetime(year, month, day).date()
+            if candidate.weekday() == weekday_idx:
+                matches.append(candidate)
+        if not matches:
+            return None
+        if prefer_last or nth > len(matches):
+            return matches[-1]
+        return matches[nth - 1]
+
+    def _advance_monthly_date(date_value, months_step: int, weekday_idx: int, nth: int, prefer_last: bool):
+        month = date_value.month - 1 + months_step
+        year = date_value.year + month // 12
+        month = month % 12 + 1
+        return _nth_weekday_of_month(year, month, weekday_idx, nth, prefer_last)
+
+    def _advance_occurrence_date(date_value, frequency: str, weekday_idx: int, nth: int, prefer_last: bool):
+        if frequency == "daily":
+            return date_value + timedelta(days=1)
+        if frequency == "weekly":
+            return date_value + timedelta(weeks=1)
+        if frequency == "biweekly":
+            return date_value + timedelta(weeks=2)
+        if frequency == "monthly":
+            return _advance_monthly_date(date_value, 1, weekday_idx, nth, prefer_last)
+        if frequency == "quarterly":
+            return _advance_monthly_date(date_value, 3, weekday_idx, nth, prefer_last)
+        return date_value + timedelta(weeks=1)
+
+    def _generate_recurrence_occurrences(event_obj: Offer, frequency: str, slots_data: list[dict[str, str]]):
+        if not event_obj.dt_start:
+            return []
+        tzinfo = event_obj.dt_start.tzinfo or timezone.utc
+        anchor_date = event_obj.dt_start.date()
+        now_dt = datetime.now(tzinfo)
+        cutoff_dt = event_obj.dt_start if event_obj.dt_start >= now_dt else now_dt
+        horizon_end = cutoff_dt.date() + timedelta(days=RECURRENCE_GENERATION_DAYS)
+        occurrences: list[tuple[datetime, datetime]] = []
+        max_occurrences = 500
+
+        for slot in slots_data:
+            weekday_value = (slot.get("weekday") or "").strip().lower()
+            weekday_idx = weekday_index_lookup.get(weekday_value)
+            if weekday_idx is None:
+                continue
+            try:
+                start_time_obj = datetime.strptime(slot.get("start", ""), "%H:%M").time()
+                end_time_obj = datetime.strptime(slot.get("end", ""), "%H:%M").time()
+            except (TypeError, ValueError):
+                continue
+            current_date = _first_date_for_weekday(anchor_date, weekday_idx)
+            nth, prefer_last = _month_meta(current_date)
+            safety_counter = 0
+            while current_date <= horizon_end:
+                start_dt = datetime.combine(current_date, start_time_obj).replace(tzinfo=tzinfo)
+                end_dt = datetime.combine(current_date, end_time_obj).replace(tzinfo=tzinfo)
+                if start_dt != event_obj.dt_start and start_dt >= cutoff_dt:
+                    occurrences.append((start_dt, end_dt))
+                    if len(occurrences) >= max_occurrences:
+                        return sorted(occurrences, key=lambda entry: entry[0])
+                next_date = _advance_occurrence_date(current_date, frequency, weekday_idx, nth, prefer_last)
+                if not next_date or next_date <= current_date:
+                    break
+                current_date = next_date
+                safety_counter += 1
+                if safety_counter > max_occurrences:
+                    break
+        return sorted(occurrences, key=lambda entry: entry[0])
+
+    def _build_recurring_external_id(template_event: Offer) -> str:
+        base_part = getattr(getattr(template_event, "id", None), "hex", "")[:8]
+        if not base_part:
+            base_part = uuid.uuid4().hex[:8]
+        suffix = uuid.uuid4().hex[:8]
+        value = f"rec-{base_part}-{suffix}"
+        return value[:64]
+
+    def _apply_template_to_offer(
+        target: Offer,
+        template: Offer,
+        start_dt: datetime,
+        end_dt: datetime,
+        series_id,
+        *,
+        keep_external_id: bool,
+    ) -> None:
+        if not keep_external_id:
+            target.external_id = _build_recurring_external_id(template)
+        target.title = template.title
+        target.summary = template.summary
+        target.description = template.description
+        target.image = template.image
+        target.maps_url = template.maps_url
+        target.meeting_point = template.meeting_point
+        target.source = template.source
+        target.source_url = template.source_url
+        target.source_name = template.source_name
+        target.source_type = template.source_type
+        target.type = template.type
+        target.status = template.status
+        target.price_value = template.price_value
+        target.price_min = template.price_min
+        target.price_max = template.price_max
+        target.currency = template.currency
+        target.target_age_min = template.target_age_min
+        target.target_age_max = template.target_age_max
+        target.with_accompaniment = template.with_accompaniment
+        target.is_free = template.is_free
+        target.is_outdoor = template.is_outdoor
+        target.is_indoor = template.is_indoor
+        target.hobby_regular = template.hobby_regular
+        target.is_sporty = template.is_sporty
+        target.is_creative = template.is_creative
+        target.pets_allowed = template.pets_allowed
+        target.organizer_id = template.organizer_id
+        target.organisation_id = template.organisation_id
+        target.location_id = template.location_id
+        target.is_internal = template.is_internal
+        target.opening_hours = template.opening_hours
+        target.holiday_hours = template.holiday_hours
+        target.created_by_user_id = template.created_by_user_id
+        target.registration_required = template.registration_required
+        target.registration_methods = template.registration_methods
+        target.registration_contact = template.registration_contact
+        target.dt_start = start_dt
+        target.dt_end = end_dt
+        target.recurrence_rule = None
+        target.is_recurring = True
+        target.is_once = False
+        target.recurring_series_id = series_id
+        target.categories = list(template.categories)
+        target.tags = list(template.tags)
+
+    def _sync_recurrence_instances(event_obj: Offer, frequency: str, slots_data: list[dict[str, str]]) -> None:
+        def _delete_children(series_id):
+            if not series_id:
+                return
+            siblings = (
+                Offer.query.filter(Offer.recurring_series_id == series_id, Offer.id != event_obj.id).all()
+            )
+            for sibling in siblings:
+                db.session.delete(sibling)
+
+        if frequency == "none" or not slots_data:
+            _delete_children(event_obj.recurring_series_id)
+            event_obj.recurring_series_id = None
+            return
+
+        if not event_obj.dt_start:
+            return
+
+        series_id = event_obj.recurring_series_id or uuid.uuid4()
+        event_obj.recurring_series_id = series_id
+
+        desired_occurrences = _generate_recurrence_occurrences(event_obj, frequency, slots_data)
+        existing_children = (
+            Offer.query.filter(Offer.recurring_series_id == series_id, Offer.id != event_obj.id).all()
+        )
+        existing_by_start = {child.dt_start: child for child in existing_children if child.dt_start}
+        desired_starts: set[datetime] = set()
+
+        for start_dt, end_dt in desired_occurrences:
+            desired_starts.add(start_dt)
+            child = existing_by_start.get(start_dt)
+            if child:
+                _apply_template_to_offer(child, event_obj, start_dt, end_dt, series_id, keep_external_id=True)
+            else:
+                child = Offer()
+                _apply_template_to_offer(child, event_obj, start_dt, end_dt, series_id, keep_external_id=False)
+                db.session.add(child)
+
+        for child in existing_children:
+            if child.dt_start not in desired_starts:
+                db.session.delete(child)
+
     recurrence_frequency, recurrence_slots = _parse_recurrence_rule(event.recurrence_rule)
     if not recurrence_slots:
         recurrence_slots = _default_recurrence_slots()
@@ -1560,6 +1753,9 @@ def edit_event(event_id):
 
         recurrence_slots = recurrence_slots_input or _default_recurrence_slots()
 
+        if recurrence_frequency != "none" and not event.dt_start:
+            _set_recurrence_error("Bitte gib Startdatum und Startzeit an, um Wiederholungen zu planen.")
+
         if (
             recurrence_frequency != "none"
             and recurrence_slots_input
@@ -1637,6 +1833,9 @@ def edit_event(event_id):
                     event.recurrence_rule = recurrence_rule_serialized
                     event.is_recurring = True
                     event.is_once = False
+
+                sync_slots = recurrence_slots_input if recurrence_frequency != "none" else []
+                _sync_recurrence_instances(event, recurrence_frequency, sync_slots)
 
                 sync_permanent_availability(db.session, event)
                 db.session.commit()
