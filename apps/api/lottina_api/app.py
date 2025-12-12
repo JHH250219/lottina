@@ -31,7 +31,7 @@ from .permanent import sync_permanent_availability, opening_hours_text
 from .sitemap import sitemap_bp
 from .organisations import organisations_bp
 from jinja2 import TemplateNotFound
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from calendar import monthrange
 from math import ceil
 from dotenv import load_dotenv
@@ -1518,7 +1518,10 @@ def edit_event(event_id):
             safety_counter = 0
             while current_date <= horizon_end:
                 start_dt = datetime.combine(current_date, start_time_obj).replace(tzinfo=tzinfo)
-                end_dt = datetime.combine(current_date, end_time_obj).replace(tzinfo=tzinfo)
+                end_date_base = current_date
+                if end_time_obj <= start_time_obj:
+                    end_date_base = current_date + timedelta(days=1)
+                end_dt = datetime.combine(end_date_base, end_time_obj).replace(tzinfo=tzinfo)
                 if start_dt != event_obj.dt_start and start_dt >= cutoff_dt:
                     occurrences.append((start_dt, end_dt))
                     if len(occurrences) >= max_occurrences:
@@ -1596,7 +1599,9 @@ def edit_event(event_id):
         target.categories = list(template.categories)
         target.tags = list(template.tags)
 
-    def _sync_recurrence_instances(event_obj: Offer, frequency: str, slots_data: list[dict[str, str]]) -> None:
+    def _sync_recurrence_instances(
+        event_obj: Offer, frequency: str, slots_data: list[dict[str, str]], until_limit: date | None
+    ) -> None:
         def _delete_children(series_id):
             if not series_id:
                 return
@@ -1617,7 +1622,7 @@ def edit_event(event_id):
         series_id = event_obj.recurring_series_id or uuid.uuid4()
         event_obj.recurring_series_id = series_id
 
-        desired_occurrences = _generate_recurrence_occurrences(event_obj, frequency, slots_data)
+        desired_occurrences = _generate_recurrence_occurrences(event_obj, frequency, slots_data, until_limit)
         existing_children = (
             Offer.query.filter(Offer.recurring_series_id == series_id, Offer.id != event_obj.id).all()
         )
@@ -1638,7 +1643,7 @@ def edit_event(event_id):
             if child.dt_start not in desired_starts:
                 db.session.delete(child)
 
-    recurrence_frequency, recurrence_slots = _parse_recurrence_rule(event.recurrence_rule)
+    recurrence_frequency, recurrence_slots, recurrence_until_value = _parse_recurrence_rule(event.recurrence_rule)
     if not recurrence_slots:
         recurrence_slots = _default_recurrence_slots()
 
@@ -1735,6 +1740,9 @@ def edit_event(event_id):
             recurrence_frequency = recurrence_frequency_value
 
         recurrence_slots_input: list[dict[str, str]] = []
+        recurrence_until_input = (request.form.get("recurrence_until") or "").strip()
+        recurrence_until_date = _parse_date(recurrence_until_input)
+
         if recurrence_frequency != "none":
             weekdays_input = request.form.getlist("recurrence_weekday[]")
             starts_input = request.form.getlist("recurrence_start[]")
@@ -1754,8 +1762,8 @@ def edit_event(event_id):
                 if not start_time or not end_time:
                     _set_recurrence_error("Start- und Endzeit müssen im Format HH:MM angegeben werden.")
                     continue
-                if start_time >= end_time:
-                    _set_recurrence_error("Die Endzeit muss nach der Startzeit liegen.")
+                if start_time == end_time:
+                    _set_recurrence_error("Start- und Endzeit dürfen nicht identisch sein.")
                     continue
                 recurrence_slots_input.append(
                     {"weekday": weekday_raw, "start": start_time, "end": end_time}
@@ -1764,7 +1772,16 @@ def edit_event(event_id):
             if not recurrence_slots_input:
                 _set_recurrence_error("Bitte füge mindestens einen Wochentag mit Zeitspanne hinzu.")
 
+            if not recurrence_until_date:
+                _set_recurrence_error("Bitte gib ein gültiges Enddatum für die Wiederholungen an (YYYY-MM-DD).")
+            elif event.dt_start and recurrence_until_date < event.dt_start.date():
+                _set_recurrence_error("Das Enddatum der Wiederholungen muss nach dem Startdatum liegen.")
+        else:
+            recurrence_until_input = ""
+            recurrence_until_date = None
+
         recurrence_slots = recurrence_slots_input or _default_recurrence_slots()
+        recurrence_until_value = recurrence_until_input
 
         if recurrence_frequency != "none" and not event.dt_start:
             _set_recurrence_error("Bitte gib Startdatum und Startzeit an, um Wiederholungen zu planen.")
@@ -1772,9 +1789,11 @@ def edit_event(event_id):
         if (
             recurrence_frequency != "none"
             and recurrence_slots_input
+            and recurrence_until_date
             and "recurrence" not in field_errors
         ):
             payload = {"frequency": recurrence_frequency, "slots": recurrence_slots_input}
+            payload["until"] = recurrence_until_date.isoformat()
             serialized_rule = json.dumps(payload, separators=(",", ":"))
             if len(serialized_rule) > 1000:
                 _set_recurrence_error("Die Angaben zur Wiederholung sind zu umfangreich.")
@@ -1849,9 +1868,10 @@ def edit_event(event_id):
 
                 apply_series_updates = not (had_existing_recurrence and recurrence_scope_prefill == "single")
                 sync_slots = recurrence_slots_input if recurrence_frequency != "none" else []
+                until_limit = recurrence_until_date if recurrence_frequency != "none" else None
                 should_sync_series = recurrence_frequency == "none" or apply_series_updates
                 if should_sync_series:
-                    _sync_recurrence_instances(event, recurrence_frequency, sync_slots)
+                    _sync_recurrence_instances(event, recurrence_frequency, sync_slots, until_limit)
 
                 sync_permanent_availability(db.session, event)
                 db.session.commit()
@@ -1900,6 +1920,7 @@ def edit_event(event_id):
         "status": getattr(event.status, "value", ""),
         "source_type": getattr(event.source_type, "value", ""),
         "recurrence_frequency": recurrence_frequency,
+        "recurrence_until": recurrence_until_value,
     }
 
     if request.method == "POST":
@@ -1907,6 +1928,7 @@ def edit_event(event_id):
             if key in request.form:
                 prefill[key] = request.form.get(key, "")
         prefill["recurrence_frequency"] = recurrence_frequency
+        prefill["recurrence_until"] = recurrence_until_value
 
     bool_states = {field: bool(getattr(event, field)) for field in bool_fields}
     if request.method == "POST":
@@ -1937,6 +1959,7 @@ def edit_event(event_id):
         recurrence_weekday_choices=recurrence_weekday_choices,
         recurrence_frequency=prefill.get("recurrence_frequency", "none"),
         recurrence_slots=recurrence_slots or _default_recurrence_slots(),
+        recurrence_until=prefill.get("recurrence_until", ""),
         has_existing_recurrence=had_existing_recurrence,
         recurrence_scope_prefill=recurrence_scope_prefill,
     )

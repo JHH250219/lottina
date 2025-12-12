@@ -497,9 +497,9 @@ class Offer(db.Model):
 
     # Ort / Flags
     maps_url = db.Column(db.String(500))
-    meeting_point = db.Column(db.String(200))
+    meeting_point = db.Column(db.String(400))
     is_outdoor = db.Column(db.Boolean, server_default="false")
-    is_indoor = db.Column(db.Boolean, server_default="true")
+    is_indoor = db.Column(db.Boolean, server_default="false")
 
     # Zielgruppe
     target_age_min = db.Column(db.Integer)
@@ -511,7 +511,7 @@ class Offer(db.Model):
 
     # Filter Flags
     hobby_regular = db.Column(db.Boolean, server_default="false")
-    is_once = db.Column(db.Boolean, server_default="true")
+    is_once = db.Column(db.Boolean, server_default="false")
     is_sporty = db.Column(db.Boolean, server_default="false")
     is_creative = db.Column(db.Boolean, server_default="false")
     pets_allowed = db.Column(db.Boolean, server_default="false")

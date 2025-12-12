@@ -199,46 +199,7 @@
         </div>
 
         <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-4">
-          <h2 class="text-lg font-semibold text-lottina-primary">Flags & Typen</h2>
-          <div class="grid gap-4 md:grid-cols-3">
-            {% set field_error = field_errors.get('type') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Angebotstyp
-              <select name="type" class="form-select {% if field_error %}form-input--error{% endif %}">
-                <option value="">Standard</option>
-                {% for value, label in offer_type_choices %}
-                  <option value="{{ value }}" {% if prefill.type == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-              {% if field_error %}
-                <span class="form-error">{{ field_error }}</span>
-              {% endif %}
-            </label>
-            {% set field_error = field_errors.get('status') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Status
-              <select name="status" class="form-select {% if field_error %}form-input--error{% endif %}">
-                {% for value, label in status_choices %}
-                  <option value="{{ value }}" {% if prefill.status == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-              {% if field_error %}
-                <span class="form-error">{{ field_error }}</span>
-              {% endif %}
-            </label>
-            {% set field_error = field_errors.get('source_type') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Quellentyp
-              <select name="source_type" class="form-select {% if field_error %}form-input--error{% endif %}">
-                {% for value, label in source_type_choices %}
-                  <option value="{{ value }}" {% if prefill.source_type == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-              {% if field_error %}
-                <span class="form-error">{{ field_error }}</span>
-              {% endif %}
-            </label>
-          </div>
+          <h2 class="text-lg font-semibold text-lottina-primary">Flags</h2>
           <div class="grid gap-3 md:grid-cols-3">
             {% set flag_labels = {
               "is_free": "Kostenlos",
@@ -247,8 +208,6 @@
               "with_accompaniment": "Begleitperson nötig",
               "hobby_regular": "Regelmäßiges Hobby",
               "is_once": "Einmalig",
-              "is_sporty": "Sportlich",
-              "is_creative": "Kreativ",
               "pets_allowed": "Haustiere erlaubt"
             } %}
             {% for field, label in flag_labels.items() %}
@@ -380,13 +339,26 @@
             {% if recurrence_error %}
               <span class="form-error">{{ recurrence_error }}</span>
             {% endif %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %} {% if recurrence_frequency == 'none' %}hidden{% endif %}"
+                   data-recurrence-until-wrapper>
+              Letzter Wiederholungstag
+              <input type="date"
+                     name="recurrence_until"
+                     value="{{ prefill.recurrence_until }}"
+                     data-initial-value="{{ prefill.recurrence_until }}"
+                     class="form-input {% if recurrence_error %}form-input--error{% endif %}"
+                     data-recurrence-until>
+              <span class="text-xs text-lottina-primary/60">Bis einschließlich dieses Tages werden neue Termine erzeugt.</span>
+            </label>
             <div class="flex flex-wrap items-center gap-3">
               <button type="button"
                       data-recurrence-add
                       class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5">
                 Weiteren Wochentag hinzufügen
               </button>
-              <p class="text-xs text-lottina-primary/60">Zeiten bitte im Format HH:MM angeben.</p>
+              <p class="text-xs text-lottina-primary/60">
+                Zeiten bitte im Format HH:MM angeben. Liegt die Endzeit vor der Startzeit, endet das Event automatisch am Folgetag.
+              </p>
             </div>
           </div>
 
@@ -614,6 +586,8 @@
       const addButton = recurrenceSection.querySelector("[data-recurrence-add]");
       const template = document.getElementById("recurrence-slot-template");
       const frequencySelect = recurrenceSection.querySelector("[data-recurrence-frequency]");
+      const untilWrapper = recurrenceSection.querySelector("[data-recurrence-until-wrapper]");
+      const untilInput = recurrenceSection.querySelector("[data-recurrence-until]");
 
       const addSlot = (weekday = "", start = "", end = "") => {
         if (!template || !slotsWrapper) return;
@@ -644,6 +618,14 @@
         const active = frequencySelect && frequencySelect.value !== "none";
         slotsWrapper?.classList.toggle("hidden", !active);
         addButton?.classList.toggle("hidden", !active);
+        untilWrapper?.classList.toggle("hidden", !active);
+        if (untilInput) {
+          if (active) {
+            untilInput.setAttribute("required", "required");
+          } else {
+            untilInput.removeAttribute("required");
+          }
+        }
       };
 
       addButton?.addEventListener("click", () => addSlot());
