@@ -1698,6 +1698,8 @@ def edit_event(event_id):
         for field in bool_fields:
             setattr(event, field, request.form.get(field) == "on")
 
+        force_single_event = request.form.get("is_once") == "on"
+
         type_value = (request.form.get("type") or "").strip()
         if type_value:
             try:
@@ -1724,40 +1726,43 @@ def edit_event(event_id):
 
         recurrence_rule_serialized: str | None = None
         recurrence_frequency_value = (request.form.get("recurrence_frequency") or "none").strip().lower()
+        if force_single_event:
+            recurrence_frequency_value = "none"
         if recurrence_frequency_value not in recurrence_frequency_values:
             _set_recurrence_error("Ungültiger Wiederholungsrhythmus ausgewählt.")
             recurrence_frequency = "none"
         else:
             recurrence_frequency = recurrence_frequency_value
 
-        weekdays_input = request.form.getlist("recurrence_weekday[]")
-        starts_input = request.form.getlist("recurrence_start[]")
-        ends_input = request.form.getlist("recurrence_end[]")
         recurrence_slots_input: list[dict[str, str]] = []
-        max_count = max(len(weekdays_input), len(starts_input), len(ends_input))
-        for idx in range(max_count):
-            weekday_raw = (weekdays_input[idx] if idx < len(weekdays_input) else "").strip().lower()
-            start_raw = (starts_input[idx] if idx < len(starts_input) else "").strip()
-            end_raw = (ends_input[idx] if idx < len(ends_input) else "").strip()
-            if not (weekday_raw or start_raw or end_raw):
-                continue
-            if weekday_raw not in recurrence_weekday_values:
-                _set_recurrence_error("Bitte wähle einen gültigen Wochentag.")
-                continue
-            start_time = _parse_time_value(start_raw)
-            end_time = _parse_time_value(end_raw)
-            if not start_time or not end_time:
-                _set_recurrence_error("Start- und Endzeit müssen im Format HH:MM angegeben werden.")
-                continue
-            if start_time >= end_time:
-                _set_recurrence_error("Die Endzeit muss nach der Startzeit liegen.")
-                continue
-            recurrence_slots_input.append(
-                {"weekday": weekday_raw, "start": start_time, "end": end_time}
-            )
+        if recurrence_frequency != "none":
+            weekdays_input = request.form.getlist("recurrence_weekday[]")
+            starts_input = request.form.getlist("recurrence_start[]")
+            ends_input = request.form.getlist("recurrence_end[]")
+            max_count = max(len(weekdays_input), len(starts_input), len(ends_input))
+            for idx in range(max_count):
+                weekday_raw = (weekdays_input[idx] if idx < len(weekdays_input) else "").strip().lower()
+                start_raw = (starts_input[idx] if idx < len(starts_input) else "").strip()
+                end_raw = (ends_input[idx] if idx < len(ends_input) else "").strip()
+                if not (weekday_raw or start_raw or end_raw):
+                    continue
+                if weekday_raw not in recurrence_weekday_values:
+                    _set_recurrence_error("Bitte wähle einen gültigen Wochentag.")
+                    continue
+                start_time = _parse_time_value(start_raw)
+                end_time = _parse_time_value(end_raw)
+                if not start_time or not end_time:
+                    _set_recurrence_error("Start- und Endzeit müssen im Format HH:MM angegeben werden.")
+                    continue
+                if start_time >= end_time:
+                    _set_recurrence_error("Die Endzeit muss nach der Startzeit liegen.")
+                    continue
+                recurrence_slots_input.append(
+                    {"weekday": weekday_raw, "start": start_time, "end": end_time}
+                )
 
-        if recurrence_frequency != "none" and not recurrence_slots_input:
-            _set_recurrence_error("Bitte füge mindestens einen Wochentag mit Zeitspanne hinzu.")
+            if not recurrence_slots_input:
+                _set_recurrence_error("Bitte füge mindestens einen Wochentag mit Zeitspanne hinzu.")
 
         recurrence_slots = recurrence_slots_input or _default_recurrence_slots()
 
