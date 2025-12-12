@@ -31,7 +31,7 @@ from .permanent import sync_permanent_availability, opening_hours_text
 from .sitemap import sitemap_bp
 from .organisations import organisations_bp
 from jinja2 import TemplateNotFound
-from datetime import datetime, timedelta, timezone, date
+from datetime import datetime, timedelta, timezone
 from calendar import monthrange
 from math import ceil
 from dotenv import load_dotenv
@@ -1741,7 +1741,7 @@ def edit_event(event_id):
 
         recurrence_slots_input: list[dict[str, str]] = []
         recurrence_until_input = (request.form.get("recurrence_until") or "").strip()
-        recurrence_until_date = _parse_date(recurrence_until_input)
+        recurrence_until_date = _parse_date_value(recurrence_until_input)
 
         if recurrence_frequency != "none":
             weekdays_input = request.form.getlist("recurrence_weekday[]")
