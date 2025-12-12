@@ -1771,7 +1771,7 @@ def edit_event(event_id):
         ):
             payload = {"frequency": recurrence_frequency, "slots": recurrence_slots_input}
             serialized_rule = json.dumps(payload, separators=(",", ":"))
-            if len(serialized_rule) > 200:
+            if len(serialized_rule) > 1000:
                 _set_recurrence_error("Die Angaben zur Wiederholung sind zu umfangreich.")
             else:
                 recurrence_rule_serialized = serialized_rule

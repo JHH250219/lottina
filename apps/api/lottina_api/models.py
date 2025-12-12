@@ -541,7 +541,7 @@ class Offer(db.Model):
     registration_required = db.Column(db.Boolean, server_default="false")
     registration_methods = db.Column(db.JSON)
     registration_contact = db.Column(db.String(300))
-    recurrence_rule = db.Column(db.String(200))
+    recurrence_rule = db.Column(db.String(1000))
 
     groups = db.relationship(
         "OrganisationGroup",
