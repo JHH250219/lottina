@@ -2246,6 +2246,7 @@ def _dashboard_context():
         .all()
     )
     favorite_events = []
+    calendar_events = []
     for offer, created_at in favorite_rows:
         date_label = "Termin folgt"
         time_label = ""
@@ -2272,6 +2273,20 @@ def _dashboard_context():
                 "url": url_for("event_detail", event_id=str(offer.id)),
             }
         )
+        if offer.dt_start:
+            calendar_events.append(
+                {
+                    "id": str(offer.id),
+                    "weekday": localized.strftime("%a"),
+                    "day": localized.strftime("%d"),
+                    "month": localized.strftime("%b"),
+                    "time": localized.strftime("%H:%M"),
+                    "title": offer.title or "Ohne Titel",
+                    "location": offer.location.name if offer.location else "Ort folgt",
+                    "is_free": bool(offer.is_free),
+                    "tags": tags,
+                }
+            )
 
     available_interests = [
         "Klettern",
@@ -2312,12 +2327,52 @@ def _dashboard_context():
         },
     ]
 
+    kid_recommendations: list[dict[str, Any]] = []
+    recommendation_count = 0
+    recommendation_interests: set[str] = set()
+    for child in child_profiles:
+        interests = child.get("interests") or []
+        if isinstance(interests, str):
+            interests = [interests]
+        interest_labels = [label for label in interests if label][:3]
+        if not interest_labels:
+            interest_labels = ["Entdecken", "Familienzeit"]
+        suggestions = []
+        for interest in interest_labels[:3]:
+            suggestions.append(
+                {
+                    "title": f"{interest} Abenteuer",
+                    "description": f"Passend zu {interest} – perfekt für dieses Wochenende.",
+                    "match": min(100, 60 + 10 * interest_labels.index(interest)),
+                    "tag": interest,
+                }
+            )
+        recommendation_count += len(suggestions)
+        recommendation_interests.update(interest_labels)
+        kid_recommendations.append(
+            {
+                "name": child.get("name") or "Dein Kind",
+                "age": child.get("age") or "",
+                "interests": interest_labels,
+                "suggestions": suggestions,
+            }
+        )
+
+    recommendation_query = ""
+    if recommendation_interests:
+        query_pairs = [("cats[]", label) for label in sorted(recommendation_interests)]
+        recommendation_query = urlencode(query_pairs)
+
     return dict(
         favorite_events=favorite_events,
+        calendar_events=calendar_events,
         child_profiles=child_profiles,
         child_profiles_count=child_profiles_count,
         available_interests=available_interests,
         nearby_events=nearby_events,
+        kid_recommendations=kid_recommendations,
+        recommendation_count=recommendation_count,
+        recommendation_query=recommendation_query,
     )
 
 
