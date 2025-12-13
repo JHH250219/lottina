@@ -54,9 +54,9 @@
               </button>
             </div>
           </form>
-          <div class="grid gap-5 lg:grid-cols-2">
+          <div class="grid gap-5 lg:grid-cols-1">
           {% for offer in pending_offers %}
-            <article class="rounded-[32px] border border-lottina-primary/10 bg-white shadow-sm p-6 space-y-4 h-full flex flex-col justify-between">
+            <article class="rounded-[32px] border border-lottina-primary/10 bg-white shadow-sm p-6 space-y-4">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
                 <div class="freigeben-offer__image">
                   <img src="{{ offer.image or url_for('static', filename='img/oma-paper-512.png') }}"
