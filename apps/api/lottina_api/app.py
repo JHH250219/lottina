@@ -2925,6 +2925,10 @@ def freigeben():
     show_from_today = request.args.get("ab_heute") == "1"
     show_permanent_only = request.args.get("permanent") == "1"
     show_archived = request.args.get("archived") == "1"
+    source_type_filter = (request.args.get("source_type") or "").strip()
+    valid_source_types = {choice.value for choice in SourceType}
+    if source_type_filter not in valid_source_types:
+        source_type_filter = ""
     today = datetime.now(timezone.utc).date()
     if show_archived:
         base_status = OfferStatus.archived
@@ -2940,6 +2944,8 @@ def freigeben():
         )
     if show_permanent_only:
         query = query.filter(Offer.type == OfferType.permanent)
+    if source_type_filter:
+        query = query.filter(Offer.source_type == SourceType(source_type_filter))
     pending_offers = (
         query.order_by(Offer.dt_start.asc().nullslast(), Offer.created_at.asc().nullslast())
         .limit(200)
@@ -3042,6 +3048,7 @@ def freigeben():
         show_from_today=show_from_today,
         show_permanent_only=show_permanent_only,
         show_archived=show_archived,
+        source_type_filter=source_type_filter,
     )
 
 
