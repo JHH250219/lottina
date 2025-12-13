@@ -2558,6 +2558,11 @@ def _render_event_form(
     if mode not in (MODE_MANUAL, MODE_OCR):
         mode = MODE_MANUAL
     data["form_mode"] = mode
+    category_choices = [
+        cat.name or cat.slug
+        for cat in Category.query.order_by(Category.name.asc()).all()
+        if (cat.name or cat.slug)
+    ]
     return render_template(
         "event-erstellen.html",
         form_data=data,
@@ -2569,6 +2574,7 @@ def _render_event_form(
         submission_success=submission_success,
         submitted_title=submitted_title,
         submission_error=submission_error,
+        category_choices=category_choices,
     )
 
 

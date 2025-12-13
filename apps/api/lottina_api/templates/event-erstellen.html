@@ -95,6 +95,7 @@
 
     {% set categories_prefill = (form_data.get('categories') or '') %}
     {% set initial_categories = categories_prefill.split(',') if categories_prefill else [] %}
+    {% set category_choices = category_choices or [] %}
 
     <form id="wizard-form"
           method="post"
@@ -126,6 +127,17 @@
               <input type="text" class="wizard-input" data-category-entry placeholder="Kategorie eingeben und Enter drücken">
               <button type="button" class="wizard-btn wizard-btn--secondary" data-category-add>Hinzufügen</button>
             </div>
+            <div class="wizard-category-suggestions">
+              <label class="wizard-label">
+                Aus Vorschlag wählen
+                <select class="wizard-input" data-category-select>
+                  <option value="">Kategorie auswählen …</option>
+                  {% for suggestion in category_choices %}
+                    <option value="{{ suggestion }}">{{ suggestion }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </div>
             <div class="wizard-chip-list" data-category-pills>
               {% for category in initial_categories %}
                 {% set cat_name = category.strip() %}
@@ -137,7 +149,7 @@
                 {% endif %}
               {% endfor %}
             </div>
-            <p class="wizard-category-hint">Du kannst eigene Kategorien hinzufügen oder bestehende entfernen.</p>
+            <p class="wizard-category-hint">Wähle aus der Liste oder füge eigene Kategorien hinzu.</p>
           </div>
         </div>
         <div class="wizard-actions">
@@ -765,6 +777,7 @@
     const categoryInput = categoryPicker?.querySelector('[data-category-input]');
     const categoryEntry = categoryPicker?.querySelector('[data-category-entry]');
     const categoryAddBtn = categoryPicker?.querySelector('[data-category-add]');
+    const categorySelect = categoryPicker?.querySelector('[data-category-select]');
     const categoryPills = categoryPicker?.querySelector('[data-category-pills]');
     const categoryCountLabel = categoryPicker?.querySelector('[data-category-count]');
     const agePreview = wizardForm?.querySelector('[data-age-preview]');
@@ -1070,6 +1083,19 @@
       const values = normalizeCategories().filter((item) => item !== value);
       categoryInput.value = values.join(', ');
       updateCategoryState();
+    });
+
+    categorySelect?.addEventListener('change', () => {
+      if (!categorySelect || !categoryInput) return;
+      const value = categorySelect.value.trim();
+      if (!value) return;
+      const values = normalizeCategories();
+      if (!values.includes(value)) {
+        values.push(value);
+        categoryInput.value = values.join(', ');
+        updateCategoryState();
+      }
+      categorySelect.value = '';
     });
 
     updateCategoryState();
