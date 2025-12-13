@@ -44,6 +44,14 @@
                name="recurrence_update_scope"
                value="{{ recurrence_scope_prefill }}"
                data-recurrence-scope-input>
+        {% set form_type_value = prefill.type or 'event' %}
+        {% set form_type_non_permanent = form_type_value if form_type_value != 'permanent' else 'event' %}
+        <input type="hidden"
+               name="type"
+               value="{{ form_type_value }}"
+               data-type-input
+               data-base-type="{{ form_type_value }}"
+               data-non-permanent="{{ form_type_non_permanent }}">
         {% if has_existing_recurrence %}
           <div class="rounded-3xl border border-lottina-primary/10 bg-lottina-primary/5 shadow p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-lottina-primary">
             <div>
@@ -235,6 +243,14 @@
                 {{ label }}
               </label>
             {% endfor %}
+            <label class="flex items-center gap-3 text-sm font-semibold">
+              <input type="checkbox"
+                     name="flag_permanent"
+                     {% if form_type_value == 'permanent' %}checked{% endif %}
+                     class="rounded text-lottina-accent focus:ring-lottina-accent"
+                     data-flag-permanent>
+              Immer offen
+            </label>
           </div>
         </div>
 
@@ -315,18 +331,95 @@
               <h3 class="text-base font-semibold text-lottina-primary">Wiederholungen</h3>
               <p class="text-sm text-lottina-primary/70">Lege fest, in welchem Rhythmus und zu welchen Zeiten sich das Event wiederholt.</p>
             </div>
-            {% set recurrence_error = field_errors.get('recurrence') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %}">
-              Rhythmus
-              <select name="recurrence_frequency"
-                      class="form-select {% if recurrence_error %}form-input--error{% endif %}"
-                      data-recurrence-frequency>
-                {% for value, label in recurrence_frequency_choices %}
-                  <option value="{{ value }}" {% if recurrence_frequency == value %}selected{% endif %}>{{ label }}</option>
+            <div class="rounded-2xl border border-lottina-primary/15 bg-white/60 p-3 flex flex-wrap items-center gap-3">
+              <label class="inline-flex items-center gap-2 text-sm font-semibold text-lottina-primary">
+                <input type="checkbox"
+                       name="flag_permanent"
+                       class="rounded text-lottina-accent focus:ring-lottina-accent"
+                       data-flag-permanent
+                       {% if form_type_value == 'permanent' %}checked{% endif %}>
+                Durchgehend geöffnet (kein Ende)
+              </label>
+              <p class="text-xs text-lottina-primary/60">Aktiviere diese Option, wenn das Angebot dauerhaft verfügbar ist.</p>
+            </div>
+            <div class="space-y-4" data-recurrence-config>
+              {% set recurrence_error = field_errors.get('recurrence') %}
+              <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %}">
+                Rhythmus
+                <select name="recurrence_frequency"
+                        class="form-select {% if recurrence_error %}form-input--error{% endif %}"
+                        data-recurrence-frequency>
+                  {% for value, label in recurrence_frequency_choices %}
+                    <option value="{{ value }}" {% if recurrence_frequency == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <div class="space-y-3" data-recurrence-slots-wrapper>
+                {% for slot in recurrence_slots %}
+                  <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
+                       data-recurrence-slot>
+                    <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
+                      <span data-recurrence-weekday-label>Wochentag</span>
+                      <span class="text-xs text-lottina-primary/60" data-recurrence-daily-label hidden>Jeden Tag</span>
+                      <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
+                        {% for value, label in recurrence_weekday_choices %}
+                          <option value="{{ value }}" {% if slot.weekday == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                    </label>
+                    <input type="hidden" data-recurrence-weekday-hidden>
+                    <label class="flex flex-col gap-1 text-sm font-semibold">
+                      Startzeit
+                      <input type="time" name="recurrence_start[]" value="{{ slot.start }}" class="form-input" data-recurrence-start>
+                    </label>
+                    <label class="flex flex-col gap-1 text-sm font-semibold">
+                      Endzeit
+                      <input type="time" name="recurrence_end[]" value="{{ slot.end }}" class="form-input" data-recurrence-end>
+                    </label>
+                    <button type="button"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
+                            data-recurrence-remove
+                            title="Eintrag entfernen">
+                      &times;
+                    </button>
+                  </div>
                 {% endfor %}
-              </select>
-            </label>
-            <div class="space-y-3" data-recurrence-slots-wrapper>
+              </div>
+              {% if recurrence_error %}
+                <span class="form-error">{{ recurrence_error }}</span>
+              {% endif %}
+              <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %} {% if recurrence_frequency == 'none' %}hidden{% endif %}"
+                     data-recurrence-until-wrapper>
+                Letzter Wiederholungstag
+                <div class="flex flex-wrap items-center gap-3">
+                  <input type="date"
+                         name="recurrence_until"
+                         value="{{ prefill.recurrence_until }}"
+                         data-initial-value="{{ prefill.recurrence_until }}"
+                         class="form-input {% if recurrence_error %}form-input--error{% endif %}"
+                         data-recurrence-until>
+                  <button type="button"
+                          class="text-xs font-semibold text-lottina-primary/70 hover:text-lottina-primary rounded-2xl border border-transparent px-3 py-1 hover:border-lottina-primary/30"
+                          data-recurrence-until-reset
+                          title="Enddatum leeren">
+                    Zurücksetzen
+                  </button>
+                </div>
+                <span class="text-xs text-lottina-primary/60">
+                  Bis einschließlich dieses Tages werden neue Termine erzeugt. Feld leer lassen für unbegrenzte Serien.
+                </span>
+              </label>
+              <div class="flex flex-wrap items-center gap-3">
+                <button type="button"
+                        data-recurrence-add
+                        class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5">
+                  Weiteren Wochentag hinzufügen
+                </button>
+                <p class="text-xs text-lottina-primary/60">
+                  Zeiten bitte im Format HH:MM angeben. Liegt die Endzeit vor der Startzeit, endet das Event automatisch am Folgetag.
+                </p>
+              </div>
+            </div>
               {% for slot in recurrence_slots %}
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
                      data-recurrence-slot>
@@ -360,8 +453,8 @@
             {% if recurrence_error %}
               <span class="form-error">{{ recurrence_error }}</span>
             {% endif %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %} {% if recurrence_frequency == 'none' %}hidden{% endif %}"
-                   data-recurrence-until-wrapper>
+              <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %} {% if recurrence_frequency == 'none' %}hidden{% endif %}"
+                     data-recurrence-until-wrapper>
               Letzter Wiederholungstag
               <div class="flex flex-wrap items-center gap-3">
                 <input type="date"
@@ -488,6 +581,42 @@
     const recurrenceScopeInput = editForm?.querySelector("[data-recurrence-scope-input]");
     const recurrenceModal = document.querySelector("[data-recurrence-modal]");
     const hasSeries = editForm?.dataset.recurringEvent === "1";
+    const recurrenceSection = document.querySelector("[data-recurrence]");
+    const recurrenceConfig = recurrenceSection?.querySelector("[data-recurrence-config]");
+    const recurrenceFrequencySelect = recurrenceSection?.querySelector("[data-recurrence-frequency]");
+    const recurrenceUntilWrapper = recurrenceSection?.querySelector("[data-recurrence-until-wrapper]");
+    const recurrenceUntilInput = recurrenceSection?.querySelector("[data-recurrence-until]");
+    const recurrenceUntilReset = recurrenceSection?.querySelector("[data-recurrence-until-reset]");
+    const permanentToggles = editForm ? Array.from(editForm.querySelectorAll("[data-flag-permanent]")) : [];
+    const typeInput = editForm?.querySelector("[data-type-input]");
+
+    if (permanentToggles.length && typeInput) {
+      const nonPermanentType = typeInput.dataset.nonPermanent || "event";
+      let syncingPermanent = false;
+      const applyPermanentState = (checked) => {
+        if (syncingPermanent) return;
+        syncingPermanent = true;
+        permanentToggles.forEach((toggle) => {
+          toggle.checked = checked;
+        });
+        syncingPermanent = false;
+        typeInput.value = checked ? "permanent" : nonPermanentType;
+        if (recurrenceConfig) {
+          recurrenceConfig.classList.toggle("hidden", checked);
+        }
+        if (checked && recurrenceFrequencySelect) {
+          recurrenceFrequencySelect.value = "none";
+          recurrenceFrequencySelect.dispatchEvent(new Event("change"));
+        }
+        if (checked && recurrenceUntilInput) {
+          recurrenceUntilInput.value = "";
+        }
+      };
+      permanentToggles.forEach((toggle) => {
+        toggle.addEventListener("change", () => applyPermanentState(toggle.checked));
+      });
+      applyPermanentState(permanentToggles.some((toggle) => toggle.checked));
+    }
 
     if (editForm && recurrenceScopeInput && recurrenceModal && hasSeries) {
       let pendingSubmitter = null;
@@ -613,15 +742,14 @@
       syncUI();
     }
 
-    const recurrenceSection = document.querySelector("[data-recurrence]");
     if (recurrenceSection) {
       const slotsWrapper = recurrenceSection.querySelector("[data-recurrence-slots-wrapper]");
       const addButton = recurrenceSection.querySelector("[data-recurrence-add]");
       const template = document.getElementById("recurrence-slot-template");
-      const frequencySelect = recurrenceSection.querySelector("[data-recurrence-frequency]");
-      const untilWrapper = recurrenceSection.querySelector("[data-recurrence-until-wrapper]");
-      const untilInput = recurrenceSection.querySelector("[data-recurrence-until]");
-      const untilReset = recurrenceSection.querySelector("[data-recurrence-until-reset]");
+      const frequencySelect = recurrenceFrequencySelect;
+      const untilWrapper = recurrenceUntilWrapper;
+      const untilInput = recurrenceUntilInput;
+      const untilReset = recurrenceUntilReset;
 
       const prepareHiddenInput = (slotEl) => {
         if (!slotEl) return null;

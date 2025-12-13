@@ -49,6 +49,30 @@
   </div>
 </section>
 <style>
+  .feature-counter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.75rem;
+  }
+  .feature-counter__value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f2f2c;
+  }
+  .feature-counter__value--light {
+    color: #fff;
+  }
+  .feature-counter__label {
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(15, 47, 44, 0.55);
+  }
+  .feature-counter__label--light {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
   .hobby-collage {
     position: relative;
     width: 340px;
@@ -112,11 +136,13 @@
         <p>Finde dank Filter Erlebnisse, die zu dir und deinen Bedürfnissen passen.</p>
         <span class="feature-link">Ausprobieren</span>
       </a>
-      <a href="{{ url_for('datenschutz') }}" class="feature-card feature-card--secondary">
-        <img src="{{ url_for('static', filename='img/check.png') }}" alt="Kuratiert" class="h-24 w-24 object-contain drop-shadow-[0_30px_50px_rgba(8,20,18,0.45)]">
-        <h3>Kuratiert & sicher</h3>
+      <a class="feature-card feature-card--secondary">
+        <div class="feature-counter">
+          <span class="feature-counter__value feature-counter__value--light">{{ "{:,}".format(curated_manual or 0).replace(",", ".") }}</span>
+          <h3>Kuratierte Events</h3>
+        </div>
         <p>Wir prüfen Events, bevor sie live gehen, damit du nur das Beste bekommst.</p>
-        <span class="feature-link">Mehr erfahren</span>
+        <span class="feature-link">Kuratiert & sicher</span>
       </a>
     </div>
   </div>

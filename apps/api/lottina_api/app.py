@@ -798,6 +798,13 @@ def index():
             return re.sub(r"[^a-z0-9]+", "-", s).strip("-") or "kategorie"
 
         categories = [{"label": name, "slug": (slug or _slugify(name))} for (name, slug) in rows]
+
+        curated_manual_qry = (
+            db.session.query(func.count(Offer.id))
+            .filter(Offer.source == "manual")
+        )
+        curated_manual_qry = _filter_visible_offers(curated_manual_qry)
+        curated_manual = curated_manual_qry.scalar() or 0
     except (OperationalError, ProgrammingError):
         app.logger.exception("DB not ready, rendering fallback.")
         events = []
@@ -807,6 +814,7 @@ def index():
             {"label": "Kostenlos", "slug": "free"},
             {"label": "Heute", "slug": "today"},
         ]
+        curated_manual = 0
 
     quick_filters = [
         {"label": "Heute", "href": url_for("suchergebnisse", date=datetime.now().strftime("%Y-%m-%d"))},
@@ -854,6 +862,7 @@ def index():
         coords=coords,
         quick_filters=quick_filters,
         testimonials=testimonials,
+        curated_manual=curated_manual,
     )
 
 WEEKDAY_ABBR_DE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -909,6 +918,8 @@ def results():
     age_min = _parse_age_param("age_min")
     age_max = _parse_age_param("age_max")
 
+    show_always = request.args.get("always") == "1"
+
     day = _parse_date(date_str)
     if day:
         day_start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
@@ -946,15 +957,17 @@ def results():
     # Datum
     if day_start and day_end:
         target_date = day_start.date()
-        permanent_subq = (
-            db.session.query(OfferAvailability.offer_id)
-            .filter(OfferAvailability.day == target_date)
-        )
-        qry = qry.filter(
-            or_(
-                and_(Offer.dt_start >= day_start, Offer.dt_start < day_end),
-                Offer.id.in_(permanent_subq),
+        filters = [
+            and_(Offer.dt_start >= day_start, Offer.dt_start < day_end),
+        ]
+        if show_always:
+            permanent_subq = (
+                db.session.query(OfferAvailability.offer_id)
+                .filter(OfferAvailability.day == target_date)
             )
+            filters.append(Offer.id.in_(permanent_subq))
+        qry = qry.filter(
+            or_(*filters)
         )
     else:
         qry = qry.filter(or_(Offer.dt_start.is_(None), Offer.dt_start >= today_cutoff))
@@ -968,16 +981,17 @@ def results():
     if age_max is not None:
         qry = qry.filter(or_(Offer.target_age_min.is_(None), Offer.target_age_min <= age_max))
 
+    # Permanent filter
+    if show_always:
+        qry = qry.filter(Offer.type == OfferType.permanent)
+    else:
+        qry = qry.filter(or_(Offer.type.is_(None), Offer.type != OfferType.permanent))
+
     # Flags
     if request.args.get("free") == "1":
         qry = qry.filter(Offer.is_free.is_(True))
     if request.args.get("outdoor") == "1":
         qry = qry.filter(Offer.is_outdoor.is_(True))
-    if request.args.get("always") == "1":
-        qry = qry.filter(
-            Offer.dt_start.is_(None),
-            Offer.dt_end.is_(None),
-        )
 
     free_teaser_events: list[Offer] = []
     if not is_premium_user:
@@ -2048,16 +2062,11 @@ def ueber_uns():
     ]
     total_entries = db.session.query(func.count(Offer.id)).scalar() or 0
     feedback_count = db.session.query(func.count(CommunityFeedback.id)).scalar() or 0
-    curated_manual_qry = (
-        db.session.query(func.count(Offer.id))
-        .filter(Offer.source == "manual")
-    )
-    curated_manual_qry = _filter_visible_offers(curated_manual_qry)
-    curated_manual = curated_manual_qry.scalar() or 0
+    user_count = db.session.query(func.count(User.id)).scalar() or 0
     impact_stats = [
         {"label": "Datenbank-Einträge", "value": total_entries},
         {"label": "Community-Feedbacks", "value": feedback_count},
-        {"label": "Kuratierte Events", "value": curated_manual},
+        {"label": "Registrierte Familien", "value": user_count},
     ]
     return render_template("ueber_uns.html", team=team, values=values, impact_stats=impact_stats)
 
