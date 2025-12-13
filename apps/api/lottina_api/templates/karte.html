@@ -2,119 +2,266 @@
 {% block title %}Karte – Familienfreundliche Orte & Events | lottina{% endblock %}
 
 {% block content %}
-<div class="page-enter pt-40 pb-16 min-h-screen text-lottina-primary bg-gradient-to-b from-[#e8f9f2] via-lottina-background to-[#f4fdf8]">
-  <div class="w-full px-4 sm:px-8 lg:px-12 space-y-8">
-    <header class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 text-center lg:text-left">
-      <div class="space-y-3">
-        <p class="text-xs uppercase tracking-[0.24em] text-lottina-primary/70 font-semibold">
-          Entdecke kinderfreundliche Orte
-        </p>
-        <h1 class="text-3xl font-lottina font-bold leading-tight drop-shadow">
-          Interaktive Karte
-        </h1>
-        <p class="text-sm md:text-base text-lottina-primary/80 max-w-3xl">
-          Zoome dich durch unsere spielerische Deutschland-Karte. Filtere nach Kategorien, zeige nur Spielplätze
-          oder entdecke neue Dauerangebote für Familien.
+<div class="karte-shell">
+  <div id="karte-map" class="karte-map"></div>
+
+  <button type="button"
+          class="karte-fab"
+          data-filter-toggle
+          aria-label="Filter öffnen">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 8h12M9 12h6M11 16h2M12 20v-4" />
+    </svg>
+  </button>
+
+  <div class="karte-panel" data-filter-panel>
+    <div class="karte-panel__head">
+      <div>
+        <p class="text-xs uppercase tracking-[0.3em] text-white/70">Filter & Kategorien</p>
+        <p class="text-sm font-semibold text-white mt-1">
+          <span class="inline-flex h-2 w-2 rounded-full bg-lottina-accent mr-2"></span>
+          <strong id="karte-count">{{ total }}</strong> Orte aktiv
         </p>
       </div>
-      <div class="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-5 py-3 rounded-2xl bg-white border border-lottina-primary/10 shadow-sm text-sm text-lottina-primary/80">
-        <span class="inline-flex h-2 w-2 rounded-full bg-lottina-accent"></span>
-        <span><strong id="karte-count" class="font-semibold text-lottina-primary">{{ total }}</strong> Orte auf der Karte</span>
+      <button type="button"
+              class="karte-panel__close"
+              data-filter-close
+              aria-label="Filter schließen">
+        &times;
+      </button>
+    </div>
+    <div class="karte-panel__body">
+      <div class="karte-panel__actions">
+        <button type="button"
+                data-action="reset-filters"
+                class="karte-action karte-action--accent">
+          Alles anzeigen
+        </button>
       </div>
-    </header>
-
-    <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 min-h-[70vh]">
-      <!-- Filter Sidebar -->
-      <aside class="lg:col-span-1 order-2 lg:order-1">
-        <div class="lg:hidden">
-          <button id="filterToggle"
-                  type="button"
-                  class="w-full inline-flex items-center justify-between rounded-2xl border border-lottina-primary/15 bg-white/80 px-4 py-3 text-sm font-semibold shadow-sm">
-            Filter & Kategorien
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m6 9 6 6 6-6"/>
-            </svg>
-          </button>
+      <div class="karte-panel__group">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-white">Kategorien</h3>
+          <span class="text-xs text-white/70">Tippe zum Aus- & Einblenden</span>
         </div>
-        <div id="filterCard"
-             class="hidden lg:block mt-4 lg:mt-0 lg:sticky lg:top-24">
-          <div class="bg-white border border-lottina-primary/10 shadow-md rounded-3xl px-5 py-6 space-y-6">
-            <div class="space-y-1">
-              <h2 class="text-lg font-semibold text-lottina-primary">Kategorie-Tools</h2>
-              <p class="text-sm text-lottina-primary/70">
-                Blende Kategorien ein oder aus und entdecke ganz gezielt passende Angebote.
-              </p>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-              <button type="button"
-                      data-action="playground-only"
-                      class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 text-sm font-semibold hover:bg-emerald-100 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16M12 4v16" />
-                </svg>
-                Nur Spielplätze
-              </button>
-              <button type="button"
-                      data-action="reset-filters"
-                      class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-lottina-primary/70 hover:bg-gray-50 transition">
-                Alles anzeigen
-              </button>
-            </div>
-
-            <div class="border-t border-lottina-primary/10 pt-4">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-lottina-primary uppercase tracking-[0.14em]">Kategorien</h3>
-                <span class="text-xs text-lottina-primary/50">Scroll für mehr</span>
-              </div>
-              <div class="max-h-72 overflow-y-auto pr-1 space-y-2">
-                {% for cat in category_filters %}
-                  <label class="flex items-center gap-3 px-3 py-2 rounded-2xl border border-transparent hover:border-lottina-accent/40 hover:bg-lottina-accent/10 transition select-none">
-                    <input type="checkbox"
-                           name="category-filter"
-                           value="{{ cat.slug }}"
-                           class="rounded text-lottina-accent focus:ring-lottina-accent"
-                           checked>
-                    <span class="flex items-center gap-2 text-sm text-lottina-primary">
-                      <span class="inline-flex h-3 w-3 rounded-full"></span>
-                      {{ cat.name }}
-                    </span>
-                  </label>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
+        <div class="karte-categories">
+          {% for cat in category_filters %}
+            <label class="karte-category-pill">
+              <input type="checkbox"
+                     name="category-filter"
+                     value="{{ cat.slug }}"
+                     class="karte-category-input">
+              <span class="karte-category-pill__dot" style="--pill-color: {{ marker_color_styles.get(cat.color, '#0f766e') }};"></span>
+              <span class="karte-category-pill__label">{{ cat.name }}</span>
+            </label>
+          {% endfor %}
         </div>
-      </aside>
-
-      <!-- Map Section -->
-      <section class="lg:col-span-5 order-1 lg:order-2">
-        <div class="bg-white border border-lottina-primary/10 rounded-[32px] shadow-xl overflow-hidden h-full flex flex-col">
-          <div class="flex items-center justify-between px-6 py-4 border-b border-lottina-primary/10">
-            <div class="space-y-1">
-              <h2 class="text-lg font-semibold text-lottina-primary">Karte</h2>
-              <p class="text-xs text-lottina-primary/60">Klicke auf einen Pin, um mehr zu erfahren und direkt zur Detailseite zu springen.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-3 text-xs text-lottina-primary/60">
-              <span class="inline-flex items-center gap-1">
-                <span class="inline-block h-3 w-3 rounded-full shadow"></span>
-                Spielplatz
-              </span>
-              <span class="inline-flex items-center gap-1">
-                <span class="inline-block h-3 w-3 rounded-full shadow"></span>
-                Andere Kategorien
-              </span>
-              <span>Jede Kategorie hat ihre eigene Pin-Farbe.</span>
-            </div>
-          </div>
-          <div class="flex-1 relative">
-            <div id="karte-map" class="absolute inset-0"></div>
-          </div>
-        </div>
-      </section>
+      </div>
+      <div class="text-xs text-white/70 leading-relaxed">
+        Pins folgen deinem Filter sofort. Jede Kategorie hat ihre eigene Markerfarbe für schnellen Überblick.
+      </div>
     </div>
   </div>
+  <div class="karte-panel__overlay hidden" data-filter-overlay></div>
 </div>
+
+<style>
+  .karte-shell {
+    position: relative;
+    margin-top: 4.5rem;
+    min-height: calc(100vh - 4.5rem);
+    width: 100%;
+    padding: 1.5rem;
+    background: transparent;
+  }
+  .karte-map {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 7.5rem);
+    border-radius: 42px;
+    border: 2px solid rgba(15, 47, 44, 0.15);
+    box-shadow: 0 25px 80px rgba(10, 34, 31, 0.25);
+    overflow: hidden;
+    z-index: 0;
+  }
+  .karte-fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 64px;
+    height: 64px;
+    border-radius: 999px;
+    background: linear-gradient(140deg, #0f2f2c, #1b5a44 60%, #8be84f);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 25px 50px rgba(15, 47, 44, 0.3);
+    border: none;
+    z-index: 40;
+  }
+  .karte-panel__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 28, 23, 0.55);
+    z-index: 30;
+  }
+  .karte-panel {
+    position: fixed;
+    top: 10vh;
+    right: 0;
+    height: 80vh;
+    width: min(420px, 92vw);
+    border-top-left-radius: 32px;
+    border-bottom-left-radius: 32px;
+    padding: 2rem 1.5rem 3rem;
+    box-shadow: -25px 0 60px rgba(5, 13, 11, 0.4);
+    transform: translateX(100%);
+    transition: transform 0.35s ease;
+    z-index: 35;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(160deg, rgba(12, 35, 30, 0.9), rgba(22, 80, 63, 0.88), rgba(120, 211, 61, 0.82));
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: white;
+  }
+  .karte-panel.is-open {
+    transform: translateX(0);
+  }
+  @media (max-width: 768px) {
+    .karte-panel {
+      width: 100%;
+      border-radius: 2rem 2rem 0 0;
+      bottom: 0;
+      top: auto;
+      height: auto;
+      max-height: 85vh;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      border-bottom-left-radius: 0;
+      transform: translateY(100%);
+    }
+    .karte-panel.is-open {
+      transform: translateY(0);
+    }
+    .karte-panel__overlay {
+      display: block;
+    }
+  }
+  .karte-panel__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .karte-panel__close {
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: white;
+    cursor: pointer;
+  }
+  .karte-panel__body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .karte-panel__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .karte-action {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.65rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .karte-action--accent {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+    color: #ecfccb;
+  }
+  .karte-panel__group {
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .karte-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+  .karte-category-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.5rem 0.95rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: rgba(5, 15, 12, 0.2);
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .karte-category-pill:hover {
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.18);
+    color: white;
+  }
+  .karte-category-pill.is-active {
+    border-color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f2f2c;
+  }
+  .karte-category-input {
+    display: none;
+  }
+  .karte-category-pill.is-active .karte-category-pill__label {
+    color: #0f2f2c;
+  }
+  .karte-category-pill__dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.85), rgba(255,255,255,0) 55%), var(--pill-color, #0f766e);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
+  }
+  .karte-category-pill.is-active .karte-category-pill__dot {
+    transform: scale(1.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+  }
+  .karte-panel__body,
+  .karte-panel__body p,
+  .karte-panel__body span {
+    color: rgba(255, 255, 255, 0.92);
+  }
+</style>
 
 <script id="karte-data" type="application/json">{{ coords | tojson | safe }}</script>
 <script id="karte-categories" type="application/json">{{ category_filters | tojson | safe }}</script>
@@ -148,6 +295,15 @@
     const markerIconBase = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-';
     const markerShadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
     const markerIconCache = new Map();
+    const userMarkerIcon = L.icon({
+      iconUrl: "{{ url_for('static', filename='favicon.ico') }}",
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -34],
+      shadowUrl: markerShadowUrl,
+      shadowSize: [50, 50],
+      shadowAnchor: [16, 50],
+    });
 
     const getMarkerIcon = (colorKey) => {
       const key = (colorKey && markerColorStyles[colorKey]) ? colorKey : defaultMarkerColor;
@@ -258,11 +414,16 @@
     }
 
     const countEl = document.getElementById('karte-count');
-    const playgroundButton = document.querySelector('[data-action="playground-only"]');
     const resetButton = document.querySelector('[data-action="reset-filters"]');
     const filterInputs = Array.from(document.querySelectorAll('input[name="category-filter"]'));
-
-    let playgroundOnly = false;
+    const syncCategoryClasses = () => {
+      filterInputs.forEach((input) => {
+        const pill = input.closest('.karte-category-pill');
+        if (!pill) return;
+        pill.classList.toggle('is-active', input.checked);
+      });
+    };
+    syncCategoryClasses();
 
     const applyFilters = ({ autoFit = false } = {}) => {
       const activeSlugs = filterInputs
@@ -273,9 +434,7 @@
       const visibleEntries = [];
       markerEntries.forEach((entry) => {
         const matchesCategory = !activeSet || entry.categories.size === 0 || [...entry.categories].some(slug => activeSet.has(slug));
-        const matchesPlayground = !playgroundOnly || entry.point.is_playground;
-
-        if (matchesCategory && matchesPlayground) {
+        if (matchesCategory) {
           if (!markerGroup.hasLayer(entry.marker)) {
             markerGroup.addLayer(entry.marker);
           }
@@ -295,25 +454,15 @@
     };
 
     filterInputs.forEach((input) => {
-      input.addEventListener('change', () => applyFilters({ autoFit: true }));
-    });
-
-    playgroundButton?.addEventListener('click', () => {
-      playgroundOnly = !playgroundOnly;
-      playgroundButton.classList.toggle('bg-emerald-50', !playgroundOnly);
-      playgroundButton.classList.toggle('bg-emerald-500', playgroundOnly);
-      playgroundButton.classList.toggle('text-white', playgroundOnly);
-      playgroundButton.classList.toggle('border-emerald-300', !playgroundOnly);
-      playgroundButton.classList.toggle('border-emerald-600', playgroundOnly);
-      playgroundButton.querySelector('svg')?.classList.toggle('text-white', playgroundOnly);
-      applyFilters({ autoFit: true });
+      input.addEventListener('change', () => {
+        syncCategoryClasses();
+        applyFilters({ autoFit: true });
+      });
     });
 
     resetButton?.addEventListener('click', () => {
-      playgroundOnly = false;
-      playgroundButton?.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
-      playgroundButton?.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
       filterInputs.forEach((input) => { input.checked = true; });
+      syncCategoryClasses();
       applyFilters({ autoFit: true });
     });
 
@@ -327,14 +476,7 @@
         }
 
         userMarker = L.marker(locationLatLng, {
-          icon: L.icon({
-            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-            iconSize: [30, 50],
-            iconAnchor: [15, 50],
-            popupAnchor: [0, -46],
-            shadowSize: [50, 50],
-          })
+          icon: userMarkerIcon,
         }).addTo(map);
         userMarker.bindPopup('<strong>Du bist hier</strong>').openPopup();
 
@@ -344,15 +486,27 @@
       });
     }
 
-    const filterToggle = document.getElementById('filterToggle');
-    const filterCard = document.getElementById('filterCard');
-    const filterToggleIcon = filterToggle?.querySelector('svg');
-    filterToggle?.addEventListener('click', () => {
-      const isHidden = filterCard?.classList.toggle('hidden');
-      filterToggle.classList.toggle('bg-white', isHidden);
-      filterToggle.classList.toggle('bg-lottina-background', !isHidden);
-      filterToggleIcon?.classList.toggle('rotate-180', !isHidden);
-    });
+    const filterPanel = document.querySelector('[data-filter-panel]');
+    const filterOverlayEl = document.querySelector('[data-filter-overlay]');
+    const filterToggleBtn = document.querySelector('[data-filter-toggle]');
+    const filterCloseButtons = document.querySelectorAll('[data-filter-close]');
+
+    const openFilters = () => {
+      if (!filterPanel) return;
+      filterPanel.classList.add('is-open');
+      filterOverlayEl?.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    };
+
+    const closeFilters = () => {
+      filterPanel?.classList.remove('is-open');
+      filterOverlayEl?.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    };
+
+    filterToggleBtn?.addEventListener('click', openFilters);
+    filterOverlayEl?.addEventListener('click', closeFilters);
+    filterCloseButtons.forEach((btn) => btn.addEventListener('click', closeFilters));
   });
 </script>
 {% endblock %}
