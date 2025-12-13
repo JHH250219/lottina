@@ -1179,7 +1179,14 @@ def karte():
     assign_marker_color("ort")
 
     coords = []
+    location_ids: list[str] = []
     for location in locations:
+        try:
+            lat_value = float(location.lat)
+            lon_value = float(location.lon)
+        except (TypeError, ValueError):
+            continue
+
         related_offers = list(location.offers or [])
         visible_offers = [
             offer
@@ -1229,13 +1236,16 @@ def karte():
         if not summary:
             summary = "Adresse: " + (location.address or location.city or "Noch keine Details")
 
+        location_ids.append(str(location.id))
+
         coords.append(
             {
                 "id": f"loc-{location.id}",
+                "location_id": str(location.id),
                 "title": location.name or (representative_offer.title if representative_offer else "Unbekannter Ort"),
                 "summary": summary,
-                "lat": location.lat,
-                "lon": location.lon,
+                "lat": lat_value,
+                "lon": lon_value,
                 "url": detail_url,
                 "address": location.address or location.city or "",
                 "location_name": location.name or "",
@@ -1258,6 +1268,7 @@ def karte():
     return render_template(
         "karte.html",
         coords=coords,
+        location_ids=location_ids,
         category_filters=category_filters,
         total=len(coords),
         marker_color_styles=MARKER_COLOR_STYLES,

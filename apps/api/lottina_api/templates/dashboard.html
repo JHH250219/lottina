@@ -76,23 +76,6 @@
             </form>
           </div>
         </div>
-        <div class="flex-1 rounded-[30px] bg-white/10 border border-white/20 backdrop-blur px-5 py-4">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p class="text-xs uppercase tracking-[0.3em] text-white/60">Abo</p>
-              <p class="text-lg font-semibold text-white">{% if current_user.premium_active %}lottina Family{% else %}Kostenlos{% endif %}</p>
-            </div>
-            {% if current_user.premium_active %}
-              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200/60 bg-emerald-100/20 px-4 py-2 text-emerald-100 text-sm font-semibold">
-                ✅ Premium aktiv
-              </span>
-            {% else %}
-              <a href="{{ url_for('preise') }}" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8be84f] to-[#ffd2cc] px-5 py-2.5 text-sm font-semibold text-lottina-primary shadow hover:opacity-95 transition">
-                Jetzt upgraden
-              </a>
-            {% endif %}
-          </div>
-        </div>
       </div>
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="dashboard-mini-card">

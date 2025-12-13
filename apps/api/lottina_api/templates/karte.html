@@ -119,6 +119,7 @@
 <script id="karte-data" type="application/json">{{ coords | tojson | safe }}</script>
 <script id="karte-categories" type="application/json">{{ category_filters | tojson | safe }}</script>
 <script id="karte-color-styles" type="application/json">{{ marker_color_styles | tojson | safe }}</script>
+<script id="karte-location-ids" type="application/json">{{ location_ids | tojson | safe }}</script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -232,6 +233,15 @@
 
       marker.addTo(markerGroup);
     });
+
+    const locationIdsEl = document.getElementById('karte-location-ids');
+    if (locationIdsEl) {
+      try {
+        window.karteLocationIds = JSON.parse(locationIdsEl.textContent || '[]');
+      } catch (err) {
+        console.warn('Location IDs konnten nicht geladen werden', err);
+      }
+    }
 
     const fitToVisibleMarkers = (visibleEntries) => {
       if (!visibleEntries.length) return;
