@@ -61,7 +61,7 @@
       </div>
     </div>
   </div>
-  <div class="karte-panel__overlay hidden" data-filter-overlay></div>
+  <div class="karte-panel__overlay" data-filter-overlay></div>
 </div>
 
 <style>
@@ -71,7 +71,7 @@
     min-height: calc(100vh - 4.5rem);
     width: 100%;
     padding: 1.5rem;
-    background: linear-gradient(145deg, #071c17, #134334 55%, #7be751);
+    background: transparent;
   }
   .karte-map {
     position: relative;
@@ -104,6 +104,14 @@
     inset: 0;
     background: rgba(7, 28, 23, 0.55);
     z-index: 30;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .karte-panel__overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
   }
   .karte-panel {
     position: fixed;
@@ -144,6 +152,9 @@
       transform: translateY(0);
     }
     .karte-panel__overlay {
+      display: none;
+    }
+    .karte-panel__overlay.is-visible {
       display: block;
     }
   }
@@ -494,13 +505,13 @@
     const openFilters = () => {
       if (!filterPanel) return;
       filterPanel.classList.add('is-open');
-      filterOverlayEl?.classList.remove('hidden');
+      filterOverlayEl?.classList.add('is-visible');
       document.body.classList.add('overflow-hidden');
     };
 
     const closeFilters = () => {
       filterPanel?.classList.remove('is-open');
-      filterOverlayEl?.classList.add('hidden');
+      filterOverlayEl?.classList.remove('is-visible');
       document.body.classList.remove('overflow-hidden');
     };
 
