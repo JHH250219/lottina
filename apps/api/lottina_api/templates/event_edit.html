@@ -102,13 +102,43 @@
               {% endif %}
             </label>
             {% set field_error = field_errors.get('image') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
-              Bild-URL
-              <input type="url" name="image" value="{{ prefill.image }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+            <div class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
+              <div class="flex items-center justify-between gap-2">
+                <span>Bild</span>
+                {% if prefill.image %}
+                  <button type="button"
+                          class="text-xs font-semibold text-lottina-primary/70 hover:text-lottina-primary"
+                          data-image-clear>
+                    Bild zurücksetzen
+                  </button>
+                {% endif %}
+              </div>
+              {% if prefill.image %}
+                <div class="space-y-2">
+                  <div class="relative rounded-2xl border border-lottina-primary/10 overflow-hidden shadow">
+                    <img src="{{ prefill.image }}"
+                         alt="Aktuelles Bild"
+                         class="w-full h-48 object-cover"
+                         loading="lazy">
+                  </div>
+                  <input type="hidden" name="image" value="{{ prefill.image }}" data-image-input>
+                  <p class="text-xs text-lottina-primary/60">Aktuelles Bild bleibt erhalten, solange du es nicht zurücksetzt.</p>
+                </div>
+              {% else %}
+                <label class="inline-flex items-center gap-2 rounded-2xl border border-dashed border-lottina-primary/30 bg-lottina-primary/5 px-4 py-3 cursor-pointer hover:border-lottina-primary/50 transition">
+                  <input type="file"
+                         name="image_file"
+                         accept="image/png,image/jpeg,image/webp"
+                         class="sr-only"
+                         data-image-file>
+                  <span class="text-sm font-semibold text-lottina-primary">Foto hochladen</span>
+                </label>
+                <p class="text-xs text-lottina-primary/60">Unterstützt: JPG, PNG oder WEBP.</p>
+              {% endif %}
               {% if field_error %}
                 <span class="form-error">{{ field_error }}</span>
               {% endif %}
-            </label>
+            </div>
             {% set field_error = field_errors.get('maps_url') %}
             <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
               Maps-URL / Kartenlink
@@ -159,17 +189,27 @@
           </div>
           <div class="grid gap-4 md:grid-cols-2">
             {% set field_error = field_errors.get('dt_start') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}"
+                   data-permanent-hide>
               Start (Datum & Zeit)
-              <input type="datetime-local" name="dt_start" value="{{ prefill.dt_start }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              <input type="datetime-local"
+                     name="dt_start"
+                     value="{{ prefill.dt_start }}"
+                     class="form-input {% if field_error %}form-input--error{% endif %}"
+                     data-permanent-clear>
               {% if field_error %}
                 <span class="form-error">{{ field_error }}</span>
               {% endif %}
             </label>
             {% set field_error = field_errors.get('dt_end') %}
-            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}"
+                   data-permanent-hide>
               Ende (Datum & Zeit)
-              <input type="datetime-local" name="dt_end" value="{{ prefill.dt_end }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              <input type="datetime-local"
+                     name="dt_end"
+                     value="{{ prefill.dt_end }}"
+                     class="form-input {% if field_error %}form-input--error{% endif %}"
+                     data-permanent-clear>
               {% if field_error %}
                 <span class="form-error">{{ field_error }}</span>
               {% endif %}
@@ -249,7 +289,7 @@
                      {% if form_type_value == 'permanent' %}checked{% endif %}
                      class="rounded text-lottina-accent focus:ring-lottina-accent"
                      data-flag-permanent>
-              Immer offen
+              Ständiges Angebot
             </label>
           </div>
         </div>
@@ -587,7 +627,13 @@
     const recurrenceUntilWrapper = recurrenceSection?.querySelector("[data-recurrence-until-wrapper]");
     const recurrenceUntilInput = recurrenceSection?.querySelector("[data-recurrence-until]");
     const recurrenceUntilReset = recurrenceSection?.querySelector("[data-recurrence-until-reset]");
+    const imageClearButton = editForm?.querySelector("[data-image-clear]");
+    const imageInput = editForm?.querySelector("[data-image-input]");
+    const imageFileInput = editForm?.querySelector("[data-image-file]");
+
     const permanentToggles = editForm ? Array.from(editForm.querySelectorAll("[data-flag-permanent]")) : [];
+    const permanentHideBlocks = editForm ? Array.from(editForm.querySelectorAll("[data-permanent-hide]")) : [];
+    const permanentClearInputs = editForm ? Array.from(editForm.querySelectorAll("[data-permanent-clear]")) : [];
     const typeInput = editForm?.querySelector("[data-type-input]");
 
     if (permanentToggles.length && typeInput) {
@@ -611,11 +657,32 @@
         if (checked && recurrenceUntilInput) {
           recurrenceUntilInput.value = "";
         }
+        permanentHideBlocks.forEach((block) => {
+          block.classList.toggle("hidden", checked);
+        });
+        if (checked) {
+          permanentClearInputs.forEach((input) => {
+            input.value = "";
+          });
+        }
       };
       permanentToggles.forEach((toggle) => {
         toggle.addEventListener("change", () => applyPermanentState(toggle.checked));
       });
       applyPermanentState(permanentToggles.some((toggle) => toggle.checked));
+    }
+
+    imageClearButton?.addEventListener("click", () => {
+      if (imageInput) {
+        imageInput.value = "";
+      }
+      editForm?.submit();
+    });
+
+    if (imageFileInput) {
+      imageFileInput.addEventListener("change", () => {
+        editForm?.submit();
+      });
     }
 
     if (editForm && recurrenceScopeInput && recurrenceModal && hasSeries) {

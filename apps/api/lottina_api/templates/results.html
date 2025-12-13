@@ -25,7 +25,7 @@
   {% set _ = summary.append("Outdoor") %}
 {% endif %}
 {% if request.args.get('always') == '1' %}
-  {% set _ = summary.append("immer offen") %}
+  {% set _ = summary.append("Ständiges Angebot") %}
 {% endif %}
 {% if request.args.get('age_min') or request.args.get('age_max') %}
   {% if request.args.get('age_min') and request.args.get('age_max') %}
@@ -137,7 +137,7 @@
               <input type="checkbox" name="always" value="1" form="filters-hero"
                      class="rounded text-lottina-primary focus:ring-white"
                      {% if request.args.get('always') == '1' %}checked{% endif %}>
-              Immer offen
+              Ständiges Angebot
             </label>
           </div>
           {% if not is_premium_user %}
@@ -174,7 +174,7 @@
         {% endif %}
         {% if request.args.get('always') == '1' %}
           <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-white/85">
-            Immer offen
+            Ständiges Angebot
           </span>
         {% endif %}
         {% if request.args.get('age_min') or request.args.get('age_max') %}
@@ -668,7 +668,7 @@
             <input type="checkbox" name="always" value="1" form="filters-hero"
                    class="rounded text-lottina-accent focus:ring-lottina-accent"
                    {% if request.args.get('always') == '1' %}checked{% endif %}>
-            Immer offen
+            Ständiges Angebot
           </label>
         </div>
       </div>

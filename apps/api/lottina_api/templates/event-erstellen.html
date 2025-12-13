@@ -82,6 +82,20 @@
     </div>
     <button type="button" class="wizard-close" data-wizard-close aria-label="Schließen">×</button>
 
+    {% set bool_map = {
+      "is_permanent": (form_data.get('is_permanent') or '').lower() in ['true','1','on','yes'],
+      "is_free": (form_data.get('is_free') or '').lower() in ['true','1','on','yes'],
+      "is_outdoor": (form_data.get('is_outdoor') or '').lower() in ['true','1','on','yes'],
+      "is_indoor": (form_data.get('is_indoor') or '').lower() in ['true','1','on','yes'],
+      "with_accompaniment": (form_data.get('with_accompaniment') or '').lower() in ['true','1','on','yes'],
+      "hobby_regular": (form_data.get('hobby_regular') or '').lower() in ['true','1','on','yes'],
+      "is_once": (form_data.get('is_once') or '').lower() in ['true','1','on','yes'],
+      "pets_allowed": (form_data.get('pets_allowed') or '').lower() in ['true','1','on','yes']
+    } %}
+
+    {% set categories_prefill = (form_data.get('categories') or '') %}
+    {% set initial_categories = categories_prefill.split(',') if categories_prefill else [] %}
+
     <form id="wizard-form"
           method="post"
           action="{{ url_for('create_event') }}"
@@ -89,21 +103,56 @@
           class="wizard-form">
       <input type="hidden" name="form_mode" value="manual">
       <input type="hidden" name="interactive" value="1">
-      <input type="hidden" name="image_url" id="wizard-image-url" value="{{ form_data.get('image_url', '') }}">
 
       <div class="wizard-step" data-step="0">
-        <p class="wizard-step__eyebrow">Frage 1</p>
-        <h3 class="wizard-step__title">Wie heißt dein Erlebnis?</h3>
-        <input type="text" name="title" value="{{ form_data.get('title', '') }}" class="wizard-input" placeholder="Titel eingeben" required>
+        <p class="wizard-step__eyebrow">Schritt 1</p>
+        <h3 class="wizard-step__title">Titel & Kategorien</h3>
+        <div class="space-y-4">
+          <label class="wizard-label">
+            Titel des Events
+            <input type="text" name="title" value="{{ form_data.get('title', '') }}" class="wizard-input" placeholder="z. B. Familien-Yoga im Park" required>
+          </label>
+          <label class="wizard-label">
+            Kurzbeschreibung
+            <input type="text" name="summary" value="{{ form_data.get('summary', '') }}" class="wizard-input" placeholder="Ein Satz, der Lust macht.">
+          </label>
+          <div class="wizard-category-picker" data-category-picker>
+            <div class="flex items-center justify-between text-sm font-semibold text-white/70">
+              <span>Kategorien</span>
+              <span data-category-count>Keine Kategorie ausgewählt</span>
+            </div>
+            <input type="hidden" name="categories" value="{{ categories_prefill }}" data-category-input>
+            <div class="wizard-chip-entry">
+              <input type="text" class="wizard-input" data-category-entry placeholder="Kategorie eingeben und Enter drücken">
+              <button type="button" class="wizard-btn wizard-btn--secondary" data-category-add>Hinzufügen</button>
+            </div>
+            <div class="wizard-chip-list" data-category-pills>
+              {% for category in initial_categories %}
+                {% set cat_name = category.strip() %}
+                {% if cat_name %}
+                  <button type="button" class="wizard-chip" data-category-pill data-value="{{ cat_name }}">
+                    <span>{{ cat_name }}</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <p class="wizard-category-hint">Du kannst eigene Kategorien hinzufügen oder bestehende entfernen.</p>
+          </div>
+        </div>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
         </div>
       </div>
 
       <div class="wizard-step" data-step="1">
-        <p class="wizard-step__eyebrow">Frage 2</p>
-        <h3 class="wizard-step__title">Beschreibe es in einem Satz.</h3>
-        <input type="text" name="summary" value="{{ form_data.get('summary', '') }}" class="wizard-input" placeholder="Kurzbeschreibung">
+        <p class="wizard-step__eyebrow">Schritt 2</p>
+        <h3 class="wizard-step__title">Beschreibe dein Erlebnis</h3>
+        <label class="wizard-label">
+          Ausführliche Beschreibung
+          <textarea name="description" rows="6" class="wizard-textarea" placeholder="Geschichte, Highlights, Besonderheiten.">{{ form_data.get('description', '') }}</textarea>
+        </label>
+        <p class="text-xs text-white/70">Je mehr Kontext, desto leichter können wir das Angebot prüfen.</p>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
           <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
@@ -111,9 +160,31 @@
       </div>
 
       <div class="wizard-step" data-step="2">
-        <p class="wizard-step__eyebrow">Frage 3</p>
-        <h3 class="wizard-step__title">Was erwartet Familien?</h3>
-        <textarea name="description" rows="6" class="wizard-textarea" placeholder="Beschreibe euer Angebot.">{{ form_data.get('description', '') }}</textarea>
+        <p class="wizard-step__eyebrow">Schritt 3</p>
+        <h3 class="wizard-step__title">Bild hinzufügen</h3>
+        <div class="wizard-image">
+          <div class="wizard-image__preview" id="wizard-image-preview" data-image-preview>
+            {% if form_data.get('image_url') %}
+              <img src="{{ form_data.get('image_url') }}" alt="Aktuelles Bild" class="w-full h-full object-cover">
+            {% else %}
+              <p class="text-sm text-white/70">Noch kein Bild ausgewählt.</p>
+            {% endif %}
+          </div>
+          <div class="wizard-image__actions">
+            <label class="wizard-btn wizard-btn--primary cursor-pointer">
+              Foto hochladen
+              <input type="file" name="poster_file" accept="image/png,image/jpeg,image/webp" class="sr-only" data-image-file>
+            </label>
+            <div class="wizard-image__url">
+              <label class="wizard-label">
+                oder Bild-URL einfügen
+                <input type="url" name="image_url" id="wizard-image-url" value="{{ form_data.get('image_url', '') }}" class="wizard-input" placeholder="https://..." data-image-url-entry>
+              </label>
+            </div>
+            <button type="button" class="wizard-btn wizard-btn--ghost" data-image-clear>Zurücksetzen</button>
+          </div>
+          <p class="text-xs text-white/70">Unterstützt: JPG, PNG oder WEBP. Lade Flyer hoch oder verlinke auf dein Bild.</p>
+        </div>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
           <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
@@ -121,22 +192,30 @@
       </div>
 
       <div class="wizard-step" data-step="3">
-        <p class="wizard-step__eyebrow">Frage 4</p>
-        <h3 class="wizard-step__title">Wann findet es statt?</h3>
-        <div class="wizard-grid">
+        <p class="wizard-step__eyebrow">Schritt 4</p>
+        <h3 class="wizard-step__title">Zeiten & Öffnungszeiten</h3>
+        <label class="wizard-toggle">
+          <input type="checkbox" name="is_permanent" value="true" {% if bool_map['is_permanent'] %}checked{% endif %} data-permanent-toggle>
+          <span>Ständiges Angebot (keine festen Termine)</span>
+        </label>
+        <div class="wizard-grid" data-permanent-target>
           <label class="wizard-label">
             Datum
-            <input type="date" name="date" value="{{ form_data.get('date', '') }}" class="wizard-input">
+            <input type="date" name="date" value="{{ form_data.get('date', '') }}" class="wizard-input" data-permanent-field data-permanent-required>
           </label>
           <label class="wizard-label">
             Startzeit
-            <input type="time" name="time" value="{{ form_data.get('time', '') }}" class="wizard-input">
+            <input type="time" name="time" value="{{ form_data.get('time', '') }}" class="wizard-input" data-permanent-field data-permanent-required>
           </label>
           <label class="wizard-label">
             Endzeit
-            <input type="time" name="time_end" value="{{ form_data.get('time_end', '') }}" class="wizard-input">
+            <input type="time" name="time_end" value="{{ form_data.get('time_end', '') }}" class="wizard-input" data-permanent-field data-permanent-optional>
           </label>
         </div>
+        <label class="wizard-label">
+          Öffnungszeiten oder Hinweis (optional)
+          <textarea name="opening_hours" rows="3" class="wizard-textarea" placeholder="z. B. Mo–Fr 10–18 Uhr">{{ form_data.get('opening_hours', '') }}</textarea>
+        </label>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
           <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
@@ -144,16 +223,41 @@
       </div>
 
       <div class="wizard-step" data-step="4">
-        <p class="wizard-step__eyebrow">Frage 5</p>
-        <h3 class="wizard-step__title">Wo findet es statt?</h3>
+        <p class="wizard-step__eyebrow">Schritt 5</p>
+        <h3 class="wizard-step__title">Ort & Kontakt</h3>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Ortsname / Location
+            <input type="text" name="location_name" value="{{ form_data.get('location_name', form_data.get('location', '')) }}" class="wizard-input" placeholder="z. B. Stadtpark Aachen" required>
+          </label>
+          <label class="wizard-label">
+            Straße, Nr.
+            <input type="text" name="location_address" value="{{ form_data.get('location_address', '') }}" class="wizard-input" placeholder="z. B. Musterweg 12">
+          </label>
+          <label class="wizard-label">
+            PLZ & Stadt
+            <input type="text" name="location_city" value="{{ form_data.get('location_city', '') }}" class="wizard-input" placeholder="z. B. 52070 Aachen">
+          </label>
+        </div>
         <label class="wizard-label">
-          Ort oder Adresse
-          <input type="text" name="location" value="{{ form_data.get('location', '') }}" class="wizard-input" placeholder="z. B. Stadtpark, Museum" required>
+          Treffpunkt / Zusatzinfo
+          <input type="text" name="meeting_point" value="{{ form_data.get('meeting_point', '') }}" class="wizard-input" placeholder="z. B. Haupteingang, Info-Desk">
         </label>
         <label class="wizard-label">
           Maps-Link (optional)
-          <input type="url" name="maps_url" value="{{ form_data.get('maps_url', '') }}" class="wizard-input">
+          <input type="url" name="maps_url" value="{{ form_data.get('maps_url', '') }}" class="wizard-input" placeholder="https://maps...">
         </label>
+        <input type="hidden" name="location" value="{{ form_data.get('location_name', form_data.get('location', '')) }}" data-location-hidden>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Kontakt (E-Mail oder Telefon)
+            <input type="text" name="contact" value="{{ form_data.get('contact', '') }}" class="wizard-input" placeholder="kontakt@verein.de">
+          </label>
+          <label class="wizard-label">
+            Anmeldung erforderlich?
+            <input type="text" name="registration" value="{{ form_data.get('registration', '') }}" class="wizard-input" placeholder="Ja/Nein + Link">
+          </label>
+        </div>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
           <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
@@ -161,18 +265,45 @@
       </div>
 
       <div class="wizard-step" data-step="5">
-        <p class="wizard-step__eyebrow">Frage 6</p>
-        <h3 class="wizard-step__title">Für welches Alter eignet sich das Erlebnis?</h3>
+        <p class="wizard-step__eyebrow">Schritt 6</p>
+        <h3 class="wizard-step__title">Zielgruppe & Preise</h3>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Alter von (Jahren)
+            <input type="number" name="target_age_min" value="{{ form_data.get('target_age_min', '') }}" class="wizard-input" min="0" data-age-min>
+          </label>
+          <label class="wizard-label">
+            Alter bis (Jahren)
+            <input type="number" name="target_age_max" value="{{ form_data.get('target_age_max', '') }}" class="wizard-input" min="0" data-age-max>
+          </label>
+        </div>
         <label class="wizard-label">
-          Altersempfehlung
-          <input type="text"
-                 name="age_group"
-                 value="{{ form_data.get('age_group', '') }}"
-                 class="wizard-input"
-                 placeholder="z. B. ab 4 Jahren oder 4–8 Jahre"
-                 required>
+          Textliche Beschreibung der Zielgruppe
+          <input type="text" name="age_group" value="{{ form_data.get('age_group', '') }}" class="wizard-input" placeholder="ab 4 Jahren" required data-age-group>
         </label>
-        <p class="text-xs text-white/70">Bitte gib eine Altersspanne oder Mindestalter an – das hilft Familien bei der Planung.</p>
+        <p class="wizard-age-preview" data-age-preview>Bitte Alter angeben.</p>
+        <div class="wizard-grid">
+          <label class="wizard-label">
+            Standardpreis
+            <input type="number" step="0.01" name="price_value" value="{{ form_data.get('price_value', form_data.get('price', '')) }}" class="wizard-input" placeholder="z. B. 5">
+          </label>
+          <label class="wizard-label">
+            Mindestpreis
+            <input type="number" step="0.01" name="price_min" value="{{ form_data.get('price_min', '') }}" class="wizard-input">
+          </label>
+          <label class="wizard-label">
+            Höchstpreis
+            <input type="number" step="0.01" name="price_max" value="{{ form_data.get('price_max', '') }}" class="wizard-input">
+          </label>
+          <label class="wizard-label">
+            Währung
+            <input type="text" name="currency" value="{{ form_data.get('currency', 'EUR') }}" class="wizard-input" maxlength="3">
+          </label>
+        </div>
+        <label class="wizard-label">
+          Preisinfo (Text)
+          <input type="text" name="price_info" value="{{ form_data.get('price_info', '') }}" class="wizard-input" placeholder="z. B. Spende erbeten">
+        </label>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
           <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
@@ -180,26 +311,39 @@
       </div>
 
       <div class="wizard-step" data-step="6">
-        <p class="wizard-step__eyebrow">Frage 7</p>
-        <h3 class="wizard-step__title">Was kostet das Erlebnis?</h3>
-        <div class="wizard-grid">
-          <label class="wizard-label">
-            Preis (€)
-            <input type="number" step="0.01" name="price" value="{{ form_data.get('price', '') }}" class="wizard-input">
+        <p class="wizard-step__eyebrow">Schritt 7</p>
+        <h3 class="wizard-step__title">Besonderheiten & Flags</h3>
+        <div class="wizard-flag-grid">
+          <label class="wizard-flag">
+            <input type="checkbox" name="is_free" value="true" {% if bool_map['is_free'] %}checked{% endif %} data-flag-input data-flag-label="Kostenlos">
+            <span>Kostenlos</span>
           </label>
-          <label class="wizard-label">
-            Preisinfo
-            <input type="text" name="price_info" value="{{ form_data.get('price_info', '') }}" class="wizard-input" placeholder="z. B. Spende, Erwachsene 5€">
+          <label class="wizard-flag">
+            <input type="checkbox" name="is_outdoor" value="true" {% if bool_map['is_outdoor'] %}checked{% endif %} data-flag-input data-flag-label="Outdoor">
+            <span>Outdoor</span>
           </label>
-          <label class="wizard-label">
-            Kostenlos?
-            <select name="is_free" class="wizard-input">
-              <option value="" {% if not form_data.get('is_free') %}selected{% endif %}>Automatisch</option>
-              <option value="true" {% if form_data.get('is_free') == 'true' %}selected{% endif %}>Ja</option>
-              <option value="false" {% if form_data.get('is_free') == 'false' %}selected{% endif %}>Nein</option>
-            </select>
+          <label class="wizard-flag">
+            <input type="checkbox" name="is_indoor" value="true" {% if bool_map['is_indoor'] %}checked{% endif %} data-flag-input data-flag-label="Indoor">
+            <span>Indoor</span>
+          </label>
+          <label class="wizard-flag">
+            <input type="checkbox" name="with_accompaniment" value="true" {% if bool_map['with_accompaniment'] %}checked{% endif %} data-flag-input data-flag-label="Begleitperson nötig">
+            <span>Begleitperson nötig</span>
+          </label>
+          <label class="wizard-flag">
+            <input type="checkbox" name="hobby_regular" value="true" {% if bool_map['hobby_regular'] %}checked{% endif %} data-flag-input data-flag-label="Regelmäßiges Hobby">
+            <span>Regelmäßiges Hobby</span>
+          </label>
+          <label class="wizard-flag">
+            <input type="checkbox" name="is_once" value="true" {% if bool_map['is_once'] %}checked{% endif %} data-flag-input data-flag-label="Einmalig">
+            <span>Einmalig</span>
+          </label>
+          <label class="wizard-flag">
+            <input type="checkbox" name="pets_allowed" value="true" {% if bool_map['pets_allowed'] %}checked{% endif %} data-flag-input data-flag-label="Haustiere erlaubt">
+            <span>Haustiere erlaubt</span>
           </label>
         </div>
+        <p class="text-xs text-white/70">Wähle alle passenden Flags aus, damit wir dein Event besser zuordnen können.</p>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
           <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
@@ -207,84 +351,49 @@
       </div>
 
       <div class="wizard-step" data-step="7">
-        <p class="wizard-step__eyebrow">Frage 8</p>
-        <h3 class="wizard-step__title">Wie erreichen wir euch?</h3>
-        <label class="wizard-label">
-          Kontakt (E-Mail, Telefon)
-          <input type="text" name="contact" value="{{ form_data.get('contact', '') }}" class="wizard-input">
-        </label>
-        <label class="wizard-label">
-          Anmeldung erforderlich?
-          <input type="text" name="registration" value="{{ form_data.get('registration', '') }}" class="wizard-input" placeholder="Ja/Nein + Details">
-        </label>
-        <div class="wizard-actions">
-          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
-          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
-        </div>
-      </div>
-
-      <div class="wizard-step" data-step="8">
-        <p class="wizard-step__eyebrow">Frage 9</p>
-        <h3 class="wizard-step__title">Füge ein Bild hinzu.</h3>
-        <div class="wizard-image">
-          <label class="wizard-btn wizard-btn--primary cursor-pointer w-full text-center">
-            Bild hochladen
-            <input type="file" name="poster_file" accept="image/*" class="sr-only">
-          </label>
-          <p class="text-xs text-white/70">Bitte lade ein Bild hoch (JPG, PNG, WebP).</p>
-        </div>
-        <div class="wizard-actions">
-          <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Zurück</button>
-          <button type="button" class="wizard-btn wizard-btn--primary" data-next>Weiter</button>
-        </div>
-      </div>
-
-      <div class="wizard-step" data-step="9">
         <p class="wizard-step__eyebrow">Zusammenfassung</p>
-        <h3 class="wizard-step__title">Passt alles?</h3>
-        <div class="wizard-summary">
-          <dl>
-            <div>
-              <dt>Titel</dt>
-              <dd data-summary="title">–</dd>
-            </div>
-            <div>
-              <dt>Kurzbeschreibung</dt>
-              <dd data-summary="summary">–</dd>
-            </div>
-            <div>
-              <dt>Beschreibung</dt>
-              <dd data-summary="description">–</dd>
-            </div>
-            <div>
-              <dt>Datum & Zeit</dt>
-              <dd><span data-summary="date">–</span> · <span data-summary="time">–</span></dd>
-            </div>
-            <div>
-              <dt>Ort</dt>
-              <dd data-summary="location">–</dd>
-            </div>
-            <div>
-              <dt>Altersempfehlung</dt>
-              <dd data-summary="age_group">–</dd>
-            </div>
-            <div>
-              <dt>Preisinfo</dt>
-              <dd><span data-summary="price">–</span> · <span data-summary="price_info">–</span></dd>
-            </div>
-            <div>
-              <dt>Kontakt</dt>
-              <dd data-summary="contact">–</dd>
-            </div>
-            <div>
-              <dt>Bild</dt>
-              <dd><span data-summary="image_url">Kein Bild</span></dd>
-            </div>
-          </dl>
+        <h3 class="wizard-step__title">Alles bereit?</h3>
+        <div class="wizard-summary-grid">
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Titel</p>
+            <p class="wizard-summary-card__value" data-summary-field="title">–</p>
+            <p class="wizard-summary-card__muted" data-summary-field="summary">–</p>
+          </div>
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Kategorien</p>
+            <p class="wizard-summary-card__value" data-summary-field="categories">Keine Angaben</p>
+          </div>
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Beschreibung</p>
+            <p class="wizard-summary-card__muted" data-summary-field="description">–</p>
+          </div>
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Zeit & Öffnungszeiten</p>
+            <p class="wizard-summary-card__value" data-summary-field="availability">–</p>
+            <p class="wizard-summary-card__muted" data-summary-field="opening">–</p>
+          </div>
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Ort & Kontakt</p>
+            <p class="wizard-summary-card__value" data-summary-field="location">–</p>
+            <p class="wizard-summary-card__muted" data-summary-field="contact">–</p>
+          </div>
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Zielgruppe & Preis</p>
+            <p class="wizard-summary-card__value" data-summary-field="age">–</p>
+            <p class="wizard-summary-card__muted" data-summary-field="price">–</p>
+          </div>
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Flags</p>
+            <p class="wizard-summary-card__value" data-summary-field="flags">Keine ausgewählt</p>
+          </div>
+          <div class="wizard-summary-card">
+            <p class="wizard-summary-card__label">Bild</p>
+            <p class="wizard-summary-card__value" data-summary-field="image">Kein Bild</p>
+          </div>
         </div>
         <div class="wizard-actions">
           <button type="button" class="wizard-btn wizard-btn--ghost" data-prev>Nochmals prüfen</button>
-          <button type="submit" class="wizard-btn wizard-btn--primary">Event speichern</button>
+          <button type="submit" class="wizard-btn wizard-btn--primary">Event einreichen</button>
         </div>
       </div>
     </form>
@@ -521,71 +630,112 @@
     flex-wrap: wrap;
     gap: 0.75rem;
   }
-  .wizard-summary dl {
-    display: grid;
-    gap: 0.8rem;
-  }
-  .wizard-summary dt {
-    font-size: 0.75rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.5);
-  }
-  .wizard-summary dd {
-    font-size: 1rem;
-    color: rgba(255,255,255,0.9);
-  }
-
-  .media-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 85;
-  }
-  .media-modal[hidden] { display: none; }
-  .media-modal__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-  }
-  .media-modal__dialog {
-    position: relative;
-    margin: 10vh auto;
-    width: min(900px, 90vw);
-    border-radius: 34px;
-    padding: 2rem;
-    background: rgba(4,12,10,0.95);
-    color: white;
-  }
-  .media-modal__header {
+  .wizard-category-picker {
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.04);
+    padding: 1.25rem;
     display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .wizard-chip-entry {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    gap: 0.75rem;
   }
-  .media-modal__title {
-    font-size: 1.4rem;
-    font-weight: 600;
+  .wizard-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    min-height: 36px;
   }
-  .media-modal__close {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+  .wizard-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
     border: 1px solid rgba(255,255,255,0.3);
-    background: transparent;
-    color: white;
+    padding: 0.35rem 0.95rem;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: border-color 0.2s ease, background 0.2s ease;
   }
-  .media-modal__body {
-    margin-top: 1.5rem;
-    max-height: 60vh;
-    overflow-y: auto;
+  .wizard-chip:hover {
+    border-color: rgba(251,191,36,0.7);
+    background: rgba(251,191,36,0.15);
   }
-  .media-tile {
+  .wizard-category-hint {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+  }
+  .wizard-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 0.85rem 1.4rem;
+    background: rgba(255,255,255,0.08);
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  .wizard-toggle input {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  .wizard-flag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+  .wizard-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.04);
+  }
+  .wizard-summary-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .wizard-summary-card {
     border-radius: 24px;
-    border: 1px solid rgba(255,255,255,0.15);
-    padding: 0.75rem;
-    background: rgba(255,255,255,0.05);
-    text-align: left;
-    color: white;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(0,0,0,0.2);
+    padding: 1rem;
+  }
+  .wizard-summary-card__label {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 0.4rem;
+  }
+  .wizard-summary-card__value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+  .wizard-summary-card__muted {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 0.2rem;
+  }
+  .wizard-age-preview {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+  }
+  .wizard-input--error {
+    border-color: rgba(248,113,113,0.95) !important;
+    box-shadow: 0 0 0 3px rgba(248,113,113,0.2);
   }
 </style>
 
@@ -598,17 +748,28 @@
     const steps = wizard ? Array.from(wizard.querySelectorAll('.wizard-step')) : [];
     const progress = wizard?.querySelector('[data-progress]');
     const wizardForm = document.getElementById('wizard-form');
-    const imageInput = document.getElementById('wizard-image-url');
-    const imagePreview = document.getElementById('wizard-image-preview');
-    const fileInput = wizardForm?.querySelector('input[name="poster_file"]');
-    const mediaModal = document.getElementById('media-modal');
-    const mediaOpenButtons = document.querySelectorAll('[data-media-open]');
-    const mediaCloseButtons = mediaModal ? mediaModal.querySelectorAll('[data-media-close]') : [];
-    const mediaSelectButtons = mediaModal ? mediaModal.querySelectorAll('[data-media-select]') : [];
-    const mediaClear = document.querySelector('[data-media-clear]');
+    const imageInput = wizardForm?.querySelector('[data-image-url-entry]');
+    const imagePreview = wizardForm?.querySelector('[data-image-preview]');
+    const fileInput = wizardForm?.querySelector('[data-image-file]');
+    const imageClear = wizardForm?.querySelector('[data-image-clear]');
     const ocrModal = document.getElementById('ocr-modal');
     const ocrCloseButtons = ocrModal ? ocrModal.querySelectorAll('[data-modal-close]') : [];
     const submissionModal = document.getElementById('submission-modal');
+    const permanentToggle = wizardForm?.querySelector('[data-permanent-toggle]');
+    const permanentTarget = wizardForm?.querySelector('[data-permanent-target]');
+    const permanentFields = permanentTarget ? Array.from(permanentTarget.querySelectorAll('[data-permanent-field]')) : [];
+    const categoryPicker = wizardForm?.querySelector('[data-category-picker]');
+    const categoryInput = categoryPicker?.querySelector('[data-category-input]');
+    const categoryEntry = categoryPicker?.querySelector('[data-category-entry]');
+    const categoryAddBtn = categoryPicker?.querySelector('[data-category-add]');
+    const categoryPills = categoryPicker?.querySelector('[data-category-pills]');
+    const categoryCountLabel = categoryPicker?.querySelector('[data-category-count]');
+    const agePreview = wizardForm?.querySelector('[data-age-preview]');
+    const ageMinInput = wizardForm?.querySelector('[data-age-min]');
+    const ageMaxInput = wizardForm?.querySelector('[data-age-max]');
+    const ageGroupInput = wizardForm?.querySelector('[data-age-group]');
+    const flagInputs = wizardForm ? Array.from(wizardForm.querySelectorAll('[data-flag-input]')) : [];
+    const locationHidden = wizardForm?.querySelector('[data-location-hidden]');
 
     let currentStep = 0;
 
@@ -659,38 +820,105 @@
       if (!step) return true;
       const requiredInputs = step.querySelectorAll('[required]');
       for (const input of requiredInputs) {
+        if (input.disabled) continue;
         if (!input.value.trim()) {
+          input.classList.add('wizard-input--error');
           input.focus();
           return false;
         }
+        input.classList.remove('wizard-input--error');
       }
       return true;
     };
 
+    const formatTime = (date, start, end, permanent) => {
+      if (permanent) return 'Ständiges Angebot';
+      if (!date) return 'Noch kein Datum';
+      const timeLabel = start ? `${start}` : 'Uhrzeit offen';
+      const endLabel = end ? ` – ${end}` : '';
+      return `${date} · ${timeLabel}${endLabel}`;
+    };
+
+    const formatLocation = () => {
+      const parts = [];
+      const locName = wizardForm.elements['location_name']?.value || '';
+      const address = wizardForm.elements['location_address']?.value || '';
+      const city = wizardForm.elements['location_city']?.value || '';
+      if (locName) parts.push(locName);
+      if (address) parts.push(address);
+      if (city) parts.push(city);
+      return parts.length ? parts.join(' · ') : 'Keine Angaben';
+    };
+
+    const formatContact = () => {
+      const contact = wizardForm.elements['contact']?.value || '';
+      const registration = wizardForm.elements['registration']?.value || '';
+      if (!contact && !registration) return 'Keine Angaben';
+      if (contact && registration) return `${contact} · Anmeldung: ${registration}`;
+      return contact || `Anmeldung: ${registration}`;
+    };
+
+    const formatAge = () => {
+      const min = ageMinInput?.value;
+      const max = ageMaxInput?.value;
+      const text = ageGroupInput?.value;
+      const numeric = [];
+      if (min) numeric.push(`ab ${min}`);
+      if (max) numeric.push(`bis ${max}`);
+      const numericLabel = numeric.length ? numeric.join(' · ') + ' Jahre' : null;
+      return text || numericLabel || 'Keine Angaben';
+    };
+
+    const formatPrice = () => {
+      const min = wizardForm.elements['price_min']?.value;
+      const max = wizardForm.elements['price_max']?.value;
+      const val = wizardForm.elements['price_value']?.value;
+      const currency = wizardForm.elements['currency']?.value || 'EUR';
+      const info = wizardForm.elements['price_info']?.value || '';
+      let label = 'Keine Angaben';
+      if (min || max) {
+        label = `${min || '0'}–${max || '…'} ${currency}`;
+      } else if (val) {
+        label = `${val} ${currency}`;
+      }
+      if (info) label = `${label} · ${info}`;
+      return label;
+    };
+
+    const formatFlags = () => {
+      const active = flagInputs.filter((input) => input.checked).map((input) => input.dataset.flagLabel || input.name);
+      return active.length ? active.join(', ') : 'Keine ausgewählt';
+    };
+
     const updateSummary = () => {
       if (!wizardForm) return;
-      const summaryTargets = wizardForm.querySelectorAll('[data-summary]');
-      summaryTargets.forEach((target) => {
-        const name = target.dataset.summary;
-        if (!name) return;
-        const input = wizardForm.elements[name];
-        if (!input) {
-          target.textContent = '–';
-          return;
-        }
-        const value = input.value || '–';
-        target.textContent = value;
-      });
-      const priceInfo = wizardForm.elements['price_info']?.value || '–';
-      const contact = wizardForm.elements['contact']?.value || '–';
-      const registration = wizardForm.elements['registration']?.value || '';
-      wizardForm.querySelector('[data-summary="price_info"]').textContent = registration ? `${priceInfo} / ${registration}` : priceInfo;
-      const imageValue = imageInput?.value;
+      const setText = (selector, value) => {
+        const target = wizardForm.querySelector(`[data-summary-field="${selector}"]`);
+        if (target) target.textContent = value || '–';
+      };
+      setText('title', wizardForm.elements['title']?.value || '—');
+      setText('summary', wizardForm.elements['summary']?.value || '—');
+      setText('description', wizardForm.elements['description']?.value || 'Keine Beschreibung');
+      const categoriesValue = categoryInput?.value?.trim();
+      setText('categories', categoriesValue || 'Keine Angaben');
+      const isPermanent = Boolean(permanentToggle?.checked);
+      const availability = formatTime(
+        wizardForm.elements['date']?.value,
+        wizardForm.elements['time']?.value,
+        wizardForm.elements['time_end']?.value,
+        isPermanent
+      );
+      setText('availability', availability);
+      setText('opening', wizardForm.elements['opening_hours']?.value || 'Keine Öffnungszeiten');
+      setText('location', formatLocation());
+      setText('contact', formatContact());
+      setText('age', formatAge());
+      setText('price', formatPrice());
+      setText('flags', formatFlags());
+      const imageValue = imageInput?.value?.trim();
       const fileName = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : '';
-      const imageSummary = imageValue || (fileName ? `Lokale Datei: ${fileName}` : 'Kein Bild');
-      wizardForm.querySelector('[data-summary="image_url"]').textContent = imageSummary;
-      const contactEl = wizardForm.querySelector('[data-summary="contact"]');
-      if (contactEl) contactEl.textContent = contact;
+      const imageLabel = fileName ? `Hochgeladen: ${fileName}` : imageValue || 'Kein Bild';
+      setText('image', imageLabel);
     };
 
     heroManualBtn?.addEventListener('click', openWizard);
@@ -714,52 +942,177 @@
       }
     });
 
-    const openMediaModal = () => {
-      if (!mediaModal) return;
-      mediaModal.hidden = false;
-    };
-    const closeMediaModal = () => {
-      if (!mediaModal) return;
-      mediaModal.hidden = true;
-    };
-
-    mediaOpenButtons.forEach((btn) => btn.addEventListener('click', openMediaModal));
-    mediaCloseButtons.forEach((btn) => btn.addEventListener('click', closeMediaModal));
-
-    mediaSelectButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const url = btn.dataset.mediaUrl || '';
-        if (fileInput) {
-          fileInput.value = '';
-        }
-        if (imageInput) imageInput.value = url;
-        if (imagePreview) {
-          imagePreview.innerHTML = url
-            ? `<img src="${url}" alt="Ausgewähltes Bild" class="w-full h-full object-cover">`
-            : '<p class="text-sm text-white/70">Noch kein Bild ausgewählt.</p>';
-        }
-        closeMediaModal();
-      });
-    });
-
-    mediaClear?.addEventListener('click', () => {
-      if (fileInput) {
-        fileInput.value = '';
-      }
-      if (imageInput) imageInput.value = '';
-      if (imagePreview) {
+    const renderImagePreview = (url) => {
+      if (!imagePreview) return;
+      if (url) {
+        imagePreview.innerHTML = `<img src="${url}" alt="Bild" class="w-full h-full object-cover">`;
+      } else {
         imagePreview.innerHTML = '<p class="text-sm text-white/70">Noch kein Bild ausgewählt.</p>';
       }
+    };
+
+    imageInput?.addEventListener('input', () => {
+      const url = imageInput.value.trim();
+      if (url && fileInput) {
+        fileInput.value = '';
+      }
+      renderImagePreview(url);
+      updateSummary();
+    });
+
+    imageClear?.addEventListener('click', () => {
+      if (imageInput) imageInput.value = '';
+      if (fileInput) fileInput.value = '';
+      renderImagePreview('');
+      updateSummary();
     });
 
     fileInput?.addEventListener('change', () => {
       const file = fileInput.files && fileInput.files[0];
-      if (file) {
-        if (imageInput) imageInput.value = '';
-        const url = URL.createObjectURL(file);
-        imagePreview.innerHTML = `<img src="${url}" alt="Ausgewähltes Bild" class="w-full h-full object-cover">`;
+      if (!file) {
+        renderImagePreview(imageInput?.value || '');
+        updateSummary();
+        return;
+      }
+      if (imageInput) imageInput.value = '';
+      const previewUrl = URL.createObjectURL(file);
+      renderImagePreview(previewUrl);
+      updateSummary();
+    });
+
+    const syncPermanentState = () => {
+      if (!permanentToggle || !permanentFields.length) return;
+      const checked = permanentToggle.checked;
+      permanentFields.forEach((input) => {
+        input.disabled = checked;
+        if (checked) {
+          input.value = '';
+          input.removeAttribute('required');
+        } else {
+          if (input.hasAttribute('data-permanent-required')) {
+            input.setAttribute('required', 'required');
+          } else if (input.hasAttribute('data-permanent-optional')) {
+            input.removeAttribute('required');
+          }
+        }
+      });
+      if (permanentTarget) {
+        permanentTarget.classList.toggle('opacity-50', checked);
+        permanentTarget.classList.toggle('pointer-events-none', checked);
+        permanentTarget.setAttribute('aria-disabled', checked ? 'true' : 'false');
+      }
+      updateSummary();
+    };
+
+    permanentToggle?.addEventListener('change', syncPermanentState);
+    syncPermanentState();
+
+    const normalizeCategories = () => {
+      if (!categoryInput) return [];
+      return (categoryInput.value || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item, index, arr) => item && arr.indexOf(item) === index);
+    };
+
+    const renderCategoryPills = () => {
+      if (!categoryPills) return;
+      categoryPills.innerHTML = '';
+      normalizeCategories().forEach((value) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'wizard-chip';
+        button.dataset.categoryPill = '1';
+        button.dataset.value = value;
+        button.innerHTML = `<span>${value}</span><span aria-hidden="true">×</span>`;
+        categoryPills.appendChild(button);
+      });
+    };
+
+    const updateCategoryState = () => {
+      const values = normalizeCategories();
+      if (categoryCountLabel) {
+        categoryCountLabel.textContent = values.length
+          ? `${values.length} Kategorie${values.length === 1 ? '' : 'n'}`
+          : 'Keine Kategorie ausgewählt';
+      }
+      renderCategoryPills();
+      updateSummary();
+    };
+
+    categoryAddBtn?.addEventListener('click', () => {
+      if (!categoryEntry || !categoryInput) return;
+      const value = categoryEntry.value.trim();
+      if (!value) return;
+      const values = normalizeCategories();
+      if (!values.includes(value)) {
+        values.push(value);
+        categoryInput.value = values.join(', ');
+        categoryEntry.value = '';
+        updateCategoryState();
       }
     });
+
+    categoryEntry?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        categoryAddBtn?.click();
+      }
+    });
+
+    categoryPills?.addEventListener('click', (event) => {
+      const pill = event.target.closest('[data-category-pill]');
+      if (!pill || !categoryInput) return;
+      const value = pill.dataset.value;
+      const values = normalizeCategories().filter((item) => item !== value);
+      categoryInput.value = values.join(', ');
+      updateCategoryState();
+    });
+
+    updateCategoryState();
+
+    const syncAgePreview = () => {
+      if (!agePreview) return;
+      const min = ageMinInput?.value;
+      const max = ageMaxInput?.value;
+      const parts = [];
+      if (min) parts.push(`ab ${min}`);
+      if (max) parts.push(`bis ${max}`);
+      agePreview.textContent = parts.length ? `${parts.join(' · ')} Jahre` : 'Bitte Alter angeben.';
+    };
+
+    ageMinInput?.addEventListener('input', () => {
+      syncAgePreview();
+      updateSummary();
+    });
+    ageMaxInput?.addEventListener('input', () => {
+      syncAgePreview();
+      updateSummary();
+    });
+    ageGroupInput?.addEventListener('input', updateSummary);
+
+    syncAgePreview();
+
+    flagInputs.forEach((input) => input.addEventListener('change', updateSummary));
+
+    const syncLocationHidden = () => {
+      if (!locationHidden) return;
+      locationHidden.value = wizardForm.elements['location_name']?.value || '';
+    };
+
+    ['location_name', 'location_address', 'location_city'].forEach((name) => {
+      wizardForm.elements[name]?.addEventListener('input', () => {
+        syncLocationHidden();
+        updateSummary();
+      });
+    });
+
+    ['title','summary','description','date','time','time_end','opening_hours','contact','registration','price_value','price_min','price_max','currency','price_info'].forEach((name) => {
+      wizardForm.elements[name]?.addEventListener('input', updateSummary);
+    });
+
+    syncLocationHidden();
+    updateSummary();
 
     if (submissionModal && !submissionModal.hasAttribute('hidden')) {
       document.body.classList.add('overflow-hidden');

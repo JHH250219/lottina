@@ -820,7 +820,7 @@ def index():
         {"label": "Heute", "href": url_for("suchergebnisse", date=datetime.now().strftime("%Y-%m-%d"))},
         {"label": "Kostenlos", "href": url_for("suchergebnisse", free=1)},
         {"label": "Outdoor", "href": url_for("suchergebnisse", outdoor=1)},
-        {"label": "Immer offen", "href": url_for("suchergebnisse", always=1)},
+        {"label": "Ständiges Angebot", "href": url_for("suchergebnisse", always=1)},
     ]
 
     coords = []
@@ -981,17 +981,21 @@ def results():
     if age_max is not None:
         qry = qry.filter(or_(Offer.target_age_min.is_(None), Offer.target_age_min <= age_max))
 
+    permanent_count_qry = qry.filter(Offer.type == OfferType.permanent)
+
     # Permanent filter
     if show_always:
-        qry = qry.filter(Offer.type == OfferType.permanent)
+        qry = permanent_count_qry
     else:
         qry = qry.filter(or_(Offer.type.is_(None), Offer.type != OfferType.permanent))
 
     # Flags
     if request.args.get("free") == "1":
         qry = qry.filter(Offer.is_free.is_(True))
+        permanent_count_qry = permanent_count_qry.filter(Offer.is_free.is_(True))
     if request.args.get("outdoor") == "1":
         qry = qry.filter(Offer.is_outdoor.is_(True))
+        permanent_count_qry = permanent_count_qry.filter(Offer.is_outdoor.is_(True))
 
     free_teaser_events: list[Offer] = []
     if not is_premium_user:
@@ -1002,18 +1006,18 @@ def results():
             .all()
         )
         qry = qry.filter(or_(Offer.is_free.is_(False), Offer.is_free.is_(None)))
+        permanent_count_qry = permanent_count_qry.filter(or_(Offer.is_free.is_(False), Offer.is_free.is_(None)))
 
     filtered_qry = qry
     stats_row = filtered_qry.with_entities(
         func.count(Offer.id).label("total"),
         func.coalesce(func.sum(case((Offer.is_free.is_(True), 1), else_=0)), 0).label("free"),
         func.coalesce(func.sum(case((Offer.is_outdoor.is_(True), 1), else_=0)), 0).label("outdoor"),
-        func.coalesce(func.sum(case((Offer.type == OfferType.permanent, 1), else_=0)), 0).label("permanent"),
     ).first()
     total_results = stats_row.total or 0
     free_results = int(stats_row.free or 0)
     outdoor_results = int(stats_row.outdoor or 0)
-    permanent_count = int(stats_row.permanent or 0)
+    permanent_count = permanent_count_qry.with_entities(func.count(Offer.id)).scalar() or 0
     total_pages = max(1, ceil(total_results / per_page)) if total_results else 1
     if page > total_pages:
         page = total_pages
@@ -1071,7 +1075,7 @@ def results():
         {"label": "Ergebnisse gesamt", "value": total_results},
         {"label": "davon kostenlos", "value": free_results},
         {"label": "Outdoor Treffer", "value": outdoor_results},
-        {"label": "Immer offen", "value": permanent_count},
+        {"label": "Ständiges Angebot", "value": permanent_count},
     ]
 
     favorite_offer_ids = set()
@@ -1235,7 +1239,7 @@ def karte():
         if representative_offer:
             offer_type_value = getattr(representative_offer.type, "value", representative_offer.type)
             is_permanent = offer_type_value == getattr(OfferType.permanent, "value", "permanent")
-            meta_line = "Immer offen" if is_permanent else "Termin folgt"
+            meta_line = "Ständiges Angebot" if is_permanent else "Termin folgt"
             summary = representative_offer.summary or representative_offer.description or ""
             detail_url = url_for("event_detail", event_id=str(representative_offer.id))
             source = representative_offer.source
@@ -2664,6 +2668,7 @@ def create_event():
     # Bild
     image_url = (f.get("image_url") or "").strip() or None
     ocr_text = None
+    is_permanent_flag = (f.get("is_permanent") or "").strip().lower() in {"1", "true", "on", "yes"}
     if poster_file and poster_file.filename:
         if not allowed(poster_file.filename):
             msg = "Nur JPG, JPEG, PNG oder WEBP werden unterstützt."
@@ -2719,36 +2724,59 @@ def create_event():
                 dt_end = dt_end_candidate
             except Exception:
                 dt_end = None
+    if is_permanent_flag:
+        dt_start = None
+        dt_end = None
 
-    price   = _to_float(f.get("price"))
+    price_value = _to_float(f.get("price") or f.get("price_value"))
+    price_min = _to_float(f.get("price_min"))
+    price_max = _to_float(f.get("price_max"))
+    currency_raw = (f.get("currency") or "").strip().upper()
+    currency = currency_raw[:3] if currency_raw else None
     is_free = _to_bool(f.get("is_free"))
-    if is_free is None and price is not None:
-        is_free = (price == 0.0)
+    if is_free is None and price_value is not None:
+        is_free = (price_value == 0.0)
     if is_free is None and price_info and "kostenlos" in price_info.lower():
         is_free = True
 
     ag_min = ag_max = None
+    target_age_min_input = (f.get("target_age_min") or "").strip()
+    target_age_max_input = (f.get("target_age_max") or "").strip()
+    if target_age_min_input.isdigit():
+        ag_min = int(target_age_min_input)
+    if target_age_max_input.isdigit():
+        ag_max = int(target_age_max_input)
+
     age_group = (f.get("age_group") or "").strip()
+    if not age_group and (ag_min is not None or ag_max is not None):
+        if ag_min is not None and ag_max is not None:
+            age_group = f"{ag_min}–{ag_max} Jahre"
+        elif ag_min is not None:
+            age_group = f"ab {ag_min} Jahren"
+        elif ag_max is not None:
+            age_group = f"bis {ag_max} Jahre"
     if not age_group:
         return _fail("Bitte gib eine Altersempfehlung an (z. B. ab 4 Jahren oder 4–8 Jahre).")
     m = re.search(r"\b(\d{1,2})\b", age_group)
     if m:
         ag_min = int(m.group(1))
 
-    location_name_raw = (f.get("location") or "").strip()
+    location_name_raw = (f.get("location_name") or f.get("location") or "").strip()
+    location_address_raw = (f.get("location_address") or "").strip()
+    location_city_raw = (f.get("location_city") or "").strip()
     if not location_name_raw:
         return _fail("Bitte gib einen Ort oder eine Adresse an.")
-    lat = _to_float(f.get("lat"))
-    lon = _to_float(f.get("lon"))
+    lat = _to_float(f.get("location_lat") or f.get("lat"))
+    lon = _to_float(f.get("location_lon") or f.get("lon"))
 
     if len(location_name_raw) > MAX_LOC_NAME:
         location_name_raw = location_name_raw[:MAX_LOC_NAME]
 
     loc_name = shorten(location_name_raw, MAX_LOC_NAME)
-    loc_addr = shorten(location_name_raw, MAX_LOC_ADDR)
+    loc_addr = shorten(location_address_raw or location_name_raw, MAX_LOC_ADDR)
 
-    city_guess = None
-    if description_text:
+    city_guess = location_city_raw or None
+    if not city_guess and description_text:
         _, city_guess = extract_addr_city_from_text(description_text)
 
     location = None
@@ -2795,6 +2823,13 @@ def create_event():
 
     meeting_point = shorten((f.get("meeting_point") or None), MAX_MEETING_LEN)
 
+    is_outdoor_flag = _to_bool(f.get("is_outdoor"))
+    is_indoor_flag = _to_bool(f.get("is_indoor"))
+    with_accompaniment_flag = _to_bool(f.get("with_accompaniment"))
+    hobby_regular_flag = _to_bool(f.get("hobby_regular"))
+    is_once_flag = _to_bool(f.get("is_once"))
+    pets_allowed_flag = _to_bool(f.get("pets_allowed"))
+
     offer = Offer(
         title=title,
         description=description_text or None,
@@ -2804,18 +2839,25 @@ def create_event():
         source_url=source_url,
         dt_start=dt_start,
         dt_end=dt_end,
-        price_value=price,
-        price_min=price,
-        price_max=price,
+        price_value=price_value,
+        price_min=price_min if price_min is not None else price_value,
+        price_max=price_max if price_max is not None else price_value,
+        currency=currency or "EUR",
         is_free=is_free if is_free is not None else False,
         image=image_url,
         maps_url=(f.get("maps_url") or None),
         meeting_point=meeting_point,
-        is_outdoor=_to_bool(f.get("is_outdoor")) or False,
+        is_outdoor=is_outdoor_flag if is_outdoor_flag is not None else False,
+        is_indoor=is_indoor_flag if is_indoor_flag is not None else False,
+        with_accompaniment=with_accompaniment_flag if with_accompaniment_flag is not None else False,
+        hobby_regular=hobby_regular_flag if hobby_regular_flag is not None else False,
+        is_once=is_once_flag if is_once_flag is not None else False,
+        pets_allowed=pets_allowed_flag if pets_allowed_flag is not None else False,
         opening_hours={"general": opening_hours_text} if opening_hours_text else None,
         target_age_min=ag_min,
         target_age_max=ag_max,
         source_name=source_name,
+        type=OfferType.permanent if is_permanent_flag else OfferType.event,
         created_by_user_id=current_user.id if current_user.is_authenticated else None,
         location_id=location.id if location else None,
     )
@@ -2824,8 +2866,10 @@ def create_event():
     db.session.flush()
     sync_permanent_availability(db.session, offer)
 
-    cat_name = (f.get("category") or "").strip()
-    if cat_name:
+    categories_raw = (f.get("categories") or f.get("category") or "").strip()
+    category_names = [cat.strip() for cat in categories_raw.split(",") if cat.strip()]
+    seen_slugs: set[str] = set()
+    for cat_name in category_names:
         _AUML = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
 
         def slugify(s: str) -> str:
@@ -2836,12 +2880,15 @@ def create_event():
             return s or "kategorie"
 
         slug = slugify(cat_name)
+        if slug in seen_slugs:
+            continue
         cat = Category.query.filter_by(slug=slug).first()
         if not cat:
             cat = Category(slug=slug, name=cat_name)
             db.session.add(cat)
             db.session.flush()
         offer.categories.append(cat)
+        seen_slugs.add(slug)
 
     try:
         db.session.commit()

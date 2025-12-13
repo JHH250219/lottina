@@ -367,7 +367,7 @@
 
       const categories = (point.category_labels || []).map(label => `<span style="display:inline-block;margin-right:6px;margin-bottom:4px;padding:2px 8px;border-radius:999px;background:#e0f2fe;color:#1d4ed8;font-size:0.7rem;font-weight:600;">${escapeHtml(label)}</span>`).join('');
 
-      const metaLine = point.meta_line || (point.is_permanent ? 'Immer offen' : 'Termin folgt');
+      const metaLine = point.meta_line || (point.is_permanent ? 'Ständiges Angebot' : 'Termin folgt');
       const detailLink = point.url
         ? `
           <a href="${escapeHtml(point.url)}" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:#0f766e;font-weight:600;text-decoration:none;">
