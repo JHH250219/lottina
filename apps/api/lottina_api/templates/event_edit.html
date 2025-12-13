@@ -44,6 +44,25 @@
                name="recurrence_update_scope"
                value="{{ recurrence_scope_prefill }}"
                data-recurrence-scope-input>
+        {% if has_existing_recurrence %}
+          <div class="rounded-3xl border border-lottina-primary/10 bg-lottina-primary/5 shadow p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-lottina-primary">
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/50">Serie</p>
+              {% if recurrence_scope_prefill == 'series' %}
+                <p>Du bearbeitest aktuell <strong>alle Events dieser Serie</strong>.</p>
+              {% elif recurrence_scope_prefill == 'single' %}
+                <p>Du bearbeitest aktuell <strong>nur dieses Event</strong>.</p>
+              {% else %}
+                <p>Dieses Event ist Teil einer Serie. Beim Speichern kannst du wählen, ob nur dieses oder die ganze Serie angepasst wird.</p>
+              {% endif %}
+            </div>
+            {% if recurrence_scope_prefill in ['single','series'] %}
+              <span class="inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] {% if recurrence_scope_prefill == 'series' %}bg-lottina-primary text-white{% else %}bg-white text-lottina-primary{% endif %}">
+                {{ 'Serie' if recurrence_scope_prefill == 'series' else 'Einzeln' }}
+              </span>
+            {% endif %}
+          </div>
+        {% endif %}
         <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
           <div>
             <h2 class="text-lg font-semibold text-lottina-primary">Basis</h2>

@@ -49,6 +49,7 @@ from pathlib import Path
 import mimetypes
 import click
 from itertools import zip_longest
+from typing import Any
 from werkzeug.utils import secure_filename
 from urllib.parse import urlencode
 from .utils import (
@@ -1392,6 +1393,10 @@ def edit_event(event_id):
         recurrence_scope_prefill = (request.form.get("recurrence_update_scope") or "").strip().lower()
         if recurrence_scope_prefill not in {"single", "series"}:
             recurrence_scope_prefill = ""
+    else:
+        scope_from_query = (request.args.get("scope") or "").strip().lower()
+        if scope_from_query in {"single", "series"}:
+            recurrence_scope_prefill = scope_from_query
 
     text_fields = [
         "title",
@@ -2897,9 +2902,70 @@ def freigeben():
         .limit(15)
         .all()
     )
+    def _sort_value(dt_value):
+        if not dt_value:
+            return float("inf")
+        try:
+            return dt_value.timestamp()
+        except AttributeError:
+            return float("inf")
+
+    def _format_short_label(dt_value):
+        if not dt_value:
+            return "Termin offen"
+        localized = dt_value.astimezone()
+        return localized.strftime("%d.%m.%Y · %H:%M")
+
+    single_offers: list[Offer] = []
+    series_groups: dict[uuid.UUID, list[Offer]] = {}
+    for offer in pending_offers:
+        series_id = getattr(offer, "recurring_series_id", None)
+        if series_id:
+            series_groups.setdefault(series_id, []).append(offer)
+        else:
+            single_offers.append(offer)
+
+    stacked_offers: list[dict[str, Any]] = []
+    for series_id, offers in series_groups.items():
+        offers_sorted = sorted(offers, key=lambda entry: (_sort_value(entry.dt_start), _sort_value(entry.created_at)))
+        if len(offers_sorted) <= 1:
+            single_offers.extend(offers_sorted)
+            continue
+        primary = offers_sorted[0]
+        modal_events = [
+            {
+                "id": str(item.id),
+                "title": item.title or "Event",
+                "date_label": _format_short_label(item.dt_start),
+                "edit_single_url": url_for("edit_event", event_id=item.id, scope="single"),
+                "location": item.location.name if item.location else "",
+            }
+            for item in offers_sorted
+        ]
+        stacked_offers.append(
+            {
+                "series_id": str(series_id),
+                "count": len(offers_sorted),
+                "primary": primary,
+                "offers": offers_sorted,
+                "preview_dates": [_format_short_label(item.dt_start) for item in offers_sorted[:3]],
+                "modal_payload": {
+                    "title": primary.title or "Event-Serie",
+                    "count": len(offers_sorted),
+                    "events": modal_events,
+                    "series_edit_url": url_for("edit_event", event_id=primary.id, scope="series"),
+                },
+            }
+        )
+
+    single_offers.sort(key=lambda entry: (_sort_value(entry.dt_start), _sort_value(entry.created_at)))
+    stacked_offers.sort(key=lambda entry: (_sort_value(entry["primary"].dt_start), _sort_value(entry["primary"].created_at)))
+
     return render_template(
         "freigeben.html",
         pending_offers=pending_offers,
+        single_offers=single_offers,
+        stacked_offers=stacked_offers,
         city_requests=city_requests,
         feedback_entries=feedback_entries,
         feedback_kind_labels=FEEDBACK_KIND_LABELS,

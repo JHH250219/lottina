@@ -32,6 +32,11 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon_io/favicon-16x16.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='img/favicon_io/site.webmanifest') }}">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon_io/favicon.ico') }}">
+  <meta name="theme-color" content="#071c17">
+  <meta name="msapplication-TileColor" content="#071c17">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="color-scheme" content="dark light">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     .flash-stack {
@@ -113,7 +118,7 @@
   
 </head>
 
-<body class="{% if request.endpoint == 'results' %}page-enter{% endif %} min-h-screen flex flex-col font-lottina bg-lottina-background text-lottina-primary antialiased">
+<body class="{% if request.endpoint == 'results' %}page-enter{% endif %} min-h-screen flex flex-col font-lottina text-lottina-primary antialiased">
   {% include "header.html" %}
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
