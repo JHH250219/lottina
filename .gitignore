@@ -44,9 +44,11 @@ apps/api/lottina_api/uploads/
 apps/api/lottina_api/static/uploads/
 apps/api/lottina_api/static/images/uploads/
 uploads/
+*.png
+*.jpg
 *.jpeg
 *.webp
-!apps/api/lottina_api/static/img/        # statische Assets aus Repo beibehalten
+!apps/api/lottina_api/static/img/*        # statische Assets aus Repo beibehalten
 
 # -----------------------------------------------------------------------------
 # Caches & temporäre Dateien
