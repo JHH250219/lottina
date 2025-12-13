@@ -311,14 +311,16 @@
               {% for slot in recurrence_slots %}
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
                      data-recurrence-slot>
-                  <label class="flex flex-col gap-1 text-sm font-semibold">
-                    Wochentag
+                  <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
+                    <span data-recurrence-weekday-label>Wochentag</span>
+                    <span class="text-xs text-lottina-primary/60" data-recurrence-daily-label hidden>Jeden Tag</span>
                     <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
                       {% for value, label in recurrence_weekday_choices %}
                         <option value="{{ value }}" {% if slot.weekday == value %}selected{% endif %}>{{ label }}</option>
                       {% endfor %}
                     </select>
                   </label>
+                  <input type="hidden" data-recurrence-weekday-hidden>
                   <label class="flex flex-col gap-1 text-sm font-semibold">
                     Startzeit
                     <input type="time" name="recurrence_start[]" value="{{ slot.start }}" class="form-input" data-recurrence-start>
@@ -342,13 +344,23 @@
             <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %} {% if recurrence_frequency == 'none' %}hidden{% endif %}"
                    data-recurrence-until-wrapper>
               Letzter Wiederholungstag
-              <input type="date"
-                     name="recurrence_until"
-                     value="{{ prefill.recurrence_until }}"
-                     data-initial-value="{{ prefill.recurrence_until }}"
-                     class="form-input {% if recurrence_error %}form-input--error{% endif %}"
-                     data-recurrence-until>
-              <span class="text-xs text-lottina-primary/60">Bis einschließlich dieses Tages werden neue Termine erzeugt.</span>
+              <div class="flex flex-wrap items-center gap-3">
+                <input type="date"
+                       name="recurrence_until"
+                       value="{{ prefill.recurrence_until }}"
+                       data-initial-value="{{ prefill.recurrence_until }}"
+                       class="form-input {% if recurrence_error %}form-input--error{% endif %}"
+                       data-recurrence-until>
+                <button type="button"
+                        class="text-xs font-semibold text-lottina-primary/70 hover:text-lottina-primary rounded-2xl border border-transparent px-3 py-1 hover:border-lottina-primary/30"
+                        data-recurrence-until-reset
+                        title="Enddatum leeren">
+                  Zurücksetzen
+                </button>
+              </div>
+              <span class="text-xs text-lottina-primary/60">
+                Bis einschließlich dieses Tages werden neue Termine erzeugt. Feld leer lassen für unbegrenzte Serien.
+              </span>
             </label>
             <div class="flex flex-wrap items-center gap-3">
               <button type="button"
@@ -424,14 +436,16 @@
 <template id="recurrence-slot-template">
   <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
        data-recurrence-slot>
-    <label class="flex flex-col gap-1 text-sm font-semibold">
-      Wochentag
+    <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
+      <span data-recurrence-weekday-label>Wochentag</span>
+      <span class="text-xs text-lottina-primary/60" data-recurrence-daily-label hidden>Jeden Tag</span>
       <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
         {% for value, label in recurrence_weekday_choices %}
           <option value="{{ value }}">{{ label }}</option>
         {% endfor %}
       </select>
     </label>
+    <input type="hidden" data-recurrence-weekday-hidden>
     <label class="flex flex-col gap-1 text-sm font-semibold">
       Startzeit
       <input type="time" name="recurrence_start[]" class="form-input" data-recurrence-start>
@@ -588,6 +602,54 @@
       const frequencySelect = recurrenceSection.querySelector("[data-recurrence-frequency]");
       const untilWrapper = recurrenceSection.querySelector("[data-recurrence-until-wrapper]");
       const untilInput = recurrenceSection.querySelector("[data-recurrence-until]");
+      const untilReset = recurrenceSection.querySelector("[data-recurrence-until-reset]");
+
+      const prepareHiddenInput = (slotEl) => {
+        if (!slotEl) return null;
+        let hidden = slotEl.querySelector("[data-recurrence-weekday-hidden]");
+        if (!hidden) {
+          hidden = document.createElement("input");
+          hidden.type = "hidden";
+          hidden.setAttribute("data-recurrence-weekday-hidden", "true");
+          slotEl.appendChild(hidden);
+        }
+        return hidden;
+      };
+
+      const syncDailyMode = () => {
+        const isDaily = frequencySelect && frequencySelect.value === "daily";
+        const weekdayLabels = recurrenceSection.querySelectorAll("[data-recurrence-weekday-label]");
+        const dailyLabels = recurrenceSection.querySelectorAll("[data-recurrence-daily-label]");
+        weekdayLabels.forEach((label) => {
+          label.hidden = Boolean(isDaily);
+        });
+        dailyLabels.forEach((label) => {
+          label.hidden = !isDaily;
+        });
+        const selects = recurrenceSection.querySelectorAll("[data-recurrence-weekday]");
+        selects.forEach((select) => {
+          const slotEl = select.closest("[data-recurrence-slot]");
+          const hiddenInput = prepareHiddenInput(slotEl);
+          if (!slotEl || !hiddenInput) {
+            return;
+          }
+          if (isDaily) {
+            if (!select.dataset.originalName) {
+              select.dataset.originalName = select.name || "recurrence_weekday[]";
+            }
+            select.name = "";
+            select.classList.add("hidden");
+            hiddenInput.name = select.dataset.originalName || "recurrence_weekday[]";
+            hiddenInput.value = "any";
+          } else {
+            const originalName = select.dataset.originalName || "recurrence_weekday[]";
+            select.name = originalName;
+            select.classList.remove("hidden");
+            hiddenInput.name = "";
+            hiddenInput.value = "";
+          }
+        });
+      };
 
       const addSlot = (weekday = "", start = "", end = "") => {
         if (!template || !slotsWrapper) return;
@@ -606,6 +668,8 @@
           endInput.value = end || "";
         }
         slotsWrapper.appendChild(slotEl);
+        prepareHiddenInput(slotEl);
+        syncDailyMode();
       };
 
       const ensureSlotPresence = () => {
@@ -619,13 +683,7 @@
         slotsWrapper?.classList.toggle("hidden", !active);
         addButton?.classList.toggle("hidden", !active);
         untilWrapper?.classList.toggle("hidden", !active);
-        if (untilInput) {
-          if (active) {
-            untilInput.setAttribute("required", "required");
-          } else {
-            untilInput.removeAttribute("required");
-          }
-        }
+        syncDailyMode();
       };
 
       addButton?.addEventListener("click", () => addSlot());
@@ -642,9 +700,17 @@
       });
 
       frequencySelect?.addEventListener("change", toggleSlotsVisibility);
+      untilReset?.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (!untilInput) return;
+        untilInput.value = "";
+        untilInput.dispatchEvent(new Event("input", { bubbles: true }));
+        untilInput.dispatchEvent(new Event("change", { bubbles: true }));
+      });
 
       ensureSlotPresence();
       toggleSlotsVisibility();
+      syncDailyMode();
     }
   });
 </script>

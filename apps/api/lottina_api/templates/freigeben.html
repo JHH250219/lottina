@@ -11,6 +11,26 @@
     </header>
     <div class="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
       <div class="space-y-5">
+        <form method="get"
+              action="{{ url_for('freigeben') }}"
+              class="flex items-center gap-3 rounded-2xl border border-lottina-primary/10 bg-white/80 px-4 py-3 text-sm text-lottina-primary shadow-sm">
+          <label class="inline-flex items-center gap-2 font-semibold">
+            <input type="checkbox"
+                   name="ab_heute"
+                   value="1"
+                   class="rounded border-lottina-primary/30 text-lottina-primary focus:ring-lottina-primary"
+                   {% if show_from_today %}checked{% endif %}
+                   onchange="this.form.submit()">
+            <span>Nur Events ab heute anzeigen</span>
+          </label>
+          {% if request.args %}
+            {% for key, value in request.args.items() %}
+              {% if key != 'ab_heute' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </form>
         {% if pending_offers %}
           <form id="bulk-publish-form"
                 method="post"
@@ -34,8 +54,9 @@
               </button>
             </div>
           </form>
+          <div class="grid gap-5 lg:grid-cols-2">
           {% for offer in pending_offers %}
-            <article class="rounded-[32px] border border-lottina-primary/10 bg-white shadow-sm p-6 space-y-4">
+            <article class="rounded-[32px] border border-lottina-primary/10 bg-white shadow-sm p-6 space-y-4 h-full flex flex-col justify-between">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
                 <div class="freigeben-offer__image">
                   <img src="{{ offer.image or url_for('static', filename='img/oma-paper-512.png') }}"
@@ -102,6 +123,7 @@
               </div>
             </article>
           {% endfor %}
+          </div>
         {% else %}
           <div class="rounded-[32px] border border-dashed border-lottina-primary/20 bg-white px-6 py-10 text-center text-sm text-lottina-primary/70">
             Keine offenen Einreichungen. Du bist auf dem aktuellen Stand!

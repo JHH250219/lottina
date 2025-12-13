@@ -1354,7 +1354,7 @@ def edit_event(event_id):
         ("quarterly", "Vierteljährlich"),
     ]
     recurrence_frequency_values = {value for value, _ in recurrence_frequency_choices}
-    recurrence_weekday_choices = [
+    recurrence_weekday_core_choices = [
         ("mo", "Montag"),
         ("di", "Dienstag"),
         ("mi", "Mittwoch"),
@@ -1363,7 +1363,16 @@ def edit_event(event_id):
         ("sa", "Samstag"),
         ("so", "Sonntag"),
     ]
-    recurrence_weekday_values = {value for value, _ in recurrence_weekday_choices}
+    recurrence_weekday_extra_choices = [
+        ("mo-fr", "Montag bis Freitag"),
+        ("mo-so", "Montag bis Sonntag"),
+    ]
+    recurrence_weekday_choices = recurrence_weekday_core_choices + recurrence_weekday_extra_choices
+    recurrence_weekday_values = {value for value, _ in recurrence_weekday_core_choices}
+    recurrence_weekday_range_map = {
+        "mo-fr": ["mo", "di", "mi", "do", "fr"],
+        "mo-so": ["mo", "di", "mi", "do", "fr", "sa", "so"],
+    }
 
     publish_and_redirect = request.form.get("publish_now") == "1" if request.method == "POST" else False
 
@@ -1428,7 +1437,9 @@ def edit_event(event_id):
             weekday = str(entry.get("weekday") or "").strip().lower()
             start_time = str(entry.get("start") or "").strip()
             end_time = str(entry.get("end") or "").strip()
-            if weekday in recurrence_weekday_values:
+            if freq == "daily" and (not weekday or weekday == "any"):
+                weekday = "any"
+            if weekday in recurrence_weekday_values or (freq == "daily" and weekday == "any"):
                 slots.append({"weekday": weekday, "start": start_time, "end": end_time})
         if freq not in recurrence_frequency_values:
             freq = "none"
@@ -1503,7 +1514,9 @@ def edit_event(event_id):
             return _advance_monthly_date(date_value, 3, weekday_idx, nth, prefer_last)
         return date_value + timedelta(weeks=1)
 
-    def _generate_recurrence_occurrences(event_obj: Offer, frequency: str, slots_data: list[dict[str, str]]):
+    def _generate_recurrence_occurrences(
+        event_obj: Offer, frequency: str, slots_data: list[dict[str, str]], until_limit: date | None
+    ):
         if not event_obj.dt_start:
             return []
         tzinfo = event_obj.dt_start.tzinfo or timezone.utc
@@ -1511,20 +1524,27 @@ def edit_event(event_id):
         now_dt = datetime.now(tzinfo)
         cutoff_dt = event_obj.dt_start if event_obj.dt_start >= now_dt else now_dt
         horizon_end = cutoff_dt.date() + timedelta(days=RECURRENCE_GENERATION_DAYS)
+        if until_limit:
+            horizon_end = min(horizon_end, until_limit)
         occurrences: list[tuple[datetime, datetime]] = []
         max_occurrences = 500
 
         for slot in slots_data:
             weekday_value = (slot.get("weekday") or "").strip().lower()
-            weekday_idx = weekday_index_lookup.get(weekday_value)
-            if weekday_idx is None:
-                continue
+            daily_mode = frequency == "daily" and (weekday_value in {"", "any"})
+            if daily_mode:
+                weekday_idx = anchor_date.weekday()
+                current_date = anchor_date
+            else:
+                weekday_idx = weekday_index_lookup.get(weekday_value)
+                if weekday_idx is None:
+                    continue
+                current_date = _first_date_for_weekday(anchor_date, weekday_idx)
             try:
                 start_time_obj = datetime.strptime(slot.get("start", ""), "%H:%M").time()
                 end_time_obj = datetime.strptime(slot.get("end", ""), "%H:%M").time()
             except (TypeError, ValueError):
                 continue
-            current_date = _first_date_for_weekday(anchor_date, weekday_idx)
             nth, prefer_last = _month_meta(current_date)
             safety_counter = 0
             while current_date <= horizon_end:
@@ -1752,7 +1772,7 @@ def edit_event(event_id):
 
         recurrence_slots_input: list[dict[str, str]] = []
         recurrence_until_input = (request.form.get("recurrence_until") or "").strip()
-        recurrence_until_date = _parse_date_value(recurrence_until_input)
+        recurrence_until_date: date | None = None
 
         if recurrence_frequency != "none":
             weekdays_input = request.form.getlist("recurrence_weekday[]")
@@ -1765,9 +1785,16 @@ def edit_event(event_id):
                 end_raw = (ends_input[idx] if idx < len(ends_input) else "").strip()
                 if not (weekday_raw or start_raw or end_raw):
                     continue
-                if weekday_raw not in recurrence_weekday_values:
-                    _set_recurrence_error("Bitte wähle einen gültigen Wochentag.")
-                    continue
+                if recurrence_frequency == "daily":
+                    target_weekdays = ["any"]
+                else:
+                    if weekday_raw in recurrence_weekday_range_map:
+                        target_weekdays = recurrence_weekday_range_map[weekday_raw]
+                    elif weekday_raw in recurrence_weekday_values:
+                        target_weekdays = [weekday_raw]
+                    else:
+                        _set_recurrence_error("Bitte wähle einen gültigen Wochentag oder Zeitraum.")
+                        continue
                 start_time = _parse_time_value(start_raw)
                 end_time = _parse_time_value(end_raw)
                 if not start_time or not end_time:
@@ -1776,17 +1803,25 @@ def edit_event(event_id):
                 if start_time == end_time:
                     _set_recurrence_error("Start- und Endzeit dürfen nicht identisch sein.")
                     continue
-                recurrence_slots_input.append(
-                    {"weekday": weekday_raw, "start": start_time, "end": end_time}
-                )
+                for weekday_value in target_weekdays:
+                    recurrence_slots_input.append(
+                        {"weekday": weekday_value, "start": start_time, "end": end_time}
+                    )
 
             if not recurrence_slots_input:
-                _set_recurrence_error("Bitte füge mindestens einen Wochentag mit Zeitspanne hinzu.")
+                error_message = (
+                    "Bitte füge mindestens eine Zeitspanne hinzu."
+                    if recurrence_frequency == "daily"
+                    else "Bitte füge mindestens einen Wochentag mit Zeitspanne hinzu."
+                )
+                _set_recurrence_error(error_message)
 
-            if not recurrence_until_date:
-                _set_recurrence_error("Bitte gib ein gültiges Enddatum für die Wiederholungen an (YYYY-MM-DD).")
-            elif event.dt_start and recurrence_until_date < event.dt_start.date():
-                _set_recurrence_error("Das Enddatum der Wiederholungen muss nach dem Startdatum liegen.")
+            if recurrence_until_input:
+                recurrence_until_date = _parse_date_value(recurrence_until_input)
+                if not recurrence_until_date:
+                    _set_recurrence_error("Bitte gib ein gültiges Enddatum für die Wiederholungen an (YYYY-MM-DD).")
+                elif event.dt_start and recurrence_until_date < event.dt_start.date():
+                    _set_recurrence_error("Das Enddatum der Wiederholungen muss nach dem Startdatum liegen.")
         else:
             recurrence_until_input = ""
             recurrence_until_date = None
@@ -1800,11 +1835,11 @@ def edit_event(event_id):
         if (
             recurrence_frequency != "none"
             and recurrence_slots_input
-            and recurrence_until_date
             and "recurrence" not in field_errors
         ):
             payload = {"frequency": recurrence_frequency, "slots": recurrence_slots_input}
-            payload["until"] = recurrence_until_date.isoformat()
+            if recurrence_until_date:
+                payload["until"] = recurrence_until_date.isoformat()
             serialized_rule = json.dumps(payload, separators=(",", ":"))
             if len(serialized_rule) > 1000:
                 _set_recurrence_error("Die Angaben zur Wiederholung sind zu umfangreich.")
@@ -2809,10 +2844,18 @@ def create_event():
 def freigeben():
     if not current_user.is_admin:
         abort(403)
+    show_from_today = request.args.get("ab_heute") == "1"
+    today = datetime.now(timezone.utc).date()
+    query = db.session.query(Offer).filter(Offer.status == OfferStatus.draft)
+    if show_from_today:
+        query = query.filter(
+            or_(
+                Offer.dt_start.is_(None),
+                Offer.dt_start >= datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc),
+            )
+        )
     pending_offers = (
-        db.session.query(Offer)
-        .filter(Offer.status == OfferStatus.draft)
-        .order_by(Offer.dt_start.asc().nullslast(), Offer.created_at.asc().nullslast())
+        query.order_by(Offer.dt_start.asc().nullslast(), Offer.created_at.asc().nullslast())
         .limit(200)
         .all()
     )
@@ -2849,6 +2892,7 @@ def freigeben():
         city_requests=city_requests,
         feedback_entries=feedback_entries,
         feedback_kind_labels=FEEDBACK_KIND_LABELS,
+        show_from_today=show_from_today,
     )
 
 
