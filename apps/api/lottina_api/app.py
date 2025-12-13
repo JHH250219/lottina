@@ -2917,8 +2917,14 @@ def freigeben():
     if not current_user.is_admin:
         abort(403)
     show_from_today = request.args.get("ab_heute") == "1"
+    show_permanent_only = request.args.get("permanent") == "1"
+    show_archived = request.args.get("archived") == "1"
     today = datetime.now(timezone.utc).date()
-    query = db.session.query(Offer).filter(Offer.status == OfferStatus.draft)
+    if show_archived:
+        base_status = OfferStatus.archived
+    else:
+        base_status = OfferStatus.draft
+    query = db.session.query(Offer).filter(Offer.status == base_status)
     if show_from_today:
         query = query.filter(
             or_(
@@ -2926,6 +2932,8 @@ def freigeben():
                 Offer.dt_start >= datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc),
             )
         )
+    if show_permanent_only:
+        query = query.filter(Offer.type == OfferType.permanent)
     pending_offers = (
         query.order_by(Offer.dt_start.asc().nullslast(), Offer.created_at.asc().nullslast())
         .limit(200)
@@ -3026,6 +3034,8 @@ def freigeben():
         feedback_entries=feedback_entries,
         feedback_kind_labels=FEEDBACK_KIND_LABELS,
         show_from_today=show_from_today,
+        show_permanent_only=show_permanent_only,
+        show_archived=show_archived,
     )
 
 

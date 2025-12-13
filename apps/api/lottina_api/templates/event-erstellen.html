@@ -342,6 +342,9 @@
             <input type="checkbox" name="pets_allowed" value="true" {% if bool_map['pets_allowed'] %}checked{% endif %} data-flag-input data-flag-label="Haustiere erlaubt">
             <span>Haustiere erlaubt</span>
           </label>
+          <label class="wizard-flag">
+            <input type="checkbox" name="is_permanent" value="true" {% if bool_map['is_permanent'] %}checked{% endif %} data-flag-input data-flag-label="Ständiges Angebot">
+            <span>Ständiges Angebot</span>
         </div>
         <p class="text-xs text-white/70">Wähle alle passenden Flags aus, damit wir dein Event besser zuordnen können.</p>
         <div class="wizard-actions">

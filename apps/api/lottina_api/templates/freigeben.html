@@ -23,9 +23,27 @@
                    onchange="this.form.submit()">
             <span>Nur Events ab heute anzeigen</span>
           </label>
+          <label class="inline-flex items-center gap-2 font-semibold">
+            <input type="checkbox"
+                   name="permanent"
+                   value="1"
+                   class="rounded border-lottina-primary/30 text-lottina-primary focus:ring-lottina-primary"
+                   {% if show_permanent_only %}checked{% endif %}
+                   onchange="this.form.submit()">
+            <span>Ständige Angebote</span>
+          </label>
+          <label class="inline-flex items-center gap-2 font-semibold">
+            <input type="checkbox"
+                   name="archived"
+                   value="1"
+                   class="rounded border-lottina-primary/30 text-lottina-primary focus:ring-lottina-primary"
+                   {% if show_archived %}checked{% endif %}
+                   onchange="this.form.submit()">
+            <span>Gelöschte Events</span>
+          </label>
           {% if request.args %}
             {% for key, value in request.args.items() %}
-              {% if key != 'ab_heute' %}
+              {% if key not in ['ab_heute', 'permanent', 'archived'] %}
                 <input type="hidden" name="{{ key }}" value="{{ value }}">
               {% endif %}
             {% endfor %}
