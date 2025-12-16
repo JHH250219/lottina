@@ -5,50 +5,80 @@
 {% set events = events or [] %}
 {% set testimonials = testimonials or [] %}
 
-<!-- Hero: Familienfokus -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
-  <div class="absolute inset-0 opacity-30 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_rgba(0,0,0,0))]"></div>
-  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-40 pb-16 sm:py-24 lg:py-28 grid gap-12 lg:grid-cols-2 items-center">
-    <div class="space-y-6 text-center lg:text-left">
-      <span class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.3em] mx-auto lg:mx-0">
-        Familienzeit beginnt hier
-      </span>
-      <h1 class="text-4xl sm:text-5xl lg:text-[3.8rem] font-lottina font-bold leading-tight drop-shadow-xl">
-        Familien, raus ins Erlebnis!
-      </h1>
-      <p class="text-base sm:text-lg text-white/85 max-w-2xl mx-auto lg:mx-0">
-        Spielplätze, Workshops, Märkte, Theater. Alles in einer Suche. Rausfinden, was heute Spaß macht – ohne endlos zu scrollen.
-      </p>
-      <form id="hero-search"
-            class="bg-white text-lottina-primary rounded-3xl shadow-2xl border border-white/20 flex flex-col sm:flex-row gap-3 px-4 py-4 w-full max-w-2xl mx-auto lg:mx-0"
-            action="/results" method="GET" role="search" aria-label="Events durchsuchen">
-        <div class="flex-1">
-          <label for="hero-q" class="sr-only">Suche nach Erlebnissen</label>
-          <input id="hero-q" name="q" type="text" autocomplete="off"
-                 placeholder="Wo wollt ihr hin? Spielplatz, Museum, Flohmarkt …"
-                 class="w-full border-0 bg-transparent text-base sm:text-lg text-lottina-primary placeholder:text-lottina-primary/40 focus:ring-0">
-        </div>
-        <button type="submit"
-                class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-lottina-accent text-lottina-primary font-semibold shadow-xl hover:bg-white hover:text-lottina-primary transition"
-                aria-label="Suche starten">
-          <span>Jetzt finden</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-4.3-4.3m1.6-4.7a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/>
-          </svg>
-        </button>
-      </form>
-    </div>
-    <div class="relative w-full flex justify-center">
-      <div class="relative w-full max-w-md sm:max-w-lg">
-        <div class="absolute inset-0 blur-[80px] bg-lottina-accent/35 rounded-[48px] -z-10"></div>
-        <img src="{{ url_for('static', filename='img/christmas_kids.webp') }}"
-             alt="Kinder und Familien erleben gemeinsam Abenteuer"
-             class="w-full h-auto drop-shadow-[0_35px_80px_rgba(5,20,15,0.55)]">
-      </div>
-    </div>
-  </div>
-</section>
 <style>
+  .scroll-stage {
+    position: relative;
+    display: block;
+    isolation: isolate;
+  }
+
+  body.home-scroll-stage {
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 120px;
+    overflow-x: hidden;
+  }
+
+  @media (max-width: 768px) {
+    body.home-scroll-stage {
+      scroll-snap-type: y mandatory;
+    }
+  }
+
+  @media (max-width: 640px) {
+    body.home-scroll-stage {
+      scroll-padding-top: 96px;
+    }
+  }
+
+  body.home-scroll-stage.parallax-ready .scroll-stage > [data-scroll-section] {
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  body.home-scroll-stage [data-scroll-section] {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  [data-scroll-section] {
+    position: relative;
+    --parallax-shift: 80px;
+    --parallax-scale: 0.97;
+    transform: translate3d(0, var(--parallax-shift), 0) scale(var(--parallax-scale));
+    transition: transform 0.95s ease-in-out,
+                filter 0.9s ease-in-out;
+    will-change: transform, filter;
+  }
+
+  [data-scroll-section].is-visible {
+    --parallax-shift: 0px;
+    --parallax-scale: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body.home-scroll-stage {
+      scroll-behavior: auto;
+      scroll-snap-type: none !important;
+      overflow-x: visible;
+    }
+    .scroll-stage > [data-scroll-section] {
+      min-height: auto;
+      position: relative;
+    }
+    [data-scroll-section] {
+      transform: none !important;
+      transition: none !important;
+    }
+  }
+
   .feature-counter {
     display: flex;
     flex-direction: column;
@@ -114,8 +144,54 @@
   }
 </style>
 
+<div id="homeScrollStage" class="scroll-stage">
+
+<!-- Hero: Familienfokus -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white" data-scroll-section>
+  <div class="absolute inset-0 opacity-30 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_rgba(0,0,0,0))]"></div>
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-40 pb-16 sm:py-24 lg:py-28 grid gap-12 lg:grid-cols-2 items-center">
+    <div class="space-y-6 text-center lg:text-left">
+      <span class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.3em] mx-auto lg:mx-0">
+        Familienzeit beginnt hier
+      </span>
+      <h1 class="text-4xl sm:text-5xl lg:text-[3.8rem] font-lottina font-bold leading-tight drop-shadow-xl">
+        Familien, raus ins Erlebnis!
+      </h1>
+      <p class="text-base sm:text-lg text-white/85 max-w-2xl mx-auto lg:mx-0">
+        Spielplätze, Workshops, Märkte, Theater. Alles in einer Suche. Rausfinden, was heute Spaß macht – ohne endlos zu scrollen.
+      </p>
+      <form id="hero-search"
+            class="bg-white text-lottina-primary rounded-3xl shadow-2xl border border-white/20 flex flex-col sm:flex-row gap-3 px-4 py-4 w-full max-w-2xl mx-auto lg:mx-0"
+            action="/results" method="GET" role="search" aria-label="Events durchsuchen">
+        <div class="flex-1">
+          <label for="hero-q" class="sr-only">Suche nach Erlebnissen</label>
+          <input id="hero-q" name="q" type="text" autocomplete="off"
+                 placeholder="Wo wollt ihr hin?"
+                 class="w-full border-0 bg-transparent text-base sm:text-lg text-lottina-primary placeholder:text-lottina-primary/40 focus:ring-0">
+        </div>
+        <button type="submit"
+                class="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-lottina-accent text-lottina-primary font-semibold shadow-xl hover:bg-white hover:text-lottina-primary transition"
+                aria-label="Suche starten">
+          <span>Jetzt finden</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-4.3-4.3m1.6-4.7a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+    <div class="relative w-full flex justify-center">
+      <div class="relative w-full max-w-md sm:max-w-lg">
+        <div class="absolute inset-0 blur-[80px] bg-lottina-accent/35 rounded-[48px] -z-10"></div>
+        <img src="{{ url_for('static', filename='img/christmas_kids.webp') }}"
+             alt="Kinder und Familien erleben gemeinsam Abenteuer"
+             class="w-full h-auto drop-shadow-[0_35px_80px_rgba(5,20,15,0.55)]">
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Feature Cards -->
-<section class="relative bg-white py-12 sm:py-16 overflow-hidden">
+<section class="relative bg-white py-12 sm:py-16 overflow-hidden" data-scroll-section>
   <!-- Hintergrundeffekt -->
   <div class="absolute inset-0 -z-10">
     <div class="absolute top-0 left-1/3 w-[400px] h-[400px] bg-lottina-primary/30 rounded-full blur-[120px] animate-float-slow"></div>
@@ -149,7 +225,7 @@
 </section>
 
 <!-- lottina Family Membership -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#163f35] to-[#2c9677] py-14 sm:py-16 text-white">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#163f35] to-[#2c9677] py-14 sm:py-16 text-white" data-scroll-section>
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_rgba(0,0,0,0))]"></div>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
     <div class="relative z-10 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1fr)_420px] items-center">
@@ -204,7 +280,7 @@
 </section>
 
 <!-- Flow -->
-<section class="bg-white py-12 sm:py-14">
+<section class="bg-white py-12 sm:py-14" data-scroll-section>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 space-y-6">
     <div class="text-center space-y-1">
       <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/70">
@@ -260,7 +336,7 @@
 {% set hobby_events = hobby_ns.items %}
 
 <!-- Map CTA -->
-<section class="relative overflow-hidden py-20 sm:py-24 lg:py-28 bg-gradient-to-r from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+<section class="relative overflow-hidden py-20 sm:py-24 lg:py-28 bg-gradient-to-r from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white" data-scroll-section>
   <div class="absolute inset-0 opacity-15 pointer-events-none bg-[url('data:image/svg+xml,%3Csvg width%3D%22100%25%22 height%3D%22100%25%22 xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Cdefs%3E%3Cpattern id%3D%22grid%22 width%3D%2240%22 height%3D%2240%22 patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath d%3D%22M 40 0 L 0 0 0 40%22 fill%3D%22none%22 stroke%3D%22white%22 stroke-width%3D%220.35%22/%3E%3C/pattern%3E%3C/defs%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22url(%23grid)%22/%3E%3C/svg%3E')]"></div>
   <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-10 text-center lg:text-left">
     <div class="lg:w-2/3 space-y-5">
@@ -286,7 +362,7 @@
 
 
 <!-- Testimonials Feed -->
-<section class="bg-white py-14">
+<section class="bg-white py-14" data-scroll-section>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col lg:flex-row gap-10">
     <div class="lg:w-1/3 space-y-4 text-center lg:text-left">
       <h2 class="text-3xl font-bold text-lottina-primary">Was Familien erzählen</h2>
@@ -320,7 +396,7 @@
 </section>
 
 <!-- Hobby Finder -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] py-14 sm:py-16 text-white">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] py-14 sm:py-16 text-white" data-scroll-section>
   <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.32),_rgba(0,0,0,0))]"></div>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
     <div class="relative z-10 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1fr)_420px] items-center">
@@ -439,6 +515,128 @@
   </div>
 </section>
 
+</div>
 
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const stage = document.getElementById("homeScrollStage");
+    if (!stage) return;
+
+    const body = document.body;
+    const sections = stage.querySelectorAll("[data-scroll-section]");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const desktopMedia = window.matchMedia("(min-width: 1024px)");
+    let parallaxEnabled = false;
+    let parallaxRaf = null;
+
+    body.classList.add("home-scroll-stage");
+
+    const computeParallaxMetrics = () => {
+      if (desktopMedia.matches) {
+        return { maxLift: 140, scaleDelta: 0.035 };
+      }
+      return { maxLift: 90, scaleDelta: 0.02 };
+    };
+
+    const resetSectionTransforms = () => {
+      sections.forEach((section) => {
+        section.style.removeProperty("--parallax-shift");
+        section.style.removeProperty("--parallax-scale");
+      });
+    };
+
+    const revealAllSections = () => {
+      sections.forEach((section) => {
+        section.classList.add("is-visible");
+        section.dataset.parallaxReady = "true";
+      });
+    };
+
+    const requestParallaxUpdate = () => {
+      if (parallaxRaf !== null) return;
+      parallaxRaf = window.requestAnimationFrame(() => {
+        parallaxRaf = null;
+        if (!parallaxEnabled) return;
+        const { maxLift, scaleDelta } = computeParallaxMetrics();
+        sections.forEach((section) => {
+          if (!section.dataset.parallaxReady) return;
+          const offset = window.scrollY - section.offsetTop;
+          const height = section.offsetHeight || window.innerHeight || 1;
+          const progress = Math.min(Math.max(offset / height, 0), 1);
+          const lift = -progress * maxLift;
+          const scale = 1 - progress * scaleDelta;
+          section.style.setProperty("--parallax-shift", `${lift.toFixed(2)}px`);
+          section.style.setProperty("--parallax-scale", scale.toFixed(3));
+        });
+      });
+    };
+
+    const handleViewportChange = () => {
+      const reduceMotion = prefersReducedMotion.matches;
+      parallaxEnabled = !reduceMotion;
+      body.classList.toggle("parallax-ready", parallaxEnabled);
+      if (reduceMotion) {
+        resetSectionTransforms();
+        revealAllSections();
+      } else {
+        requestParallaxUpdate();
+      }
+    };
+
+    const cleanup = () => {
+      body.classList.remove("home-scroll-stage", "parallax-ready");
+      window.removeEventListener("scroll", requestParallaxUpdate);
+      window.removeEventListener("resize", requestParallaxUpdate);
+      if (parallaxRaf !== null) {
+        cancelAnimationFrame(parallaxRaf);
+        parallaxRaf = null;
+      }
+      if (typeof desktopMedia.removeEventListener === "function") {
+        desktopMedia.removeEventListener("change", handleViewportChange);
+      } else if (typeof desktopMedia.removeListener === "function") {
+        desktopMedia.removeListener(handleViewportChange);
+      }
+      if (typeof prefersReducedMotion.removeEventListener === "function") {
+        prefersReducedMotion.removeEventListener("change", handleViewportChange);
+      } else if (typeof prefersReducedMotion.removeListener === "function") {
+        prefersReducedMotion.removeListener(handleViewportChange);
+      }
+    };
+
+    window.addEventListener("beforeunload", cleanup, { once: true });
+
+    handleViewportChange();
+
+    const mediaAddEvent = (media, handler) => {
+      if (typeof media.addEventListener === "function") {
+        media.addEventListener("change", handler);
+      } else if (typeof media.addListener === "function") {
+        media.addListener(handler);
+      }
+    };
+
+    mediaAddEvent(desktopMedia, handleViewportChange);
+    mediaAddEvent(prefersReducedMotion, handleViewportChange);
+
+    window.addEventListener("scroll", requestParallaxUpdate, { passive: true });
+    window.addEventListener("resize", requestParallaxUpdate);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          entry.target.dataset.parallaxReady = "true";
+          requestParallaxUpdate();
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.25,
+      rootMargin: "0px 0px -10% 0px"
+    });
+
+    sections.forEach((section) => observer.observe(section));
+  });
+</script>
 
 {% endblock %}
