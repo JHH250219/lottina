@@ -38,8 +38,9 @@
       {% endif %}
     {% endwith %}
 
-    <section class="dashboard-card p-8 space-y-8">
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
+    <section id="children-section" class="dashboard-card p-8 space-y-8">
+      {% set recommendations_href = url_for('results') + ('?' + recommendation_query if recommendation_query else '') %}
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex items-center gap-5">
           {% if current_user.profile_image %}
             <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) }}" alt="Profilbild"
@@ -49,51 +50,76 @@
               {{ (current_user.firstname or current_user.username)[:1] }}
             </div>
           {% endif %}
-          <div class="space-y-2">
+          <div class="space-y-3">
             <p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90">
               <span class="h-2 w-2 rounded-full bg-[#8be84f]"></span>
               Aktiv seit {{ current_user.created_at.strftime('%Y') if current_user.created_at else '2024' }}
             </p>
-            <form action="{{ url_for('dashboard_profile_update') }}" method="POST" class="space-y-3 text-sm">
-              <div class="grid gap-2 sm:grid-cols-2">
-                <label class="space-y-1">
-                  <span class="text-xs uppercase tracking-[0.3em] text-white/60">Vorname</span>
-                  <input type="text" name="firstname" value="{{ current_user.firstname or '' }}" class="dashboard-input" placeholder="Vorname">
-                </label>
-                <label class="space-y-1">
-                  <span class="text-xs uppercase tracking-[0.3em] text-white/60">Nachname</span>
-                  <input type="text" name="lastname" value="{{ current_user.lastname or '' }}" class="dashboard-input" placeholder="Nachname">
-                </label>
-              </div>
-              <label class="space-y-1 block">
-                <span class="text-xs uppercase tracking-[0.3em] text-white/60">Stadt</span>
-                <input type="text" name="city" value="{{ current_user.city or '' }}" class="dashboard-input" placeholder="z. B. Berlin">
-              </label>
-              <p class="text-xs text-white/60">✉️ {{ current_user.email }}</p>
-              <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white hover:bg-white/25 transition">
-                Profil speichern
+            <div class="space-y-1">
+              <h2 class="text-2xl font-semibold text-white">Familie {{ current_user.lastname or current_user.firstname or current_user.username }}</h2>
+              <p class="text-sm text-white/70">Premium aktiv – {{ current_user.city or "Wohnort noch hinzufügen" }}</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button type="button"
+                      class="inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition"
+                      data-profile-toggle>
+                Profil bearbeiten
               </button>
-            </form>
+              <a href="#children-section"
+                 class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white hover:bg-white/20 transition">
+                Kinder verwalten
+              </a>
+              <a href="#favorites-section"
+                 class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8be84f] to-[#1f6d5c] px-4 py-2 text-xs font-semibold text-[#0f2f2c] shadow hover:opacity-90 transition">
+                Zu meinen Events
+              </a>
+            </div>
+            <p class="text-xs text-white/60">✉️ {{ current_user.email }}</p>
           </div>
         </div>
+        <div class="grid gap-4 sm:grid-cols-3 lg:max-w-md w-full">
+          <a href="#favorites-section" class="hero-stat-card">
+            <p>Gespeicherte Events</p>
+            <strong>{{ favorite_events|length }}</strong>
+            <span>bereit fürs Wochenende</span>
+          </a>
+          <a href="{{ recommendations_href }}" class="hero-stat-card">
+            <p>Empfehlungen</p>
+            <strong>{{ recommendation_count }}</strong>
+            <span>aus Interessen der Kids</span>
+          </a>
+          <a href="{{ url_for('karte') }}" class="hero-stat-card">
+            <p>Umgebung</p>
+            <strong>{{ nearby_events|length }}</strong>
+            <span>Tipps in deiner Nähe</span>
+          </a>
+        </div>
       </div>
-      {% set recommendations_href = url_for('results') + ('?' + recommendation_query if recommendation_query else '') %}
-      <div class="grid gap-4 sm:grid-cols-3">
-        <a href="#favorites-section" class="dashboard-mini-card dashboard-mini-card--link">
-          <p>Gespeicherte Events</p>
-          <p>{{ favorite_events|length }}</p>
-          <span>bereit fürs Wochenende</span>
-        </a>
-        <a href="{{ recommendations_href }}" class="dashboard-mini-card dashboard-mini-card--link">
-          <p>Empfehlungen</p>
-          <p>{{ recommendation_count }}</p>
-          <span>Aus Interessen der Kids</span>
-        </a>
-        <a href="{{ url_for('karte') }}" class="dashboard-mini-card dashboard-mini-card--link">
-          <p>Umgebung</p>
-          <p>{{ nearby_events|length }}</p>
-          <span>Tipps für diese Woche</span>
-        </a>
+      <div class="profile-edit-panel hidden" data-profile-form>
+        <form action="{{ url_for('dashboard_profile_update') }}" method="POST" class="space-y-4 text-sm">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="space-y-1">
+              <span class="text-xs uppercase tracking-[0.3em] text-white/60">Vorname</span>
+              <input type="text" name="firstname" value="{{ current_user.firstname or '' }}" class="dashboard-input" placeholder="Vorname">
+            </label>
+            <label class="space-y-1">
+              <span class="text-xs uppercase tracking-[0.3em] text-white/60">Nachname</span>
+              <input type="text" name="lastname" value="{{ current_user.lastname or '' }}" class="dashboard-input" placeholder="Nachname">
+            </label>
+          </div>
+          <label class="space-y-1 block">
+            <span class="text-xs uppercase tracking-[0.3em] text-white/60">Stadt</span>
+            <input type="text" name="city" value="{{ current_user.city or '' }}" class="dashboard-input" placeholder="z. B. Berlin">
+          </label>
+          <div class="flex flex-wrap gap-3 items-center">
+            <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white hover:bg-white/25 transition">
+              Änderungen speichern
+            </button>
+            <button type="button" class="text-xs text-white/70 hover:text-white" data-profile-toggle>
+              Abbrechen
+            </button>
+          </div>
+        </form>
       </div>
     </section>
 
@@ -434,6 +460,43 @@
     font-size: 0.75rem;
     color: rgba(255,255,255,0.65);
   }
+  .hero-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    padding: 1.25rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .hero-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,255,255,0.4);
+    background: rgba(0,0,0,0.4);
+  }
+  .hero-stat-card p {
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+  }
+  .hero-stat-card strong {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .hero-stat-card span {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+  }
+  .profile-edit-panel {
+    border-radius: 24px;
+    border: 1px dashed rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.07);
+    padding: 1.5rem;
+  }
   .dashboard-input {
     width: 100%;
     border-radius: 20px;
@@ -450,6 +513,17 @@
 {% if is_premium %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const profileToggles = document.querySelectorAll("[data-profile-toggle]");
+    const profileFormPanel = document.querySelector("[data-profile-form]");
+    profileToggles.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!profileFormPanel) return;
+        profileFormPanel.classList.toggle("hidden");
+        if (!profileFormPanel.classList.contains("hidden")) {
+          profileFormPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+    });
     const childrenList = document.getElementById("childrenList");
     const childTemplate = document.getElementById("childCardTemplate");
     const addChildBtn = document.getElementById("addChildBtn");

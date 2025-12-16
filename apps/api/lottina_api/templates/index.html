@@ -41,7 +41,7 @@
     <div class="relative w-full flex justify-center">
       <div class="relative w-full max-w-md sm:max-w-lg">
         <div class="absolute inset-0 blur-[80px] bg-lottina-accent/35 rounded-[48px] -z-10"></div>
-        <img src="{{ url_for('static', filename='img/christmas_kids.png') }}"
+        <img src="{{ url_for('static', filename='img/christmas_kids.webp') }}"
              alt="Kinder und Familien erleben gemeinsam Abenteuer"
              class="w-full h-auto drop-shadow-[0_35px_80px_rgba(5,20,15,0.55)]">
       </div>
@@ -125,13 +125,13 @@
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       <a href="/results" class="feature-card feature-card--primary">
-        <img src="{{ url_for('static', filename='img/echtzeit.png') }}" alt="Echtzeit" class="h-24 w-24 object-contain drop-shadow-[0_30px_50px_rgba(8,20,18,0.45)]">
+        <img src="{{ url_for('static', filename='img/echtzeit.webp') }}" alt="Echtzeit" class="h-24 w-24 object-contain drop-shadow-[0_30px_50px_rgba(8,20,18,0.45)]">
         <h3>Erlebnisse in Echtzeit</h3>
         <p>Immer aktuelle Angebote aus deiner Region oder wo du hin willst.</p>
         <span class="feature-link">Jetzt entdecken</span>
       </a>
       <a href="/results" class="feature-card feature-card--accent">
-        <img src="{{ url_for('static', filename='img/filter.png') }}" alt="Poster scannen" class="h-24 w-24 object-contain drop-shadow-[0_30px_50px_rgba(8,20,18,0.45)]">
+        <img src="{{ url_for('static', filename='img/filter.webp') }}" alt="Poster scannen" class="h-24 w-24 object-contain drop-shadow-[0_30px_50px_rgba(8,20,18,0.45)]">
         <h3>Filter & Karten</h3>
         <p>Finde dank Filter Erlebnisse, die zu dir und deinen Bedürfnissen passen.</p>
         <span class="feature-link">Ausprobieren</span>
@@ -195,7 +195,7 @@
         </div>
       </div>
       <div class="relative z-10 flex justify-center mt-6 lg:mt-0">
-        <img src="{{ url_for('static', filename='img/family_plus_winter.png') }}"
+        <img src="{{ url_for('static', filename='img/family_plus_winter.webp') }}"
              alt="lottina Family Illustration"
              class="w-full max-w-sm object-contain drop-shadow-[0_35px_80px_rgba(4,15,12,0.55)]">
       </div>
@@ -277,7 +277,7 @@
       </div>
     </div>
     <div class="lg:w-1/3 w-full flex items-center justify-center">
-      <img src="{{ url_for('static', filename='img/map-pin-snow.png') }}"
+      <img src="{{ url_for('static', filename='img/map-pin-snow.webp') }}"
            alt="Karte-Vorschau"
            class="w-full max-w-xs object-contain drop-shadow-[0_35px_70px_rgba(5,15,13,0.35)]">
     </div>
@@ -293,8 +293,6 @@
       <p class="text-sm text-lottina-primary/75">
         Echtes Feedback von Eltern, Veranstalter:innen und Kids, die mit lottina ihre Highlights gefunden haben.
       </p>
-      <a href="{{ url_for('ueber_uns') }}" class="inline-flex items-center justify-center gap-2 text-sm font-semibold text-lottina-accent hover:text-lottina-primary/80 hover:gap-3 transition-all">
-        Mehr über lottina erfahren
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
         </svg>
@@ -377,7 +375,7 @@
           <article class="group relative flex flex-col overflow-hidden rounded-3xl bg-white text-lottina-primary border border-white/40 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
             <a href="{{ url_for('event_detail', event_id=event.id) }}" class="flex flex-col h-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lottina-accent">
               <div class="relative h-48 overflow-hidden">
-                <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.png') }}"
+                <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.webp') }}"
                      alt="{{ event.title or 'Event Bild' }}"
                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                 <div class="absolute top-3 left-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">

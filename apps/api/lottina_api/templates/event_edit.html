@@ -585,36 +585,6 @@
 </div>
 {% endif %}
 
-<template id="recurrence-slot-template">
-  <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
-       data-recurrence-slot>
-    <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
-      <span data-recurrence-weekday-label>Wochentag</span>
-      <span class="text-xs text-lottina-primary/60" data-recurrence-daily-label hidden>Jeden Tag</span>
-      <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
-        {% for value, label in recurrence_weekday_choices %}
-          <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <input type="hidden" data-recurrence-weekday-hidden>
-    <label class="flex flex-col gap-1 text-sm font-semibold">
-      Startzeit
-      <input type="time" name="recurrence_start[]" class="form-input" data-recurrence-start>
-    </label>
-    <label class="flex flex-col gap-1 text-sm font-semibold">
-      Endzeit
-      <input type="time" name="recurrence_end[]" class="form-input" data-recurrence-end>
-    </label>
-    <button type="button"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
-            data-recurrence-remove
-            title="Eintrag entfernen">
-      &times;
-    </button>
-  </div>
-</template>
-
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const editForm = document.querySelector("[data-event-edit-form]");

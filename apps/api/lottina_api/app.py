@@ -2730,6 +2730,7 @@ def create_event():
     image_url = (f.get("image_url") or "").strip() or None
     ocr_text = None
     is_permanent_flag = (f.get("is_permanent") or "").strip().lower() in {"1", "true", "on", "yes"}
+    allow_ocr_processing = mode == MODE_OCR
     if poster_file and poster_file.filename:
         if not allowed(poster_file.filename):
             msg = "Nur JPG, JPEG, PNG oder WEBP werden unterstützt."
@@ -2739,12 +2740,13 @@ def create_event():
             return redirect(url_for("event_erstellen")), 400
         saved = save_upload(poster_file, IMAGE_FOLDER)
         image_url = f"/uploads/images/{saved.name}"
-        try:
-            ocr_text = run_ocr(str(saved))
-            flash("Texterkennung erfolgreich – Beschreibung wurde vorausgefüllt.", "info")
-        except Exception as exc:  # noqa: BLE001
-            app.logger.warning("Remote OCR failed during event save: %s", exc)
-            flash("Bild gespeichert, Texterkennung nicht möglich.", "warning")
+        if allow_ocr_processing:
+            try:
+                ocr_text = run_ocr(str(saved))
+                flash("Texterkennung erfolgreich – Beschreibung wurde vorausgefüllt.", "info")
+            except Exception as exc:  # noqa: BLE001
+                app.logger.warning("Remote OCR failed during event save: %s", exc)
+                flash("Bild gespeichert, Texterkennung nicht möglich.", "warning")
 
     description_text = (f.get("description") or "").strip()
     if not description_text and ocr_text:
