@@ -1768,6 +1768,15 @@ def edit_event(event_id):
         for field in bool_fields:
             setattr(event, field, request.form.get(field) == "on")
 
+        image_upload = request.files.get("image_file") or request.files.get("poster_file")
+        if image_upload and image_upload.filename:
+            if not allowed(image_upload.filename):
+                errors.append("Nur JPG, JPEG, PNG oder WEBP werden unterstützt.")
+                field_errors["image"] = "Ungültiger Dateityp"
+            else:
+                saved = save_upload(image_upload, IMAGE_FOLDER)
+                event.image = f"/uploads/images/{saved.name}"
+
         force_single_event = request.form.get("is_once") == "on"
 
         type_value = (request.form.get("type") or "").strip()

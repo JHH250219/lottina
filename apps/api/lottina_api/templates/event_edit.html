@@ -37,6 +37,7 @@
       {% endif %}
 
       <form method="post"
+            enctype="multipart/form-data"
             class="space-y-10"
             data-event-edit-form
             data-recurring-event="{{ 1 if has_existing_recurrence else 0 }}">
@@ -324,6 +325,22 @@
                 <span class="form-error">{{ field_error }}</span>
               {% endif %}
             </label>
+            {% set field_error = field_errors.get('location_lat') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
+              Breitengrad (Lat)
+              <input type="number" step="any" name="location_lat" value="{{ prefill.location_lat }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
+            </label>
+            {% set field_error = field_errors.get('location_lon') %}
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if field_error %}text-red-600{% endif %}">
+              Längengrad (Lon)
+              <input type="number" step="any" name="location_lon" value="{{ prefill.location_lon }}" class="form-input {% if field_error %}form-input--error{% endif %}">
+              {% if field_error %}
+                <span class="form-error">{{ field_error }}</span>
+              {% endif %}
+            </label>
           </div>
         </div>
 
@@ -460,76 +477,70 @@
                 </p>
               </div>
             </div>
-              {% for slot in recurrence_slots %}
-                <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
-                     data-recurrence-slot>
-                  <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
-                    <span data-recurrence-weekday-label>Wochentag</span>
-                    <span class="text-xs text-lottina-primary/60" data-recurrence-daily-label hidden>Jeden Tag</span>
-                    <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
-                      {% for value, label in recurrence_weekday_choices %}
-                        <option value="{{ value }}" {% if slot.weekday == value %}selected{% endif %}>{{ label }}</option>
-                      {% endfor %}
-                    </select>
-                  </label>
-                  <input type="hidden" data-recurrence-weekday-hidden>
-                  <label class="flex flex-col gap-1 text-sm font-semibold">
-                    Startzeit
-                    <input type="time" name="recurrence_start[]" value="{{ slot.start }}" class="form-input" data-recurrence-start>
-                  </label>
-                  <label class="flex flex-col gap-1 text-sm font-semibold">
-                    Endzeit
-                    <input type="time" name="recurrence_end[]" value="{{ slot.end }}" class="form-input" data-recurrence-end>
-                  </label>
-                  <button type="button"
-                          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
-                          data-recurrence-remove
-                          title="Eintrag entfernen">
-                    &times;
-                  </button>
-                </div>
-              {% endfor %}
-            </div>
-            {% if recurrence_error %}
-              <span class="form-error">{{ recurrence_error }}</span>
-            {% endif %}
-              <label class="flex flex-col gap-2 text-sm font-semibold {% if recurrence_error %}text-red-600{% endif %} {% if recurrence_frequency == 'none' %}hidden{% endif %}"
-                     data-recurrence-until-wrapper>
-              Letzter Wiederholungstag
-              <div class="flex flex-wrap items-center gap-3">
-                <input type="date"
-                       name="recurrence_until"
-                       value="{{ prefill.recurrence_until }}"
-                       data-initial-value="{{ prefill.recurrence_until }}"
-                       class="form-input {% if recurrence_error %}form-input--error{% endif %}"
-                       data-recurrence-until>
-                <button type="button"
-                        class="text-xs font-semibold text-lottina-primary/70 hover:text-lottina-primary rounded-2xl border border-transparent px-3 py-1 hover:border-lottina-primary/30"
-                        data-recurrence-until-reset
-                        title="Enddatum leeren">
-                  Zurücksetzen
-                </button>
-              </div>
-              <span class="text-xs text-lottina-primary/60">
-                Bis einschließlich dieses Tages werden neue Termine erzeugt. Feld leer lassen für unbegrenzte Serien.
-              </span>
-            </label>
-            <div class="flex flex-wrap items-center gap-3">
-              <button type="button"
-                      data-recurrence-add
-                      class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5">
-                Weiteren Wochentag hinzufügen
-              </button>
-              <p class="text-xs text-lottina-primary/60">
-                Zeiten bitte im Format HH:MM angeben. Liegt die Endzeit vor der Startzeit, endet das Event automatisch am Folgetag.
-              </p>
-            </div>
           </div>
+          <template id="recurrence-slot-template">
+            <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
+                 data-recurrence-slot>
+              <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
+                <span data-recurrence-weekday-label>Wochentag</span>
+                <span class="text-xs text-lottina-primary/60" data-recurrence-daily-label hidden>Jeden Tag</span>
+                <select name="recurrence_weekday[]" class="form-select" data-recurrence-weekday>
+                  {% for value, label in recurrence_weekday_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <input type="hidden" data-recurrence-weekday-hidden>
+              <label class="flex flex-col gap-1 text-sm font-semibold">
+                Startzeit
+                <input type="time" name="recurrence_start[]" class="form-input" data-recurrence-start>
+              </label>
+              <label class="flex flex-col gap-1 text-sm font-semibold">
+                Endzeit
+                <input type="time" name="recurrence_end[]" class="form-input" data-recurrence-end>
+              </label>
+              <button type="button"
+                      class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
+                      data-recurrence-remove
+                      title="Eintrag entfernen">
+                &times;
+              </button>
+            </div>
+          </template>
 
           {% set opening_error = field_errors.get('opening_hours_json') %}
           {% set holiday_error = field_errors.get('holiday_hours_json') %}
           {% set opening_populated = prefill.opening_hours_json %}
           {% set holiday_populated = prefill.holiday_hours_json %}
+        </div>
+
+        <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
+          <div>
+            <h2 class="text-lg font-semibold text-lottina-primary">Öffnungszeiten & Sondertage</h2>
+            <p class="text-sm text-lottina-primary/70">Pflege hier die JSON-Struktur für reguläre und abweichende Öffnungszeiten.</p>
+          </div>
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if opening_error %}text-red-600{% endif %}">
+              Reguläre Öffnungszeiten (JSON)
+              <textarea name="opening_hours_json"
+                        rows="6"
+                        class="form-textarea {% if opening_error %}form-input--error{% endif %}">{{ opening_populated }}</textarea>
+              <span class="text-xs font-normal text-lottina-primary/60">Leer lassen, wenn keine regulären Zeiten gepflegt werden sollen.</span>
+              {% if opening_error %}
+                <span class="form-error">{{ opening_error }}</span>
+              {% endif %}
+            </label>
+            <label class="flex flex-col gap-2 text-sm font-semibold {% if holiday_error %}text-red-600{% endif %}">
+              Abweichungen / Feiertage (JSON)
+              <textarea name="holiday_hours_json"
+                        rows="6"
+                        class="form-textarea {% if holiday_error %}form-input--error{% endif %}">{{ holiday_populated }}</textarea>
+              <span class="text-xs font-normal text-lottina-primary/60">Optional: z.&nbsp;B. spezielle Zeiten in den Ferien.</span>
+              {% if holiday_error %}
+                <span class="form-error">{{ holiday_error }}</span>
+              {% endif %}
+            </label>
+          </div>
         </div>
 
         <div class="flex items-center justify-end gap-4">
