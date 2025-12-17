@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}lottina – Gemeinsam Startseite gestalten{% endblock %}
+
+{% block content %}
+<style>
+  .stage {
+    position: relative;
+    overflow: hidden;
+  }
+
+  body.startseite-scroll {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 80px;
+  }
+
+  .stage-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f2f2c;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    --shift: 80px;
+    --scale: 0.96;
+    transform: translate3d(0, var(--shift), 0) scale(var(--scale));
+    opacity: 0;
+    transition: transform 0.95s ease-in-out, opacity 0.95s ease-out;
+    will-change: transform, opacity;
+  }
+
+  .stage-section.is-visible {
+    --shift: 0px;
+    --scale: 1;
+    opacity: 1;
+  }
+
+  .stage-section--bottom {
+    align-items: flex-end;
+    padding-bottom: 10vh;
+  }
+
+  .hero-search {
+    width: min(420px, 85vw);
+    border-bottom: 1.6px solid rgba(255, 255, 255, 0.55);
+    padding: 0.7rem 0;
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: search-appear 1s ease forwards 0.3s;
+  }
+
+  .hero-search__input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+    outline: none;
+    caret-color: #7be751;
+  }
+
+  .hero-search__cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.1em;
+    background: rgba(255, 255, 255, 0.9);
+    animation: cursor-blink 1s steps(2, start) infinite;
+    margin-left: 2px;
+  }
+
+  .hero-search__cursor--steady {
+    animation: none;
+    opacity: 1;
+  }
+
+  @keyframes search-appear {
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body.startseite-scroll {
+      scroll-snap-type: none;
+    }
+    .stage-section {
+      transform: none !important;
+      opacity: 1 !important;
+      transition: none !important;
+    }
+  }
+</style>
+
+<div id="startStage" class="stage">
+  {% set colors = [
+    "#0f2f2c",
+    "#163f35",
+    "#2c9677",
+    "#7be751",
+    "#f0f5f2"
+  ] %}
+  {% for color in colors %}
+    <section class="stage-section {{ 'stage-section--bottom' if loop.first else '' }}" data-stage-section="">
+      {% if loop.first %}
+        <div class="flex flex-col items-center gap-6 text-center px-6 w-full">
+          <div class="hero-search" role="search" aria-label="Erlebnisse suchen">
+            <div class="hero-search__input" data-typewriter></div>
+            <span class="hero-search__cursor" aria-hidden="true"></span>
+          </div>
+          <div class="w-full flex flex-col items-center gap-3">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70">Beta Status</p>
+            <p class="text-white/80 max-w-xl text-sm leading-relaxed">
+              lottina ist im Aufbau. Wir freuen uns, wenn du Teil des Wachstums bist und Feedback mit uns teilst, damit die neue Startseite perfekt wird.
+            </p>
+          </div>
+        </div>
+      {% else %}
+        <div class="text-center text-white/50 text-sm uppercase tracking-[0.25em]">
+          Abschnitt {{ loop.index }}
+        </div>
+      {% endif %}
+    </section>
+  {% endfor %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const stage = document.getElementById("startStage");
+    if (!stage) return;
+
+    const body = document.body;
+    body.classList.add("startseite-scroll");
+
+    const sections = stage.querySelectorAll("[data-stage-section]");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    if (prefersReducedMotion.matches) {
+      sections.forEach((section) => section.classList.add("is-visible"));
+      return;
+    }
+
+    const updateLifts = () => {
+      const viewport = window.innerHeight || 1;
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        const progress = 1 - Math.min(Math.max(rect.top / viewport, 0), 1);
+        const lift = -progress * viewport * 0.6;
+        section.style.setProperty("--scroll-lift", `${lift.toFixed(2)}px`);
+      });
+    };
+
+    let scrollRaf = null;
+    const requestUpdate = () => {
+      if (scrollRaf !== null) return;
+      scrollRaf = window.requestAnimationFrame(() => {
+        scrollRaf = null;
+        updateLifts();
+      });
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.25,
+      rootMargin: "0px 0px -10% 0px"
+    });
+
+    sections.forEach((section) => observer.observe(section));
+
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    requestUpdate();
+
+    const typewriter = document.querySelector("[data-typewriter]");
+    const cursor = document.querySelector(".hero-search__cursor");
+    const targetText = "Wo geht es heute hin?";
+    let currentIndex = 0;
+
+    const typeNext = () => {
+      if (!typewriter) return;
+      if (currentIndex <= targetText.length) {
+        typewriter.textContent = targetText.slice(0, currentIndex);
+        currentIndex += 1;
+        const delay = currentIndex === targetText.length + 1 ? 1200 : 90;
+        setTimeout(typeNext, delay);
+      } else {
+        cursor?.classList.add("hero-search__cursor--steady");
+      }
+    };
+
+    setTimeout(typeNext, 800);
+
+    window.addEventListener("beforeunload", () => {
+      body.classList.remove("startseite-scroll");
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (scrollRaf !== null) {
+        window.cancelAnimationFrame(scrollRaf);
+      }
+    }, { once: true });
+  });
+</script>
+{% endblock %}
