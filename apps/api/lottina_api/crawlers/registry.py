@@ -7,6 +7,7 @@ from .aachener_kinder import AachenerKinderCrawler
 from .gruen_metropole import GruenMetropoleCrawler
 #from .nrw_tourismus import NrwTourismusCrawler
 from .kingkalli import KingKalliCrawler
+from .heimat_info_stolberg import HeimatInfoStolbergCrawler
 from .rur_eifel import RurEifelCrawler
 from .vhs_nordkreis import VhsNordkreisCrawler
 from .roetgen_event import RoetgenEventCrawler
@@ -18,6 +19,7 @@ CRAWLERS: tuple[Type[BaseCrawler], ...] = (
     GruenMetropoleCrawler,
     #NrwTourismusCrawler,
     KingKalliCrawler,
+    HeimatInfoStolbergCrawler,
     RurEifelCrawler,
     RoetgenEventCrawler,
     VhsNordkreisCrawler,

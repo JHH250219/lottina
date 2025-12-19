@@ -4,7 +4,8 @@ from flask import (
     abort, send_file, session, Response
 )
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, and_, or_, create_engine, case
+from sqlalchemy import func, and_, or_, create_engine, case, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import selectinload
 from flask_migrate import Migrate
 import stripe
@@ -36,6 +37,7 @@ from calendar import monthrange
 from math import ceil
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
+from sqlite3 import Connection as SQLite3Connection
 from flask_login import (
     LoginManager, login_user, logout_user,
     login_required, current_user
@@ -44,6 +46,7 @@ from flask_mail import Mail, Message
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 
 import json
+import html
 import os, re, uuid
 from pathlib import Path
 import mimetypes
@@ -51,13 +54,15 @@ import click
 from itertools import zip_longest
 from typing import Any
 from werkzeug.utils import secure_filename
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
+import requests
 from .utils import (
     allowed,
     save_upload,
     extract_addr_city_from_text,
     extract_fields,
 )
+from .utils.geo import haversine
 from .ocr_client import run_ocr
 
 # ---------------------------------------------------------------------------
@@ -181,6 +186,18 @@ app.register_blueprint(organisations_bp)
 print(f"📦 Aktive Datenbank: {resolved_db_uri}")
 if fallback_in_use:
     print("⚠️  Achtung: Fallback-Datenbank (SQLite) aktiv!")
+
+if resolved_db_uri.startswith("sqlite"):
+    @event.listens_for(Engine, "connect")
+    def _sqlite_enable_now_function(dbapi_connection, connection_record):
+        if not isinstance(dbapi_connection, SQLite3Connection):
+            return
+
+        def _now():
+            return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        # SQLite kennt kein now(); registriere kompatible Funktion als Ersatz.
+        dbapi_connection.create_function("now", 0, _now)
 
 
 FEEDBACK_KIND_FEEDBACK = "feedback"
@@ -767,8 +784,7 @@ def _debug_db():
 # ---------------------------------------------------------------------------
 # Kernrouten
 # ---------------------------------------------------------------------------
-@app.route("/")
-def index():
+def _frontpage_context():
     try:
         events_query = db.session.query(Offer)
         events_query = _filter_visible_offers(events_query)
@@ -855,15 +871,25 @@ def index():
         },
     ]
 
-    return render_template(
-        "index.html",
-        categories=categories,
-        events=events,
-        coords=coords,
-        quick_filters=quick_filters,
-        testimonials=testimonials,
-        curated_manual=curated_manual,
-    )
+    return {
+        "categories": categories,
+        "events": events,
+        "coords": coords,
+        "quick_filters": quick_filters,
+        "testimonials": testimonials,
+        "curated_manual": curated_manual,
+    }
+
+@app.route("/")
+def index():
+    ctx = _frontpage_context()
+    return render_template("index.html", **ctx)
+
+@app.route("/start")
+@app.route("/startseite", endpoint="startseite")
+def startseite():
+    ctx = _frontpage_context()
+    return render_template("startseite.html", **ctx)
 
 WEEKDAY_ABBR_DE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 
@@ -1198,12 +1224,14 @@ def karte():
     assign_marker_color("ort")
 
     coords = []
+    app.logger.info("locations count: %d", len(locations))
     location_ids: list[str] = []
     for location in locations:
         try:
             lat_value = float(location.lat)
             lon_value = float(location.lon)
         except (TypeError, ValueError):
+            app.logger.warning("Ungültige Koordinaten für Location %s: %s, %s", location.id, location.lat, location.lon)
             continue
 
         related_offers = list(location.offers or [])
@@ -1283,6 +1311,10 @@ def karte():
     for slug, name in sorted(category_lookup.items(), key=lambda item: item[1].lower()):
         color_key = assign_marker_color(slug)
         category_filters.append({"slug": slug, "name": name, "color": color_key})
+
+
+    app.logger.info("location_ids: %s", coords)
+
 
     return render_template(
         "karte.html",
@@ -2209,6 +2241,155 @@ login_manager.login_view = "login"
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+def _city_label_from_postal(postal_code: str | None) -> str | None:
+    if not postal_code:
+        return None
+    postal_code = postal_code.strip()
+    if not postal_code:
+        return None
+    postal_like = f"%{postal_code}%"
+    city_row = (
+        db.session.query(Location.city)
+        .filter(Location.city.isnot(None), Location.city != "")
+        .filter(
+            or_(
+                Location.address.ilike(postal_like),
+                Location.name.ilike(postal_like),
+            )
+        )
+        .order_by(Location.city.asc())
+        .first()
+    )
+    if city_row and city_row[0]:
+        return city_row[0]
+    return None
+
+
+def _postal_coordinates(postal_code: str | None) -> tuple[float, float] | None:
+    if not postal_code:
+        return None
+    postal_code = postal_code.strip()
+    if not postal_code:
+        return None
+    postal_like = f"%{postal_code}%"
+    coord_row = (
+        db.session.query(Location.lat, Location.lon)
+        .filter(Location.lat.isnot(None), Location.lon.isnot(None))
+        .filter(
+            or_(
+                Location.address.ilike(postal_like),
+                Location.name.ilike(postal_like),
+                Location.city.ilike(postal_like),
+            )
+        )
+        .order_by(Location.created_at.desc())
+        .first()
+    )
+    if coord_row and coord_row[0] is not None and coord_row[1] is not None:
+        return float(coord_row[0]), float(coord_row[1])
+    return None
+
+
+def _matching_events(
+    postal_code: str | None,
+    interests: list[str] | None,
+    *,
+    days: int = 7,
+    limit: int = 6,
+    radius_km: int | None = None,
+):
+    cleaned_postal = (postal_code or "").strip()
+    interest_labels = [label.strip() for label in (interests or []) if label and label.strip()]
+    now = datetime.now(timezone.utc)
+    window_end = now + timedelta(days=days)
+    center_coords = _postal_coordinates(cleaned_postal)
+
+    query = (
+        db.session.query(Offer)
+        .options(selectinload(Offer.categories), selectinload(Offer.location))
+        .join(Location, Offer.location_id == Location.id)
+        .filter(Location.lat.isnot(None), Location.lon.isnot(None))
+        .filter(Offer.status == OfferStatus.published)
+        .filter(Offer.dt_start.isnot(None))
+        .filter(Offer.dt_start >= now, Offer.dt_start <= window_end)
+    )
+
+    if cleaned_postal:
+        postal_like = f"%{cleaned_postal}%"
+        query = query.filter(
+            or_(
+                Location.address.ilike(postal_like),
+                Location.name.ilike(postal_like),
+                Location.city.ilike(postal_like),
+            )
+        )
+
+    if interest_labels:
+        interest_filters = [
+            Offer.categories.any(Category.name.ilike(label))
+            for label in interest_labels
+        ]
+        query = query.filter(or_(*interest_filters))
+
+    query = query.order_by(
+        Offer.dt_start.asc().nullslast(),
+        Offer.created_at.desc().nullslast(),
+    )
+
+    results: list[dict[str, str]] = []
+    candidate_limit = limit * 4 if center_coords and radius_km else limit
+    offers = query.limit(candidate_limit).all()
+    for idx, offer in enumerate(offers):
+        location = offer.location
+        if not location:
+            continue
+        if center_coords and radius_km and location.lat is not None and location.lon is not None:
+            distance_km = haversine(center_coords[0], center_coords[1], location.lat, location.lon)
+            if distance_km > radius_km:
+                continue
+        else:
+            distance_km = None
+        localized = offer.dt_start.astimezone()
+        start_label = localized.strftime("%d.%m.%Y · %H:%M Uhr")
+        category_name = ""
+        offer_categories = []
+        if offer.categories:
+            for category in offer.categories:
+                if category and category.name:
+                    offer_categories.append(category.name)
+            if offer_categories:
+                category_name = offer_categories[0]
+        matched_interest = ""
+        offer_category_lower = [name.lower() for name in offer_categories]
+        for label in interest_labels:
+            if label.lower() in offer_category_lower:
+                matched_interest = label
+                break
+        if not matched_interest:
+            matched_interest = category_name or (interest_labels[0] if interest_labels else "Familienzeit")
+
+        match_score = max(70, 95 - idx * 4)
+        city_label = location.city or location.address or location.name or "In deiner Nähe"
+        if distance_km is not None:
+            distance_label = f"{distance_km:.1f} km · {city_label}"
+        else:
+            distance_label = city_label
+        results.append(
+            {
+                "title": offer.title or "Event",
+                "time": start_label,
+                "distance": distance_label,
+                "category": category_name or "Event",
+                "interest": matched_interest,
+                "match_score": match_score,
+                "url": url_for("event_detail", event_id=str(offer.id)),
+            }
+        )
+        if len(results) >= limit:
+            break
+    return results
+
 @app.route("/login", methods=["GET","POST"])
 def login():
     if request.method == "POST":
@@ -2290,6 +2471,7 @@ def _dashboard_context():
                     "day": localized.strftime("%d"),
                     "month": localized.strftime("%b"),
                     "time": localized.strftime("%H:%M"),
+                    "date_iso": localized.date().isoformat(),
                     "title": offer.title or "Ohne Titel",
                     "location": offer.location.name if offer.location else "Ort folgt",
                     "is_free": bool(offer.is_free),
@@ -2297,53 +2479,95 @@ def _dashboard_context():
                 }
             )
 
-    available_interests = [
-        "Klettern",
-        "Forschen",
-        "Musik",
-        "Kreativ",
-        "Schwimmen",
-        "Natur",
-        "Tanz",
-        "Gaming",
-        "Sprachen",
-    ]
+    category_rows = Category.query.order_by(Category.name.asc()).all()
+    available_interests = [cat.name for cat in category_rows if cat.name]
+    if not available_interests:
+        available_interests = [
+            "Klettern",
+            "Forschen",
+            "Musik",
+            "Kreativ",
+            "Schwimmen",
+            "Natur",
+            "Tanz",
+            "Gaming",
+            "Sprachen",
+        ]
 
-    nearby_events = [
-        {
-            "title": "Kinderbauernhof Pinke-Panke",
-            "category": "Draußen",
-            "distance": "0,8 km",
-            "time": "Heute, 15:00 Uhr",
-            "lat": 52.5564,
-            "lon": 13.4027,
-        },
-        {
-            "title": "FabLab Mini-Maker",
-            "category": "Technik",
-            "distance": "1,3 km",
-            "time": "Heute, 17:30 Uhr",
-            "lat": 52.5488,
-            "lon": 13.4129,
-        },
-        {
-            "title": "Kinderkino am Pankeufer",
-            "category": "Film",
-            "distance": "2,1 km",
-            "time": "Morgen, 16:00 Uhr",
-            "lat": 52.5462,
-            "lon": 13.3895,
-        },
-    ]
+    nearby_events: list[dict[str, Any]] = []
+    user_postal_code = (current_user.postal_code or "").strip()
+    profile_location_label = _city_label_from_postal(user_postal_code)
+    nearby_query = (
+        db.session.query(Offer, Location)
+        .join(Location, Offer.location_id == Location.id)
+        .filter(Location.lat.isnot(None), Location.lon.isnot(None))
+        .filter(Offer.status == OfferStatus.published)
+    )
+    if user_postal_code:
+        postal_like = f"%{user_postal_code}%"
+        nearby_query = nearby_query.filter(
+            or_(
+                Location.address.ilike(postal_like),
+                Location.name.ilike(postal_like),
+                Location.city.ilike(postal_like),
+            )
+        )
+    nearby_rows = (
+        nearby_query.order_by(
+            Offer.dt_start.asc().nullslast(),
+            Offer.created_at.desc().nullslast(),
+        )
+        .limit(6)
+        .all()
+    )
+    if not nearby_rows:
+        nearby_rows = (
+            db.session.query(Offer, Location)
+            .join(Location, Offer.location_id == Location.id)
+            .filter(Location.lat.isnot(None), Location.lon.isnot(None))
+            .filter(Offer.status == OfferStatus.published)
+            .order_by(
+                Offer.dt_start.asc().nullslast(),
+                Offer.created_at.desc().nullslast(),
+            )
+            .limit(6)
+            .all()
+        )
+    for offer, location in nearby_rows:
+        if not location:
+            continue
+        start_label = "Termin folgt"
+        if offer.dt_start:
+            localized = offer.dt_start.astimezone()
+            date_str = localized.strftime("%d.%m.%Y")
+            time_str = localized.strftime("%H:%M Uhr")
+            start_label = f"{date_str} · {time_str}"
+        category_label = ""
+        if offer.categories:
+            first_cat = offer.categories[0]
+            category_label = getattr(first_cat, "name", "") or ""
+        city_label = location.city or location.address or location.name or "In deiner Nähe"
+        nearby_events.append(
+            {
+                "title": offer.title or "Event",
+                "category": category_label or "Event",
+                "distance": city_label,
+                "time": start_label,
+                "lat": location.lat,
+                "lon": location.lon,
+            }
+        )
 
     kid_recommendations: list[dict[str, Any]] = []
     recommendation_count = 0
     recommendation_interests: set[str] = set()
+    child_interest_labels: set[str] = set()
     for child in child_profiles:
         interests = child.get("interests") or []
         if isinstance(interests, str):
             interests = [interests]
         interest_labels = [label for label in interests if label][:3]
+        child_interest_labels.update(interest_labels)
         if not interest_labels:
             interest_labels = ["Entdecken", "Familienzeit"]
         suggestions = []
@@ -2372,6 +2596,20 @@ def _dashboard_context():
         query_pairs = [("cats[]", label) for label in sorted(recommendation_interests)]
         recommendation_query = urlencode(query_pairs)
 
+    has_profile_location = bool((current_user.postal_code or "").strip())
+    has_child_interests = any(bool(child.get("interests")) for child in child_profiles)
+    user_interest_labels = sorted(child_interest_labels)
+    match_radius_km = 10
+    kid_match_events: list[dict[str, Any]] = []
+    if has_profile_location and has_child_interests:
+        kid_match_events = _matching_events(
+            current_user.postal_code,
+            user_interest_labels,
+            radius_km=match_radius_km,
+        )
+    
+    app.logger.info("has_profile_location: %s, has_child_interests: %s", has_profile_location, has_child_interests)
+
     return dict(
         favorite_events=favorite_events,
         calendar_events=calendar_events,
@@ -2382,6 +2620,12 @@ def _dashboard_context():
         kid_recommendations=kid_recommendations,
         recommendation_count=recommendation_count,
         recommendation_query=recommendation_query,
+        kid_match_events=kid_match_events,
+        has_profile_location=has_profile_location,
+        has_child_interests=has_child_interests,
+        profile_location_label=profile_location_label,
+        user_interest_labels=user_interest_labels,
+        match_radius_km=match_radius_km,
     )
 
 
@@ -2396,7 +2640,7 @@ def dashboard():
 def dashboard_profile_update():
     firstname = (request.form.get("firstname") or "").strip()
     lastname = (request.form.get("lastname") or "").strip()
-    city = (request.form.get("city") or "").strip()
+    postal_code = (request.form.get("postal_code") or "").strip()
     had_changes = False
     if firstname != (current_user.firstname or ""):
         current_user.firstname = firstname or None
@@ -2404,8 +2648,8 @@ def dashboard_profile_update():
     if lastname != (current_user.lastname or ""):
         current_user.lastname = lastname or None
         had_changes = True
-    if city != (current_user.city or ""):
-        current_user.city = city or None
+    if postal_code != (current_user.postal_code or ""):
+        current_user.postal_code = postal_code or None
         had_changes = True
     if had_changes:
         db.session.commit()
@@ -2438,6 +2682,27 @@ def dashboard_profile_image_upload():
     db.session.commit()
     flash("Profilbild aktualisiert.", "success")
     return redirect(url_for("dashboard"))
+
+
+@app.post("/dashboard/matching-events")
+@login_required
+def dashboard_matching_events():
+    payload = request.get_json(silent=True) or {}
+    postal_code = (payload.get("postal_code") or current_user.postal_code or "").strip()
+    interests = payload.get("interests") or []
+    if not isinstance(interests, list):
+        interests = []
+    radius_km = payload.get("radius_km")
+    try:
+        radius_km = int(radius_km)
+    except (TypeError, ValueError):
+        radius_km = None
+    events = _matching_events(postal_code, interests, radius_km=radius_km or 10)
+    return jsonify(
+        {
+            "events": events,
+        }
+    )
 
 
 @app.post("/dashboard/children")
@@ -2608,6 +2873,255 @@ def _list_media_images(limit: int = 60):
         )
     return items
 
+_JSON_LD_RX = re.compile(
+    r"<script[^>]*type=['\"]application/ld\+json['\"][^>]*>(.*?)</script>",
+    re.I | re.S,
+)
+
+def _safe_json_loads(raw: str | None):
+    if not raw:
+        return None
+    try:
+        return json.loads(html.unescape(raw))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
+
+def _flatten_ldjson(payload):
+    if isinstance(payload, list):
+        nodes = []
+        for item in payload:
+            nodes.extend(_flatten_ldjson(item))
+        return nodes
+    if isinstance(payload, dict):
+        if "@graph" in payload:
+            return _flatten_ldjson(payload["@graph"])
+        return [payload]
+    return []
+
+def _safe_float(value):
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+def _parse_iso_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    raw_value = value.strip()
+    if not raw_value:
+        return None
+    iso_value = raw_value.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(iso_value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except ValueError:
+        pass
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d", "%Y-%m-%dT%H:%M"):
+        try:
+            parsed = datetime.strptime(raw_value, fmt).replace(tzinfo=timezone.utc)
+            return parsed
+        except ValueError:
+            continue
+    return None
+
+def _extract_events_from_html(html_text: str, source_url: str) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+    for match in _JSON_LD_RX.findall(html_text or ""):
+        payload = _safe_json_loads(match)
+        if not payload:
+            continue
+        for node in _flatten_ldjson(payload):
+            normalized = _normalize_event_payload(node, source_url)
+            if normalized:
+                events.append(normalized)
+    return events
+
+def _normalize_event_payload(node: dict[str, Any], source_url: str) -> dict[str, Any] | None:
+    if not isinstance(node, dict):
+        return None
+    type_value = node.get("@type")
+    types = []
+    if isinstance(type_value, list):
+        types = [str(item).lower() for item in type_value if item]
+    elif type_value:
+        types = [str(type_value).lower()]
+    if types and not any("event" in t for t in types):
+        return None
+    title = (node.get("name") or "").strip()
+    if not title:
+        return None
+    description = re.sub(r"<[^>]+>", " ", node.get("description") or "").strip()
+    summary = re.sub(r"<[^>]+>", " ", node.get("summary") or node.get("headline") or "").strip()
+    start_dt = _parse_iso_datetime(node.get("startDate"))
+    end_dt = _parse_iso_datetime(node.get("endDate"))
+    location_name = None
+    location_address = None
+    location_city = None
+    lat = None
+    lon = None
+    location = node.get("location")
+    if isinstance(location, dict):
+        location_name = (location.get("name") or "").strip() or None
+        address = location.get("address")
+        if isinstance(address, dict):
+            street = address.get("streetAddress") or ""
+            postal = address.get("postalCode") or ""
+            city_value = address.get("addressLocality") or address.get("addressRegion") or ""
+            location_address = " ".join(part for part in [street, postal, city_value] if part).strip() or None
+            location_city = city_value.strip() or None
+            lat = _safe_float(address.get("latitude"))
+            lon = _safe_float(address.get("longitude"))
+        elif isinstance(address, str):
+            location_address = address.strip() or None
+        geo = location.get("geo")
+        if isinstance(geo, dict):
+            lat = lat or _safe_float(geo.get("latitude"))
+            lon = lon or _safe_float(geo.get("longitude"))
+    elif isinstance(location, str):
+        location_name = location.strip() or None
+    image = node.get("image")
+    if isinstance(image, list):
+        image = next((item for item in image if isinstance(item, str)), None)
+    image_url = (image or "").strip() or None
+    offers = node.get("offers")
+    if isinstance(offers, list):
+        offers = offers[0] if offers else None
+    price = None
+    currency = None
+    is_free = None
+    if isinstance(offers, dict):
+        price = _safe_float(offers.get("price"))
+        currency = (offers.get("priceCurrency") or "").strip() or None
+        availability = str(offers.get("availability") or "").lower()
+        if price is not None:
+            is_free = price == 0
+        elif "free" in availability:
+            is_free = True
+    keywords = node.get("keywords")
+    if isinstance(keywords, list):
+        keywords = ", ".join(str(item) for item in keywords if item)
+    elif isinstance(keywords, str):
+        keywords = keywords.strip()
+    detail_url = (node.get("url") or source_url).strip()
+    return {
+        "title": title,
+        "description": description or summary,
+        "summary": summary or (description[:140] + "...") if description else "",
+        "start": start_dt,
+        "end": end_dt,
+        "location_name": location_name,
+        "location_address": location_address,
+        "location_city": location_city,
+        "lat": lat,
+        "lon": lon,
+        "image": image_url,
+        "is_free": is_free,
+        "price": price,
+        "currency": currency,
+        "detail_url": detail_url,
+        "keywords": keywords,
+    }
+
+def _ensure_location_record(name: str | None, address: str | None, city: str | None, lat: float | None = None, lon: float | None = None):
+    if not name:
+        return None
+    safe_name = name[:MAX_LOC_NAME]
+    location = Location.query.filter_by(name=safe_name).first()
+    if location:
+        return location
+    location = Location(
+        name=safe_name,
+        address=(address or safe_name)[:MAX_LOC_ADDR],
+        city=(city or "")[:MAX_CITY_LEN] if city else None,
+        lat=lat,
+        lon=lon,
+    )
+    db.session.add(location)
+    db.session.flush()
+    return location
+
+def _event_preview_label(offer: Offer) -> str:
+    if offer.dt_start:
+        localized = offer.dt_start.astimezone()
+        return localized.strftime("%d.%m.%Y · %H:%M Uhr")
+    return "Entwurf"
+
+def _create_crawled_offer(payload: dict[str, Any], fallback_url: str) -> Offer | None:
+    title = (payload.get("title") or "").strip()
+    if not title:
+        return None
+    description = (payload.get("description") or "").strip() or None
+    summary = (payload.get("summary") or "").strip() or description or None
+    dt_start = payload.get("start")
+    dt_end = payload.get("end")
+    location = _ensure_location_record(
+        payload.get("location_name"),
+        payload.get("location_address"),
+        payload.get("location_city"),
+        payload.get("lat"),
+        payload.get("lon"),
+    )
+    price_value = payload.get("price")
+    currency = (payload.get("currency") or "EUR").strip().upper()[:3] or "EUR"
+    is_free = payload.get("is_free")
+    detail_url = payload.get("detail_url") or fallback_url
+    source_host = urlparse(detail_url).netloc or "Crawler"
+    offer = Offer(
+        title=title[:MAX_TITLE_LEN],
+        description=description,
+        summary=summary[:MAX_SUMMARY_LEN] if summary else None,
+        external_id=uuid.uuid4().hex,
+        source="crawler",
+        source_type=SourceType.crawler,
+        source_url=detail_url,
+        dt_start=dt_start,
+        dt_end=dt_end,
+        price_value=price_value,
+        price_min=price_value,
+        price_max=price_value,
+        currency=currency or "EUR",
+        is_free=is_free if is_free is not None else False,
+        image=payload.get("image"),
+        maps_url=None,
+        meeting_point=None,
+        is_outdoor=False,
+        is_indoor=False,
+        with_accompaniment=False,
+        hobby_regular=False,
+        is_once=False,
+        pets_allowed=False,
+        opening_hours=None,
+        target_age_min=None,
+        target_age_max=None,
+        source_name=source_host[:MAX_SRC_NAME],
+        type=OfferType.event,
+        created_by_user_id=current_user.id if current_user.is_authenticated else None,
+        location_id=location.id if location else None,
+        age_group="Alle",
+    )
+    offer.status = OfferStatus.draft
+    db.session.add(offer)
+    db.session.flush()
+    sync_permanent_availability(db.session, offer)
+    return offer
+
+def _event_to_response_payload(offer: Offer) -> dict[str, Any]:
+    return {
+        "id": str(offer.id),
+        "title": offer.title,
+        "summary": offer.summary or "",
+        "date_label": _event_preview_label(offer),
+        "location": offer.location.name if offer.location else "",
+        "detail_url": url_for("event_detail", event_id=offer.id),
+        "edit_url": url_for("edit_event", event_id=offer.id),
+        "status": offer.status.value,
+    }
+
+
 def _render_event_form(
     form_data=None,
     ocr_text=None,
@@ -2639,6 +3153,7 @@ def _render_event_form(
         submitted_title=submitted_title,
         submission_error=submission_error,
         category_choices=category_choices,
+        is_admin=current_user.is_authenticated and getattr(current_user, "is_admin", False),
     )
 
 
@@ -2981,6 +3496,45 @@ def create_event():
             ), 400
         flash("Konnte Event nicht speichern (DB-Fehler).", "danger")
         return redirect(url_for("event_erstellen")), 400
+
+
+@app.post("/admin/link-crawl")
+@login_required
+def admin_link_crawl():
+    if not current_user.is_admin:
+        abort(403)
+    payload = request.get_json(silent=True) or {}
+    target_url = (payload.get("url") or "").strip()
+    if not target_url:
+        return jsonify({"ok": False, "error": "Bitte gib einen Link ein."}), 400
+    try:
+        response = requests.get(target_url, timeout=12)
+        response.raise_for_status()
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Konnte Seite nicht laden: {exc}"}), 400
+    events_payload = _extract_events_from_html(response.text, target_url)
+    if not events_payload:
+        return jsonify({"ok": False, "error": "Keine Event-Daten gefunden."}), 404
+    created_offers: list[Offer] = []
+    try:
+        for payload in events_payload:
+            offer = _create_crawled_offer(payload, target_url)
+            if offer:
+                created_offers.append(offer)
+        if not created_offers:
+            db.session.rollback()
+            return jsonify({"ok": False, "error": "Keine gültigen Events erkannt."}), 400
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"ok": False, "error": "Konnte Events nicht speichern."}), 500
+    return jsonify(
+        {
+            "ok": True,
+            "count": len(created_offers),
+            "events": [_event_to_response_payload(offer) for offer in created_offers],
+        }
+    )
 
 
 @app.get("/freigeben")

@@ -50,7 +50,7 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, server_default=func.now())
     firstname = db.Column(db.String(80))
     lastname = db.Column(db.String(80))
-    city = db.Column(db.String(120))
+    postal_code = db.Column(db.String(20))
     profile_image = db.Column(db.String(255))
     is_premium = db.Column(db.Boolean, server_default="false")
     premium_until = db.Column(db.DateTime)

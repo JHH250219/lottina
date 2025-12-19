@@ -1,5 +1,5 @@
 import math
-from lottina_api.models import Offer, Location
+from ..models import Offer, Location
 
 def haversine(lat1, lon1, lat2, lon2):
     """Distanz in km zwischen zwei Punkten berechnen (lat/lon in Grad)."""

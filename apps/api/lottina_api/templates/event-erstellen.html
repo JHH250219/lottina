@@ -20,7 +20,8 @@
         {{ submission_error }}
       </div>
     {% endif %}
-    <div class="grid grid-cols-1 gap-4 pt-6 lg:grid-cols-2">
+    {% set card_cols = "lg:grid-cols-3" if is_admin else "lg:grid-cols-2" %}
+    <div class="grid grid-cols-1 gap-4 pt-6 {{ card_cols }}">
       <button type="button"
               class="choice-card bg-white text-lottina-primary flex flex-col gap-4 items-start"
               data-open-manual>
@@ -57,6 +58,26 @@
           </div>
         </div>
       </button>
+      {% if is_admin %}
+      <button type="button"
+              class="choice-card bg-gradient-to-br from-[#081a16] via-[#0d2b24] to-[#1c6d58] text-white flex flex-col gap-4 items-start border border-white/10"
+              data-open-link-crawler>
+        <div class="flex items-start gap-4">
+          <img src="{{ url_for('static', filename='img/ocr-search.png') }}"
+               alt="Link-Crawler"
+               class="hidden sm:block h-24 w-24 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.45)]">
+          <div class="space-y-2 text-left">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-wide text-white">
+              Admin
+            </span>
+            <h2 class="text-2xl font-semibold">Basis-Crawler</h2>
+            <p class="text-sm text-white/80">
+              Lege einen Link ab, wir extrahieren Events und legen direkt Entwürfe an. Danach kannst du jedes Event im Popup bearbeiten.
+            </p>
+          </div>
+        </div>
+      </button>
+      {% endif %}
     </div>
   </div>
 </section>
@@ -415,6 +436,49 @@
   </div>
 </div>
 
+{% if is_admin %}
+<!-- Admin Link Crawler Modal -->
+<div id="crawler-modal" class="crawler-modal" hidden>
+  <div class="crawler-modal__backdrop" data-crawler-close></div>
+  <div class="crawler-modal__dialog">
+    <button type="button" class="crawler-modal__close" data-crawler-close aria-label="Schließen">×</button>
+    <p class="crawler-modal__eyebrow">Admin · Link-Crawler</p>
+    <h2 class="crawler-modal__title">Event-Seite analysieren</h2>
+    <p class="crawler-modal__text">
+      Lege einen Link ab, wir suchen Event-Blöcke, legen Entwürfe an und zeigen sie dir direkt hier an.
+    </p>
+    <form class="crawler-form" data-crawler-form>
+      <label class="crawler-form__label">
+        <span>URL</span>
+        <input type="url" name="crawler_url" class="crawler-form__input" placeholder="https://example.org/events" required>
+      </label>
+      <div class="crawler-form__actions">
+        <button type="submit" class="crawler-form__submit">Analyse starten</button>
+      </div>
+    </form>
+    <div class="crawler-progress" data-crawler-loader hidden>
+      <div class="crawler-progress__bar">
+        <div class="crawler-progress__value" data-crawler-progress></div>
+      </div>
+      <p class="crawler-progress__label">Durchsuche Seite …</p>
+    </div>
+    <div class="crawler-status" data-crawler-status></div>
+    <div class="crawler-results-grid" data-crawler-results></div>
+  </div>
+</div>
+
+<div id="crawler-edit-overlay" class="crawler-edit-overlay" hidden>
+  <div class="crawler-edit-overlay__backdrop" data-crawler-edit-close></div>
+  <div class="crawler-edit-overlay__dialog">
+    <div class="crawler-edit-overlay__header">
+      <p class="crawler-edit-overlay__title">Event bearbeiten</p>
+      <button type="button" class="crawler-edit-overlay__close" data-crawler-edit-close aria-label="Schließen">×</button>
+    </div>
+    <iframe src="about:blank" title="Event bearbeiten" data-crawler-edit-frame></iframe>
+  </div>
+</div>
+{% endif %}
+
 <!-- Submission Success -->
 <div id="submission-modal" class="wizard-modal" {% if not submission_success %}hidden{% endif %}>
   <div class="wizard-modal__backdrop" data-submission-close></div>
@@ -752,6 +816,232 @@
     border-color: rgba(248,113,113,0.95) !important;
     box-shadow: 0 0 0 3px rgba(248,113,113,0.2);
   }
+  .crawler-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+  }
+  .crawler-modal[hidden] { display: none; }
+  .crawler-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(7, 28, 23, 0.75);
+    backdrop-filter: blur(6px);
+  }
+  .crawler-modal__dialog {
+    position: relative;
+    width: min(960px, 94vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 36px;
+    padding: 2.5rem;
+    background: linear-gradient(155deg, #0f2f2c, #1d4b3f);
+    box-shadow: 0 45px 120px rgba(0,0,0,0.45);
+    color: #fff;
+  }
+  .crawler-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    border: 0;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  .crawler-modal__eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 0.25rem;
+  }
+  .crawler-modal__title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .crawler-modal__text {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 1.5rem;
+  }
+  .crawler-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .crawler-form__label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+  }
+  .crawler-form__input {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.2);
+    padding: 0.85rem 1rem;
+    color: #fff;
+  }
+  .crawler-form__actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .crawler-form__submit {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.85rem 1.8rem;
+    background: #8be84f;
+    color: #0f2f2c;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+    box-shadow: 0 10px 35px rgba(139,232,79,0.35);
+  }
+  .crawler-progress {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .crawler-progress__bar {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.15);
+    overflow: hidden;
+  }
+  .crawler-progress__value {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg,#8be84f,#1f6d5c);
+    transition: width 0.3s ease;
+  }
+  .crawler-progress__label {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.75);
+  }
+  .crawler-status {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+  .crawler-status[data-variant="error"] {
+    color: #fca5a5;
+  }
+  .crawler-status[data-variant="success"] {
+    color: #bbf7d0;
+  }
+  .crawler-results-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .crawler-result-card {
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .crawler-result-card__eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+  .crawler-result-card__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  .crawler-result-card__meta {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.75);
+  }
+  .crawler-result-card__actions {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .crawler-result-card__actions button,
+  .crawler-result-card__actions a {
+    flex: 1;
+    border-radius: 999px;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #fff;
+    background: transparent;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .crawler-result-card__actions button {
+    background: #8be84f;
+    color: #0f2f2c;
+    border: 0;
+  }
+  .crawler-edit-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1300;
+  }
+  .crawler-edit-overlay[hidden] { display: none; }
+  .crawler-edit-overlay__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(7,28,23,0.75);
+    backdrop-filter: blur(6px);
+  }
+  .crawler-edit-overlay__dialog {
+    position: relative;
+    width: min(1100px, 95vw);
+    height: min(90vh, 900px);
+    background: #fff;
+    border-radius: 32px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .crawler-edit-overlay__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(15,47,44,0.1);
+  }
+  .crawler-edit-overlay__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f2f2c;
+  }
+  .crawler-edit-overlay__close {
+    border: 0;
+    background: transparent;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #0f2f2c;
+  }
+  .crawler-edit-overlay iframe {
+    flex: 1;
+    border: 0;
+    width: 100%;
+  }
 </style>
 
 <script>
@@ -786,8 +1076,37 @@
     const ageGroupInput = wizardForm?.querySelector('[data-age-group]');
     const flagInputs = wizardForm ? Array.from(wizardForm.querySelectorAll('[data-flag-input]')) : [];
     const locationHidden = wizardForm?.querySelector('[data-location-hidden]');
+    const crawlerModal = document.getElementById('crawler-modal');
+    const crawlerOpeners = document.querySelectorAll('[data-open-link-crawler]');
+    const crawlerForm = crawlerModal?.querySelector('[data-crawler-form]');
+    const crawlerLoader = crawlerModal?.querySelector('[data-crawler-loader]');
+    const crawlerProgressBar = crawlerModal?.querySelector('[data-crawler-progress]');
+    const crawlerStatus = crawlerModal?.querySelector('[data-crawler-status]');
+    const crawlerResults = crawlerModal?.querySelector('[data-crawler-results]');
+    const crawlerCloseButtons = crawlerModal ? crawlerModal.querySelectorAll('[data-crawler-close]') : [];
+    const crawlerEditOverlay = document.getElementById('crawler-edit-overlay');
+    const crawlerEditFrame = crawlerEditOverlay?.querySelector('[data-crawler-edit-frame]');
+    const crawlerEditCloseButtons = crawlerEditOverlay ? crawlerEditOverlay.querySelectorAll('[data-crawler-edit-close]') : [];
+    const crawlerEndpoint = "{{ url_for('admin_link_crawl') }}";
 
     let currentStep = 0;
+    let crawlerProgressTimer = null;
+
+    const areModalsHidden = () => {
+      return (
+        (wizard?.hidden ?? true) &&
+        (ocrModal?.hidden ?? true) &&
+        (crawlerModal?.hidden ?? true) &&
+        (crawlerEditOverlay?.hidden ?? true)
+      );
+    };
+
+    const lockScroll = () => document.body.classList.add('overflow-hidden');
+    const unlockScroll = () => {
+      if (areModalsHidden()) {
+        document.body.classList.remove('overflow-hidden');
+      }
+    };
 
     const updateProgress = () => {
       if (!progress || !steps.length) return;
@@ -808,26 +1127,26 @@
     const openWizard = () => {
       if (!wizard) return;
       wizard.hidden = false;
-      document.body.classList.add('overflow-hidden');
+      lockScroll();
       showStep(0);
     };
 
     const closeWizard = () => {
       if (!wizard) return;
       wizard.hidden = true;
-      document.body.classList.remove('overflow-hidden');
+      unlockScroll();
     };
 
     const openOcrModal = () => {
       if (!ocrModal) return;
       ocrModal.hidden = false;
-      document.body.classList.add('overflow-hidden');
+      lockScroll();
     };
 
     const closeOcrModal = () => {
       if (!ocrModal) return;
       ocrModal.hidden = true;
-      document.body.classList.remove('overflow-hidden');
+      unlockScroll();
     };
 
     const validateStep = (index) => {
@@ -845,6 +1164,128 @@
         input.classList.remove('wizard-input--error');
       }
       return true;
+    };
+
+    const showCrawlerStatus = (message, variant = 'info') => {
+      if (!crawlerStatus) return;
+      crawlerStatus.textContent = message || '';
+      if (message) {
+        crawlerStatus.dataset.variant = variant;
+      } else {
+        delete crawlerStatus.dataset.variant;
+      }
+    };
+
+    const renderCrawlerResults = (events = []) => {
+      if (!crawlerResults) return;
+      crawlerResults.innerHTML = '';
+      if (!events.length) {
+        return;
+      }
+      const escapeHtml = (value = '') =>
+        value
+          .toString()
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      events.forEach((entry) => {
+        const card = document.createElement('article');
+        card.className = 'crawler-result-card';
+        const title = escapeHtml(entry.title || 'Event');
+        const dateLabel = escapeHtml(entry.date_label || 'Entwurf');
+        const summary = escapeHtml(entry.summary || '');
+        const locationLabel = escapeHtml(entry.location || '');
+        card.innerHTML = `
+          <p class="crawler-result-card__eyebrow">${dateLabel}</p>
+          <h3 class="crawler-result-card__title">${title}</h3>
+          ${locationLabel ? `<p class="crawler-result-card__meta">${locationLabel}</p>` : ''}
+          ${summary ? `<p class="crawler-result-card__meta">${summary}</p>` : ''}
+        `;
+        const actions = document.createElement('div');
+        actions.className = 'crawler-result-card__actions';
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.textContent = 'Bearbeiten';
+        editBtn.addEventListener('click', () => openCrawlerEdit(entry.edit_url));
+        const detailLink = document.createElement('a');
+        detailLink.textContent = 'Ansehen';
+        detailLink.href = entry.detail_url || '#';
+        detailLink.target = '_blank';
+        detailLink.rel = 'noopener';
+        actions.appendChild(editBtn);
+        actions.appendChild(detailLink);
+        card.appendChild(actions);
+        crawlerResults.appendChild(card);
+      });
+    };
+
+    const startCrawlerProgress = () => {
+      if (!crawlerLoader || !crawlerProgressBar) return;
+      crawlerLoader.removeAttribute('hidden');
+      crawlerProgressBar.style.width = '5%';
+      if (crawlerProgressTimer) window.clearInterval(crawlerProgressTimer);
+      crawlerProgressTimer = window.setInterval(() => {
+        const current = parseFloat(crawlerProgressBar.style.width) || 0;
+        const next = Math.min(current + Math.random() * 12, 95);
+        crawlerProgressBar.style.width = `${next}%`;
+      }, 400);
+    };
+
+    const stopCrawlerProgress = (finalWidth = 100) => {
+      if (crawlerProgressTimer) {
+        window.clearInterval(crawlerProgressTimer);
+        crawlerProgressTimer = null;
+      }
+      if (crawlerProgressBar) {
+        crawlerProgressBar.style.width = `${finalWidth}%`;
+      }
+      if (crawlerLoader) {
+        const hideLoader = () => crawlerLoader.setAttribute('hidden', 'hidden');
+        if (finalWidth >= 100) {
+          setTimeout(hideLoader, 450);
+        } else {
+          hideLoader();
+        }
+      }
+    };
+
+    const resetCrawlerModal = () => {
+      if (!crawlerModal) return;
+      crawlerForm?.reset();
+      renderCrawlerResults([]);
+      showCrawlerStatus('');
+      if (crawlerLoader) crawlerLoader.setAttribute('hidden', 'hidden');
+      stopCrawlerProgress(0);
+    };
+
+    const openCrawlerModal = () => {
+      if (!crawlerModal) return;
+      resetCrawlerModal();
+      crawlerModal.hidden = false;
+      lockScroll();
+    };
+
+    const closeCrawlerModal = () => {
+      if (!crawlerModal) return;
+      crawlerModal.hidden = true;
+      stopCrawlerProgress(0);
+      unlockScroll();
+    };
+
+    const openCrawlerEdit = (url) => {
+      if (!crawlerEditOverlay || !url) return;
+      crawlerEditOverlay.hidden = false;
+      if (crawlerEditFrame) crawlerEditFrame.src = url;
+      lockScroll();
+    };
+
+    const closeCrawlerEdit = () => {
+      if (!crawlerEditOverlay) return;
+      crawlerEditOverlay.hidden = true;
+      if (crawlerEditFrame) crawlerEditFrame.src = 'about:blank';
+      unlockScroll();
     };
 
     const formatTime = (date, start, end, permanent) => {
@@ -955,6 +1396,49 @@
         if (currentStep > 0) {
           showStep(currentStep - 1);
         }
+      }
+    });
+
+    if (crawlerModal) {
+      crawlerOpeners.forEach((btn) => btn.addEventListener('click', openCrawlerModal));
+      crawlerCloseButtons.forEach((btn) => btn.addEventListener('click', closeCrawlerModal));
+    }
+    crawlerEditCloseButtons.forEach((btn) => btn.addEventListener('click', closeCrawlerEdit));
+
+    crawlerForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!crawlerForm) return;
+      const urlField = crawlerForm.elements['crawler_url'];
+      const targetUrl = urlField?.value?.trim();
+      if (!targetUrl) {
+        showCrawlerStatus('Bitte eine URL angeben.', 'error');
+        return;
+      }
+      renderCrawlerResults([]);
+      showCrawlerStatus('Analysiere Link …', 'info');
+      startCrawlerProgress();
+      try {
+        const response = await fetch(crawlerEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ url: targetUrl }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data?.ok) {
+          showCrawlerStatus(data?.error || 'Keine Events gefunden.', 'error');
+          stopCrawlerProgress(0);
+          return;
+        }
+        renderCrawlerResults(data.events || []);
+        showCrawlerStatus(`${data.count} Event${data.count === 1 ? '' : 's'} gefunden.`, 'success');
+        stopCrawlerProgress(100);
+      } catch (error) {
+        console.error(error);
+        showCrawlerStatus('Analyse fehlgeschlagen. Bitte später erneut versuchen.', 'error');
+        stopCrawlerProgress(0);
       }
     });
 

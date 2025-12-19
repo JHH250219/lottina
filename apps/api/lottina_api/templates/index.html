@@ -15,7 +15,7 @@
   body.home-scroll-stage {
     scroll-behavior: smooth;
     scroll-snap-type: y proximity;
-    scroll-padding-top: 120px;
+    scroll-padding-top: 0px;
     overflow-x: hidden;
   }
 
@@ -142,6 +142,45 @@
       height: 130px;
     }
   }
+  .hobby-card-minimal {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    border-radius: 28px;
+    border: 1px solid rgba(7, 28, 23, 0.08);
+    background: linear-gradient(145deg, #ffffff, #f4f7f4);
+    padding: 1.75rem;
+    box-shadow: 0 15px 40px rgba(7, 28, 23, 0.08);
+  }
+  .hobby-card-minimal__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    background: rgba(7, 28, 23, 0.05);
+    color: rgba(7, 28, 23, 0.65);
+    font-weight: 600;
+  }
+  .hobby-card-minimal__meta {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .hobby-card-minimal__meta dt {
+    font-size: 0.68rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(7, 28, 23, 0.5);
+  }
+  .hobby-card-minimal__meta dd {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #071c17;
+  }
 </style>
 
 <div id="homeScrollStage" class="scroll-stage">
@@ -160,6 +199,16 @@
       <p class="text-base sm:text-lg text-white/85 max-w-2xl mx-auto lg:mx-0">
         Spielplätze, Workshops, Märkte, Theater. Alles in einer Suche. Rausfinden, was heute Spaß macht – ohne endlos zu scrollen.
       </p>
+      <div class="flex justify-center lg:justify-start">
+        <div class="inline-flex flex-col sm:flex-row items-center gap-2 px-4 py-2 rounded-2xl border border-white/20 bg-white/10 text-sm text-white/80 shadow-lg">
+          <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+            Beta
+          </span>
+          <p class="text-center sm:text-left text-sm leading-relaxed">
+            Wir bauen lottina gemeinsam weiter – sei Teil des Wachstums und gib uns gern Feedback.
+          </p>
+        </div>
+      </div>
       <form id="hero-search"
             class="bg-white text-lottina-primary rounded-3xl shadow-2xl border border-white/20 flex flex-col sm:flex-row gap-3 px-4 py-4 w-full max-w-2xl mx-auto lg:mx-0"
             action="/results" method="GET" role="search" aria-label="Events durchsuchen">
@@ -448,63 +497,99 @@
     <div class="relative z-10 mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
       {% if hobby_events %}
         {% for event in hobby_events[:6] %}
-          <article class="group relative flex flex-col overflow-hidden rounded-3xl bg-white text-lottina-primary border border-white/40 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
-            <a href="{{ url_for('event_detail', event_id=event.id) }}" class="flex flex-col h-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lottina-accent">
-              <div class="relative h-48 overflow-hidden">
-                <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.webp') }}"
-                     alt="{{ event.title or 'Event Bild' }}"
-                     class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                <div class="absolute top-3 left-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">
-                  {% if event.dt_start %}
-                    {{ event.dt_start | shortdate }}
-                  {% else %}
-                    Termin folgt
-                  {% endif %}
-                </div>
-              </div>
-              <div class="p-6 space-y-3 flex-1 flex flex-col">
-                <div class="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-lottina-primary/60">
-                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-lottina-accent/15 text-lottina-primary font-semibold">
-                    Hobby
-                  </span>
-                  {% if event.duration %}
-                    <span>{{ event.duration }}</span>
-                  {% endif %}
-                </div>
-                <h3 class="text-lg font-semibold leading-snug group-hover:text-lottina-accent transition">
-                  {{ event.title or "Event ohne Titel" }}
-                </h3>
-                <p class="text-sm text-lottina-primary/70 line-clamp-3">
+          {% if loop.index == 1 %}
+            {% set primary_category = event.categories[0].name if event.categories else "Hobby" %}
+            {% set date_label = event.dt_start | shortdate if event.dt_start else "Termin folgt" %}
+            {% set time_label = event.dt_start.strftime("%H:%M Uhr") if event.dt_start else "bald verfügbar" %}
+            <article class="hobby-card-minimal text-lottina-primary">
+              <div class="space-y-3">
+                <span class="hobby-card-minimal__badge">Highlight</span>
+                <h3 class="text-2xl font-semibold leading-snug">{{ event.title or "Event ohne Titel" }}</h3>
+                <p class="text-sm text-lottina-primary/70 line-clamp-4">
                   {{ event.description or event.summary or "Mehr Details auf der Eventseite." }}
                 </p>
-                <div class="mt-auto flex flex-wrap gap-2 text-xs text-lottina-primary/70">
-                  {% if event.location %}
-                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
-                      {{ event.location }}
-                    </span>
-                  {% endif %}
-                  {% if event.categories %}
-                    {% for c in event.categories[:2] %}
-                      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
-                        {{ c.name }}
-                      </span>
-                    {% endfor %}
-                  {% endif %}
+              </div>
+              <dl class="hobby-card-minimal__meta">
+                <div>
+                  <dt>Wann</dt>
+                  <dd>{{ date_label }}{% if event.dt_start %} · {{ time_label }}{% endif %}</dd>
                 </div>
-              </div>
-              <div class="flex items-center justify-between px-6 pb-5 text-sm font-semibold text-lottina-accent">
-                <span class="inline-flex items-center gap-2">
-                  Details ansehen
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
-                  </svg>
-                </span>
-                <span class="text-xs uppercase tracking-wide text-lottina-primary/50">
-                  {{ loop.index }} / {{ hobby_events|length }}
-                </span>
-              </div>
-            </a>
-          </article>
+                <div>
+                  <dt>Wo</dt>
+                  <dd>{{ event.location or "Ort folgt" }}</dd>
+                </div>
+                <div>
+                  <dt>Kategorie</dt>
+                  <dd>{{ primary_category }}</dd>
+                </div>
+              </dl>
+              <a href="{{ url_for('event_detail', event_id=event.id) }}"
+                 class="inline-flex items-center justify-between gap-4 text-sm font-semibold text-lottina-primary hover:text-lottina-accent transition">
+                <span>Mehr erfahren</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+                </svg>
+              </a>
+            </article>
+          {% else %}
+            <article class="group relative flex flex-col overflow-hidden rounded-3xl bg-white text-lottina-primary border border-white/40 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl">
+              <a href="{{ url_for('event_detail', event_id=event.id) }}" class="flex flex-col h-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lottina-accent">
+                <div class="relative h-48 overflow-hidden">
+                  <img src="{{ event.image or url_for('static', filename='img/oma-paper-512.webp') }}"
+                       alt="{{ event.title or 'Event Bild' }}"
+                       class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                  <div class="absolute top-3 left-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-lottina-primary shadow">
+                    {% if event.dt_start %}
+                      {{ event.dt_start | shortdate }}
+                    {% else %}
+                      Termin folgt
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="p-6 space-y-3 flex-1 flex flex-col">
+                  <div class="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-lottina-primary/60">
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-lottina-accent/15 text-lottina-primary font-semibold">
+                      Hobby
+                    </span>
+                    {% if event.duration %}
+                      <span>{{ event.duration }}</span>
+                    {% endif %}
+                  </div>
+                  <h3 class="text-lg font-semibold leading-snug group-hover:text-lottina-accent transition">
+                    {{ event.title or "Event ohne Titel" }}
+                  </h3>
+                  <p class="text-sm text-lottina-primary/70 line-clamp-3">
+                    {{ event.description or event.summary or "Mehr Details auf der Eventseite." }}
+                  </p>
+                  <div class="mt-auto flex flex-wrap gap-2 text-xs text-lottina-primary/70">
+                    {% if event.location %}
+                      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+                        {{ event.location }}
+                      </span>
+                    {% endif %}
+                    {% if event.categories %}
+                      {% for c in event.categories[:2] %}
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/10">
+                          {{ c.name }}
+                        </span>
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="flex items-center justify-between px-6 pb-5 text-sm font-semibold text-lottina-accent">
+                  <span class="inline-flex items-center gap-2">
+                    Details ansehen
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9 5 7 7-7 7"/>
+                    </svg>
+                  </span>
+                  <span class="text-xs uppercase tracking-wide text-lottina-primary/50">
+                    {{ loop.index }} / {{ hobby_events|length }}
+                  </span>
+                </div>
+              </a>
+            </article>
+          {% endif %}
         {% endfor %}
       {% else %}
         <div class="col-span-full rounded-3xl border border-dashed border-white/40 bg-white/10 px-6 py-10 text-center text-white/80">

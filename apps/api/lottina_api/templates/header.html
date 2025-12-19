@@ -1,105 +1,72 @@
 {# templates/header.html #}
-<header class="fixed top-0 inset-x-0 z-50">
+<header class="fixed top-0 inset-x-0 z-50 bg-white/95 border-b border-[#0f2f2c]/10 backdrop-blur">
   <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-    <div class="relative overflow-hidden mt-2 sm:mt-4 flex flex-col gap-2 sm:gap-4 rounded-[28px] bg-gradient-to-r from-[#0c231e]/95 via-[#16503f]/95 to-[#78d33d]/90 px-3 py-2 sm:px-4 sm:py-3 shadow-xl backdrop-blur" data-snow-host>
-      <div class="header-snow-layer" data-snow-layer aria-hidden="true">
-        <canvas class="header-snow-layer__canvas" data-snow-canvas></canvas>
-      </div>
-      <div class="flex items-center justify-between gap-3">
-        <!-- Logo -->
-        <div class="flex items-center gap-3">
+    <div class="h-16 flex items-center justify-between">
       <a href="{{ url_for('index') }}"
-             class="inline-flex items-center gap-2 text-white"
-             aria-label="Startseite">
-            <img src="{{ url_for('static', filename='img/lottina_logo.webp') }}" alt="lottina Logo" class="h-10 w-auto">
-            <span class="text-lg font-lottina tracking-wide"></span>
-          </a>
-          <span class="hidden sm:inline-flex items-center gap-2  bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/80">
-            Beta
-          </span>
-        </div>
-
-        <!-- CTA + Menu Trigger -->
-        <div class="flex items-center gap-2 sm:gap-3">
-          <a href="{{ url_for('event_erstellen') }}"
-             class="header-cta-primary hidden sm:inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-[#0f2f2c] shadow-2xl transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m3.75 3.75-8.5 8.5a2.12 2.12 0 0 0-.62 1.5V21h2.25a2.12 2.12 0 0 0 1.5-.62l8.5-8.5m-3.13-3.13 2.12-2.12a1.5 1.5 0 0 1 2.12 2.12l-2.12 2.12m-2.12-2.12 2.12 2.12"/>
-            </svg>
-            Erlebnis erstellen
-          </a>
-          {% if current_user.is_authenticated and current_user.organisations.count() %}
-            {% set first_org = current_user.organisations.first() %}
-            <a href="{{ url_for('organisations.organisation_dashboard', slug=first_org.slug) }}"
-               class="header-cta-primary hidden sm:inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-[#0f2f2c] shadow-2xl transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12h18M6 6h12M6 18h12"/>
-              </svg>
-              Organisation
-            </a>
-          {% endif %}
-          <button id="headerMenuToggle"
-                  class="header-menu-button inline-flex items-center justify-center text-white p-1.5 text-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-                  aria-label="Menü öffnen oder schließen"
-                  aria-expanded="false">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="1.6"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 class="h-8 w-8">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
+         class="text-2xl font-lottina tracking-[0.35em] text-[#0f2f2c]"
+         aria-label="Startseite">
+        lottina
+      </a>
+      <button id="headerMenuToggle"
+              class="header-menu-button inline-flex items-center justify-center text-[#0f2f2c] p-2 text-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2f2c]/40"
+              aria-label="Menü öffnen oder schließen"
+              aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             class="h-8 w-8">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
     </div>
   </div>
 </header>
 
 <div id="headerMenuOverlay" class="fixed inset-0 z-[60] hidden">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-  <aside class="header-drawer absolute top-6 right-6 w-80 max-w-[90vw] rounded-3xl border border-white/15 bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col gap-5 p-6">
-    <div class="flex items-center justify-between">
-      <span class="text-base font-semibold tracking-wide uppercase text-white/80">Navigation</span>
-      <button id="headerMenuClose" class="rounded-full border border-white/30 p-2 text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60" aria-label="Menü schließen">
+  <div class="absolute inset-0 bg-[#0f2f2c]/40 backdrop-blur-sm"></div>
+  <aside class="menu-panel absolute inset-y-0 right-0 w-full max-w-sm bg-white text-[#0f2f2c] shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#0f2f2c]/10">
+      <span class="text-base font-semibold tracking-[0.35em] uppercase">lottina</span>
+      <button id="headerMenuClose" class="rounded-full border border-[#0f2f2c]/15 p-2 text-[#0f2f2c] hover:bg-[#0f2f2c]/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2f2c]/30" aria-label="Menü schließen">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 6l12 12M6 18 18 6" />
         </svg>
       </button>
     </div>
     {% set current_endpoint = request.endpoint or '' %}
-    <nav class="flex flex-col gap-2 text-sm font-semibold" aria-label="Hauptnavigation">
+    <nav class="flex-1 flex flex-col gap-2 px-6 py-6 text-lg font-semibold" aria-label="Hauptnavigation">
       <a href="{{ url_for('results') }}"
-         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'results' else '' }}"
+         class="menu-link {{ 'menu-link--active' if current_endpoint == 'results' else '' }}"
          {% if current_endpoint == 'results' %}aria-current="page"{% endif %}>
         Erlebnisse
       </a>
       <a href="{{ url_for('sichtbar_werden') }}"
-         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'sichtbar_werden' else '' }}"
+         class="menu-link {{ 'menu-link--active' if current_endpoint == 'sichtbar_werden' else '' }}"
          {% if current_endpoint == 'sichtbar_werden' %}aria-current="page"{% endif %}>
         Sichtbar werden
       </a>
       <a href="{{ url_for('feedback') }}"
-         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'feedback' else '' }}"
+         class="menu-link {{ 'menu-link--active' if current_endpoint == 'feedback' else '' }}"
          {% if current_endpoint == 'feedback' %}aria-current="page"{% endif %}>
         Feedback
       </a>
       <a href="{{ url_for('preise') }}"
-         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'preise' else '' }}"
+         class="menu-link {{ 'menu-link--active' if current_endpoint == 'preise' else '' }}"
          {% if current_endpoint == 'preise' %}aria-current="page"{% endif %}>
         lottina Family
       </a>
       <a href="{{ url_for('ueber_uns') }}"
-         class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'ueber_uns' else '' }}"
+         class="menu-link {{ 'menu-link--active' if current_endpoint == 'ueber_uns' else '' }}"
          {% if current_endpoint == 'ueber_uns' %}aria-current="page"{% endif %}>
         Über uns
       </a>
       {% if current_user.is_admin %}
         <a href="{{ url_for('freigeben') }}"
-           class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'freigeben' else '' }}"
+           class="menu-link {{ 'menu-link--active' if current_endpoint == 'freigeben' else '' }}"
            {% if current_endpoint == 'freigeben' %}aria-current="page"{% endif %}>
           Freigeben
         </a>
@@ -108,21 +75,21 @@
         {% if current_user.organisations.count() %}
           {% set first_org = current_user.organisations.first() %}
           <a href="{{ url_for('organisations.organisation_dashboard', slug=first_org.slug) }}"
-             class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint.startswith('organisations.') else '' }}">
+             class="menu-link {{ 'menu-link--active' if current_endpoint.startswith('organisations.') else '' }}">
             Organisation Dashboard
           </a>
         {% endif %}
         <a href="{{ url_for('profil') }}"
-           class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'profil' else '' }}"
+           class="menu-link {{ 'menu-link--active' if current_endpoint == 'profil' else '' }}"
            {% if current_endpoint == 'profil' %}aria-current="page"{% endif %}>
-         Profil
-       </a>
-        <a href="{{ url_for('logout') }}" class="header-drawer__link">
+          Profil
+        </a>
+        <a href="{{ url_for('logout') }}" class="menu-link">
           Logout
         </a>
       {% else %}
         <a href="{{ url_for('login') }}"
-           class="header-drawer__link {{ 'header-drawer__link--active' if current_endpoint == 'login' else '' }}"
+           class="menu-link {{ 'menu-link--active' if current_endpoint == 'login' else '' }}"
            {% if current_endpoint == 'login' %}aria-current="page"{% endif %}>
           Login
         </a>
@@ -132,22 +99,6 @@
 </div>
 
 <style>
-  .header-snow-layer {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    border-radius: inherit;
-    overflow: hidden;
-  }
-
-  .header-snow-layer__canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    filter: drop-shadow(0 4px 12px rgba(12, 35, 30, 0.2));
-  }
-
   .sr-only {
     position: absolute;
     width: 1px;
@@ -160,60 +111,43 @@
     border: 0;
   }
 
-  .header-cta-primary {
-    background: linear-gradient(135deg, #d7ff9c, #8be84f, #2c9677);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-  }
-
   .header-menu-button {
     border: none;
     background: transparent;
+    border-radius: 999px;
     box-shadow: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
   }
 
   .header-menu-button:hover {
     opacity: 0.75;
+    transform: translateX(-2px);
   }
 
-  .header-drawer__link {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.7rem 0.9rem;
-    border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.08);
-    color: inherit;
+  .menu-panel {
+    border-radius: 0;
+  }
+  .menu-link {
+    display: block;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid rgba(15, 47, 44, 0.1);
     text-decoration: none;
-    transition: background 0.2s ease, transform 0.2s ease;
+    color: inherit;
+    transition: color 0.2s ease;
   }
 
-  .header-drawer__link::before {
-    content: "›";
-    opacity: 0.4;
-    font-weight: 600;
+  .menu-link:hover {
+    color: #2c9677;
   }
 
-  .header-drawer__link:hover {
-    background: rgba(255, 255, 255, 0.16);
-    transform: translateX(4px);
-  }
-
-  .header-drawer__link--active {
-    background: rgba(255, 255, 255, 0.22);
+  .menu-link--active {
+    color: #2c9677;
   }
 
   @media (max-width: 640px) {
-    header .mx-auto > div {
-      border-radius: 24px;
-    }
-    .header-drawer {
-      width: min(320px, calc(100vw - 2rem));
-      right: 1rem;
-      top: 4rem;
-    }
-    .header-cta-primary {
-      letter-spacing: 0.12em;
+    .menu-panel {
+      border-radius: 0;
+      max-width: 100%;
     }
   }
 </style>
@@ -223,22 +157,22 @@
     const toggle = document.getElementById("headerMenuToggle");
     const closeBtn = document.getElementById("headerMenuClose");
     const overlay = document.getElementById("headerMenuOverlay");
-    const drawer = overlay?.querySelector(".header-drawer");
+    const panel = overlay?.querySelector(".menu-panel");
 
-    if (!toggle || !overlay || !drawer) return;
+    if (!toggle || !overlay || !panel) return;
 
     let lastFocused;
 
     const openMenu = () => {
       lastFocused = document.activeElement;
       overlay.classList.remove("hidden");
-      requestAnimationFrame(() => drawer.classList.remove("translate-x-full"));
+      requestAnimationFrame(() => panel.classList.remove("translate-x-full"));
       toggle.setAttribute("aria-expanded", "true");
       document.addEventListener("keydown", onKeyDown);
     };
 
     const closeMenu = () => {
-      drawer.classList.add("translate-x-full");
+      panel.classList.add("translate-x-full");
       setTimeout(() => overlay.classList.add("hidden"), 260);
       toggle.setAttribute("aria-expanded", "false");
       document.removeEventListener("keydown", onKeyDown);
@@ -261,254 +195,9 @@
     closeBtn?.addEventListener("click", closeMenu);
 
     overlay.addEventListener("click", (event) => {
-      if (!drawer.contains(event.target)) {
+      if (!panel.contains(event.target)) {
         closeMenu();
       }
-    });
-  })();
-</script>
-
-<script>
-  (function () {
-    const header = document.querySelector("header");
-    const host = header?.querySelector("[data-snow-host]");
-    const layer = host?.querySelector("[data-snow-layer]");
-    const canvas = layer?.querySelector("[data-snow-canvas]");
-    if (!header || !host || !layer || !canvas) {
-      return;
-    }
-
-    const ctx = canvas.getContext("2d");
-    const STORAGE_KEY = "lottina:headerSnow";
-
-    const storage = (() => {
-      try {
-        return window.localStorage;
-      } catch (_err) {
-        return null;
-      }
-    })();
-
-    const loadState = () => {
-      if (!storage) return null;
-      try {
-        const raw = storage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch (_err) {
-        return null;
-      }
-    };
-
-    const savedState = loadState();
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const compactWidth = window.matchMedia("(max-width: 640px)");
-    const flakeTarget = () => {
-      if (prefersReducedMotion.matches) return 12;
-      return compactWidth.matches ? 36 : 70;
-    };
-
-    let width = 0;
-    let height = 0;
-    let flakes = [];
-    let rafId;
-    let lastFrame = performance.now();
-
-    const random = (min, max) => Math.random() * (max - min) + min;
-
-    const reviveFlake = (data) => ({
-      x: ((data?.xRatio ?? Math.random()) * width) || random(0, width || 1),
-      y: ((data?.yRatio ?? Math.random()) * height) || random(0, height || 1),
-      size: data?.size ?? random(0.8, 2.4),
-      speed: data?.speed ?? random(24, 46),
-      drift: data?.drift ?? random(-14, 14),
-      oscAmp: data?.oscAmp ?? random(4, 14),
-      oscPhase: data?.oscPhase ?? random(0, Math.PI * 2),
-      oscSpeed: data?.oscSpeed ?? random(0.6, 1.4),
-    });
-
-    const createFlake = (fromTop = false) => ({
-      x: random(0, width || host.clientWidth || 1),
-      y: fromTop ? random(-height * 0.3, 0) : random(0, height || 120),
-      size: random(0.8, 2.4),
-      speed: random(24, 46),
-      drift: random(-14, 14),
-      oscAmp: random(4, 14),
-      oscPhase: random(0, Math.PI * 2),
-      oscSpeed: random(0.6, 1.4),
-    });
-
-    const setDimensions = () => {
-      const rect = host.getBoundingClientRect();
-      const prevWidth = width || rect.width || 1;
-      const prevHeight = height || rect.height || 1;
-      width = host.clientWidth || rect.width || 1;
-      height = host.clientHeight || rect.height || 120;
-      width = Math.max(1, width);
-      height = Math.max(80, height);
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = Math.round(width * ratio);
-      canvas.height = Math.round(height * ratio);
-      canvas.style.width = width + "px";
-      canvas.style.height = height + "px";
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(ratio, ratio);
-      if (flakes.length && prevWidth > 0 && prevHeight > 0 && (prevWidth !== width || prevHeight !== height)) {
-        const wScale = width / prevWidth;
-        const hScale = height / prevHeight;
-        flakes.forEach((flake) => {
-          flake.x *= wScale;
-          flake.y *= hScale;
-        });
-      }
-    };
-
-    const hydrateFlakes = () => {
-      const desired = flakeTarget();
-      flakes = [];
-      for (let i = 0; i < desired; i += 1) {
-        const saved = savedState?.flakes?.[i];
-        flakes.push(saved ? reviveFlake(saved) : createFlake());
-      }
-    };
-
-    const resetFlake = (flake) => {
-      flake.x = random(0, width || 1);
-      flake.y = random(-height * 0.3, -10);
-      flake.size = random(0.8, 2.4);
-      flake.speed = random(24, 46);
-      flake.drift = random(-14, 14);
-      flake.oscAmp = random(4, 14);
-      flake.oscPhase = random(0, Math.PI * 2);
-      flake.oscSpeed = random(0.6, 1.4);
-    };
-
-    const stepFlakes = (delta) => {
-      if (!width || !height) return;
-      const desired = flakeTarget();
-      if (flakes.length < desired) {
-        while (flakes.length < desired) {
-          flakes.push(createFlake(true));
-        }
-      } else if (flakes.length > desired) {
-        flakes.splice(desired);
-      }
-
-      flakes.forEach((flake) => {
-        flake.y += flake.speed * delta;
-        flake.oscPhase += flake.oscSpeed * delta;
-        if (flake.oscPhase > Math.PI * 2) {
-          flake.oscPhase -= Math.PI * 2;
-        }
-        flake.x += (flake.drift * delta) + Math.sin(flake.oscPhase) * flake.oscAmp * delta;
-        if (flake.x < -20) flake.x = width + 20;
-        if (flake.x > width + 20) flake.x = -20;
-        if (flake.y > height + 12) {
-          resetFlake(flake);
-        }
-      });
-    };
-
-    const drawFlakes = () => {
-      ctx.clearRect(0, 0, width, height);
-      flakes.forEach((flake) => {
-        ctx.beginPath();
-        ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${0.25 + Math.min(0.5, flake.size / 3)})`;
-        ctx.fill();
-      });
-    };
-
-    const stepSimulation = (deltaSeconds) => {
-      const maxStep = 0.032;
-      let remaining = deltaSeconds;
-      while (remaining > 0) {
-        const chunk = Math.min(maxStep, remaining);
-        stepFlakes(chunk);
-        remaining -= chunk;
-      }
-    };
-
-    const advanceStoredState = () => {
-      if (!savedState?.timestamp) return;
-      const deltaSeconds = Math.min((Date.now() - savedState.timestamp) / 1000, 30);
-      if (deltaSeconds > 0) {
-        stepSimulation(deltaSeconds);
-      }
-    };
-
-    const persistState = () => {
-      if (!storage || !width || !height) return;
-      const payload = {
-        timestamp: Date.now(),
-        flakes: flakes.map((flake) => ({
-          xRatio: width ? flake.x / width : 0,
-          yRatio: height ? flake.y / height : 0,
-          size: Number(flake.size.toFixed(2)),
-          speed: Number(flake.speed.toFixed(2)),
-          drift: Number(flake.drift.toFixed(2)),
-          oscAmp: Number(flake.oscAmp.toFixed(2)),
-          oscPhase: Number(flake.oscPhase.toFixed(2)),
-          oscSpeed: Number(flake.oscSpeed.toFixed(2)),
-        })),
-      };
-      try {
-        storage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      } catch (_err) {
-        /* ignore storage issues */
-      }
-    };
-
-    const animate = (now) => {
-      const delta = Math.min((now - lastFrame) / 1000, 0.05);
-      lastFrame = now;
-      stepSimulation(delta);
-      drawFlakes();
-      rafId = requestAnimationFrame(animate);
-    };
-
-    setDimensions();
-    hydrateFlakes();
-    advanceStoredState();
-    lastFrame = performance.now();
-    rafId = requestAnimationFrame(animate);
-
-    const handleResize = () => {
-      setDimensions();
-    };
-    window.addEventListener("resize", handleResize);
-
-    const rebalanceOnChange = () => {
-      const desired = flakeTarget();
-      if (flakes.length > desired) {
-        flakes.splice(desired);
-      } else {
-        while (flakes.length < desired) {
-          flakes.push(createFlake(true));
-        }
-      }
-    };
-    const addQueryListener = (query, handler) => {
-      if (query.addEventListener) {
-        query.addEventListener("change", handler);
-      } else if (query.addListener) {
-        query.addListener(handler);
-      }
-    };
-    addQueryListener(prefersReducedMotion, rebalanceOnChange);
-    addQueryListener(compactWidth, rebalanceOnChange);
-
-    const persistInterval = setInterval(persistState, 8000);
-    window.addEventListener("pagehide", persistState);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") {
-        persistState();
-      }
-    });
-
-    window.addEventListener("beforeunload", () => {
-      persistState();
-      cancelAnimationFrame(rafId);
-      clearInterval(persistInterval);
     });
   })();
 </script>
