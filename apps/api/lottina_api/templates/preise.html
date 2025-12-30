@@ -8,8 +8,8 @@
 {% set savings_percent_text = "{:.1f}".format(annual_savings_percent).replace('.', ',') %}
 {% set has_yearly_plan = stripe_price_yearly %}
 
-<section class="relative overflow-hidden bg-[#071c17] text-white">
-  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(123,232,81,0.18),_rgba(7,28,23,0)_60%)] opacity-80"></div>
+<section class="relative overflow-hidden  text-white">
+  <div class="absolute inset-0  opacity-80"></div>
   <div class="relative max-w-5xl mx-auto px-4 py-20 space-y-8 text-center">
     <span class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
       lottina Family
@@ -27,10 +27,10 @@
   </div>
 </section>
 
-<section class="bg-white text-lottina-primary py-16 px-4">
+<section class=" text-lottina-primary py-16 px-4">
   <div class="max-w-6xl mx-auto space-y-10">
     <div class="grid gap-6 md:grid-cols-3">
-      <article class="relative rounded-xl border border-lottina-primary/10 bg-white p-6 shadow-lg flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+      <article class="relative rounded-xl border border-lottina-primary/10  p-6 shadow-lg flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         <div class="text-xs uppercase tracking-[0.4em] text-lottina-primary/60 font-semibold">Gratis</div>
         <h2 class="mt-2 text-2xl font-semibold text-lottina-primary">Freier Zugang</h2>
         <p class="mt-3 text-sm text-lottina-primary/70">Alle Basics bleiben kostenfrei.</p>
@@ -44,8 +44,8 @@
         
       </article>
 
-      <article class="relative rounded-xl border border-[#1b493a] bg-gradient-to-br from-[#13352d] via-[#0f2f2c] to-[#1f6d5c] p-6 text-white shadow-2xl flex flex-col scale-[1.02] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_35px_95px_rgba(18,53,45,0.55)]">
-        <div class="absolute -top-3 right-6 inline-flex items-center gap-2 rounded-md bg-lottina-accent text-lottina-primary px-3 py-1 text-xs font-semibold uppercase">
+      <article class="relative rounded-xl border border-[#1b493a]  from-[#13352d] via-[#0f2f2c] to-[#1f6d5c] p-6 text-white shadow-2xl flex flex-col scale-[1.02] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_35px_95px_rgba(18,53,45,0.55)]">
+        <div class="absolute -top-3 right-6 inline-flex items-center gap-2 rounded-md  text-lottina-primary px-3 py-1 text-xs font-semibold uppercase">
           Beliebt
         </div>
         <h2 class="text-2xl font-semibold">Monatliche Mitgliedschaft</h2>
@@ -65,7 +65,7 @@
           <form action="{{ url_for('create_checkout_session') }}" method="post" class="space-y-3">
             <input type="hidden" name="priceId" value="{{ stripe_price_monthly }}">
             <button type="submit"
-                    class="inline-flex w-full items-center justify-center gap-3 rounded-lg bg-gradient-to-r from-[#60c245] to-[#167454] px-6 py-3 text-base font-semibold text-white shadow-[0_25px_75px_rgba(15,47,44,0.45)] transition hover:-translate-y-0.5 hover:from-[#74da58] hover:to-[#1d8b67] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/70">
+                    class="inline-flex w-full items-center justify-center gap-3 rounded-lg  from-[#60c245] to-[#167454] px-6 py-3 text-base font-semibold text-white shadow-[0_25px_75px_rgba(15,47,44,0.45)] transition hover:-translate-y-0.5 hover:from-[#74da58] hover:to-[#1d8b67] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/70">
               Über Stripe abschließen
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7" />
@@ -74,7 +74,7 @@
           </form>
           {% else %}
           <a href="{{ url_for('register') }}"
-             class="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-white/30 bg-white/10 px-6 py-3 text-base font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20">
+             class="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-white/30  px-6 py-3 text-base font-semibold text-white transition hover:-translate-y-0.5 ">
             Jetzt registrieren
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7" />
@@ -84,9 +84,9 @@
         </div>
       </article>
 
-      <article class="relative rounded-xl border border-lottina-primary/10 bg-white p-6 text-lottina-primary shadow-xl flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+      <article class="relative rounded-xl border border-lottina-primary/10  p-6 text-lottina-primary shadow-xl flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         {% if has_yearly_plan %}
-        <div class="absolute -top-3 right-6 inline-flex items-center gap-2 rounded-md bg-red-500 text-white px-3 py-1 text-xs font-semibold uppercase shadow-lg">
+        <div class="absolute -top-3 right-6 inline-flex items-center gap-2 rounded-md  text-white px-3 py-1 text-xs font-semibold uppercase shadow-lg">
           Spare {{ savings_percent_text }} %
         </div>
         {% endif %}
@@ -107,7 +107,7 @@
           <form action="{{ url_for('create_checkout_session') }}" method="post">
             <input type="hidden" name="priceId" value="{{ stripe_price_yearly }}">
             <button type="submit"
-                    class="inline-flex w-full items-center justify-center gap-3 rounded-lg bg-lottina-primary px-6 py-3 text-base font-semibold text-white transition hover:-translate-y-0.5 hover:bg-lottina-primary/90 focus:outline-none focus-visible:ring-4 focus-visible:ring-lottina-primary/30">
+                    class="inline-flex w-full items-center justify-center gap-3 rounded-lg  px-6 py-3 text-base font-semibold text-white transition hover:-translate-y-0.5  focus:outline-none focus-visible:ring-4 focus-visible:ring-lottina-primary/30">
               Jahresplan wählen
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7" />
@@ -116,7 +116,7 @@
           </form>
           {% else %}
           <a href="{{ url_for('register') }}"
-             class="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-lottina-primary/30 bg-white/80 px-6 py-3 text-base font-semibold text-lottina-primary transition hover:-translate-y-0.5 hover:bg-white">
+             class="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-lottina-primary/30  px-6 py-3 text-base font-semibold text-lottina-primary transition hover:-translate-y-0.5 ">
             Zugang sichern
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7" />
@@ -132,7 +132,7 @@
         </p>
         <div class="mt-8">
           <a href="{{ url_for('register') }}"
-             class="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-lottina-primary/40 px-6 py-3 text-base font-semibold text-lottina-primary transition hover:-translate-y-0.5 hover:bg-lottina-primary/5">
+             class="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-lottina-primary/40 px-6 py-3 text-base font-semibold text-lottina-primary transition hover:-translate-y-0.5 ">
             Interesse vormerken
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7" />
@@ -143,7 +143,7 @@
       </article>
     </div>
 
-    <div class="rounded-xl border border-lottina-primary/10 bg-gradient-to-br from-white to-lottina-highlight/20 p-8 shadow-xl">
+    <div class="rounded-xl border border-lottina-primary/10  from-white to-lottina-highlight/20 p-8 shadow-xl">
       <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_260px] items-center">
         <div>
           <h3 class="text-2xl font-semibold text-lottina-primary">Jetzt registrieren oder anmelden</h3>
@@ -154,11 +154,11 @@
         </div>
         <div class="flex flex-col gap-3 text-sm font-semibold">
           <a href="{{ url_for('register') }}"
-             class="inline-flex items-center justify-center gap-2 rounded-xl bg-lottina-accent px-4 py-3 text-lottina-primary shadow-lg transition hover:-translate-y-0.5">
+             class="inline-flex items-center justify-center gap-2 rounded-xl  px-4 py-3 text-lottina-primary shadow-lg transition hover:-translate-y-0.5">
             Neu bei lottina? Konto anlegen
           </a>
           <a href="{{ url_for('login') }}"
-             class="inline-flex items-center justify-center gap-2 rounded-xl border border-lottina-primary/20 px-4 py-3 text-lottina-primary transition hover:bg-lottina-primary/10">
+             class="inline-flex items-center justify-center gap-2 rounded-xl border border-lottina-primary/20 px-4 py-3 text-lottina-primary transition ">
             Schon Mitglied? Anmelden
           </a>
         </div>

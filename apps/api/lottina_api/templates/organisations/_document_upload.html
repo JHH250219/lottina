@@ -1,11 +1,11 @@
-<section class="rounded-[34px] border border-white/15 bg-white/5 p-6 space-y-4">
+<section class="rounded-[34px] border border-white/15  p-6 space-y-4">
   <p class="text-xs uppercase tracking-[0.4em] text-white/60">Datei hochladen</p>
   <form method="post" enctype="multipart/form-data" class="space-y-4">
     <input type="hidden" name="action" value="upload_file">
     <div class="grid gap-4 md:grid-cols-2">
       <label class="wizard-label text-white">
         Ordner
-        <select name="folder_slug" class="wizard-input bg-white/90 text-[#0f2f2c]" required>
+        <select name="folder_slug" class="wizard-input  text-[#0f2f2c]" required>
           {% for folder in folders %}
             <option value="{{ folder.slug }}" {% if folder.slug == active_folder_slug %}selected{% endif %}>{{ folder.name }}</option>
           {% endfor %}
@@ -13,7 +13,7 @@
       </label>
       <label class="wizard-label text-white">
         Sichtbarkeit
-        <select name="visibility" class="wizard-input bg-white/90 text-[#0f2f2c]" required>
+        <select name="visibility" class="wizard-input  text-[#0f2f2c]" required>
           {% for value, label in visibility_options %}
             <option value="{{ value }}">{{ label }}</option>
           {% endfor %}

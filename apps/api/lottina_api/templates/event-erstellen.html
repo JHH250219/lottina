@@ -3,10 +3,10 @@
 
 {% block content %}
 {% set form_data = form_data or {} %}
-<section class="relative overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
-  <div class="absolute inset-0 opacity-25 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_rgba(0,0,0,0))]"></div>
+<section class="relative overflow-hidden  from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="absolute inset-0 opacity-25 pointer-events-none "></div>
   <div class="relative z-10 max-w-5xl mx-auto px-5 sm:px-10 pt-40 pb-24 space-y-8 text-center">
-    <p class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.3em] mx-auto">
+    <p class="inline-flex items-center gap-2 px-4 py-1 rounded-full  text-xs font-semibold uppercase tracking-[0.3em] mx-auto">
       Erlebnis einreichen
     </p>
     <h1 class="text-4xl sm:text-5xl font-lottina font-bold leading-tight drop-shadow-xl">
@@ -16,21 +16,21 @@
       Wähle „Manuell erstellen“ und beantworte Schritt für Schritt alle Fragen. Poster-OCR ist in Arbeit – bald kannst du Flyer einfach fotografieren.
     </p>
     {% if submission_error %}
-      <div class="mx-auto max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+      <div class="mx-auto max-w-2xl rounded-2xl border border-red-200  px-4 py-3 text-sm text-red-800">
         {{ submission_error }}
       </div>
     {% endif %}
     {% set card_cols = "lg:grid-cols-3" if is_admin else "lg:grid-cols-2" %}
     <div class="grid grid-cols-1 gap-4 pt-6 {{ card_cols }}">
       <button type="button"
-              class="choice-card bg-white text-lottina-primary flex flex-col gap-4 items-start"
+              class="choice-card  text-lottina-primary flex flex-col gap-4 items-start"
               data-open-manual>
         <div class="flex items-start gap-4">
           <img src="{{ url_for('static', filename='img/typing.png') }}"
                alt="Manuell erstellen"
                class="hidden sm:block h-24 w-24 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.35)]">
           <div class="space-y-2 text-left">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs font-semibold uppercase tracking-wide text-emerald-700">
               Schritt für Schritt
             </span>
             <h2 class="text-2xl font-semibold">Manuell erstellen</h2>
@@ -41,14 +41,14 @@
         </div>
       </button>
       <button type="button"
-              class="choice-card bg-gradient-to-br from-[#12352d] via-[#0f2f2c] to-[#1f6d5c] text-white flex flex-col gap-4 items-start"
+              class="choice-card  from-[#12352d] via-[#0f2f2c] to-[#1f6d5c] text-white flex flex-col gap-4 items-start"
               data-open-ocr>
         <div class="flex items-start gap-4">
           <img src="{{ url_for('static', filename='img/ocr-search.png') }}"
                alt="Poster scannen"
                class="hidden sm:block h-24 w-24 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.45)]">
           <div class="space-y-2 text-left">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-wide text-white">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs font-semibold uppercase tracking-wide text-white">
               Bald verfügbar
             </span>
             <h2 class="text-2xl font-semibold">Poster scannen (OCR)</h2>
@@ -60,14 +60,14 @@
       </button>
       {% if is_admin %}
       <button type="button"
-              class="choice-card bg-gradient-to-br from-[#081a16] via-[#0d2b24] to-[#1c6d58] text-white flex flex-col gap-4 items-start border border-white/10"
+              class="choice-card  from-[#081a16] via-[#0d2b24] to-[#1c6d58] text-white flex flex-col gap-4 items-start border border-white/10"
               data-open-link-crawler>
         <div class="flex items-start gap-4">
           <img src="{{ url_for('static', filename='img/ocr-search.png') }}"
                alt="Link-Crawler"
                class="hidden sm:block h-24 w-24 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.45)]">
           <div class="space-y-2 text-left">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-wide text-white">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs font-semibold uppercase tracking-wide text-white">
               Admin
             </span>
             <h2 class="text-2xl font-semibold">Basis-Crawler</h2>

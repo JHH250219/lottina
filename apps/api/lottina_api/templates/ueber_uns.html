@@ -2,12 +2,12 @@
 {% block title %}Über uns – lottina Team & Mission{% endblock %}
 
 {% block content %}
-<div class="bg-lottina-background text-lottina-primary">
-  <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
-    <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
+<div class=" text-lottina-primary">
+  <section class="relative overflow-hidden  from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
+    <div class="absolute inset-0 opacity-20 pointer-events-none "></div>
     <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-20 lg:py-28 grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] items-center">
       <div class="space-y-6">
-        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.35em]">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs font-semibold uppercase tracking-[0.35em]">
           Team lottina
         </span>
         <h1 class="text-4xl lg:text-5xl font-lottina font-bold leading-tight drop-shadow-lg">
@@ -28,7 +28,7 @@
     </div>
   </section>
 
-  <section class="py-20 bg-gradient-to-br from-[#041614] via-[#0c2d29] to-[#104a40] text-white">
+  <section class="py-20  from-[#041614] via-[#0c2d29] to-[#104a40] text-white">
     <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-10 text-center">
       <div class="space-y-3">
         <p class="inline-flex justify-center items-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
@@ -41,7 +41,7 @@
       </div>
       <div class="grid gap-6 sm:grid-cols-3">
         {% for stat in impact_stats %}
-          <div class="rounded-[32px] border border-white/15 bg-white/5 px-6 py-10 shadow-[0_25px_60px_rgba(0,0,0,0.45)]">
+          <div class="rounded-[32px] border border-white/15  px-6 py-10 shadow-[0_25px_60px_rgba(0,0,0,0.45)]">
             <p class="stat-value text-white text-4xl lg:text-5xl font-extrabold tracking-tight drop-shadow-lg" data-target="{{ stat.value }}">
               0
             </p>
@@ -54,7 +54,7 @@
     </div>
   </section>
 
-  <section class="py-16 bg-gradient-to-b from-[#f4fdf8] via-lottina-background to-[#eefbf4]">
+  <section class="py-16  from-[#f4fdf8] via-lottina-background to-[#eefbf4]">
     <div class="max-w-5xl mx-auto px-6 lg:px-10 text-center space-y-6">
       <h2 class="text-3xl font-bold">Unser Auftrag</h2>
       <p class="text-base text-lottina-primary/75 leading-relaxed">
@@ -78,7 +78,7 @@
     </div>
   </section>
 
-  <section class="py-16 bg-white">
+  <section class="py-16 ">
     <div class="max-w-6xl mx-auto px-6 lg:px-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] items-center">
       <div class="space-y-5">
         <h2 class="text-3xl font-bold text-lottina-primary">Was uns antreibt</h2>
@@ -88,7 +88,7 @@
         </p>
         <div class="grid gap-3 sm:grid-cols-2">
           {% for claim in values %}
-            <div class="rounded-2xl border border-lottina-primary/15 bg-lottina-primary/5 px-4 py-3 text-sm text-lottina-primary/80">
+            <div class="rounded-2xl border border-lottina-primary/15  px-4 py-3 text-sm text-lottina-primary/80">
               {{ claim }}
             </div>
           {% endfor %}
@@ -97,7 +97,7 @@
     </div>
   </section>
 
-  <section class="bg-lottina-background/60 py-16">
+  <section class=" py-16">
     <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-10">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -106,14 +106,14 @@
             Wir sind Eltern, Entwicklerinnen, Pädagogen und Community-Builder – eine Mischung aus Startup-Drive und Veranstalter-Erfahrung.
           </p>
         </div>
-        <a href="{{ url_for('sichtbar_werden') }}" class="inline-flex items-center gap-2 rounded-full border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/10 transition">
+        <a href="{{ url_for('sichtbar_werden') }}" class="inline-flex items-center gap-2 rounded-full border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary  transition">
           Mitmachen
         </a>
       </div>
       <div class="grid gap-6 md:grid-cols-2">
         {% for member in (team or []) %}
-          <article class="rounded-3xl bg-white shadow-2xl border border-lottina-primary/10 p-6 space-y-3">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/10 text-xs font-semibold uppercase tracking-wide text-lottina-primary/70">
+          <article class="rounded-3xl  shadow-2xl border border-lottina-primary/10 p-6 space-y-3">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs font-semibold uppercase tracking-wide text-lottina-primary/70">
               Team
             </span>
             <h3 class="text-xl font-semibold text-lottina-primary">{{ member.name }}</h3>
@@ -123,7 +123,7 @@
             </p>
           </article>
         {% else %}
-          <article class="rounded-3xl bg-white shadow-2xl border border-lottina-primary/10 p-6 space-y-3">
+          <article class="rounded-3xl  shadow-2xl border border-lottina-primary/10 p-6 space-y-3">
             <h3 class="text-xl font-semibold text-lottina-primary">Wir stellen uns vor</h3>
             <p class="text-sm text-lottina-primary/75">
               Unser Kernteam kombiniert Produkt, Design, Pädagogik und kommunale Verwaltung. Schreib uns – wir erzählen dir gern mehr.
@@ -132,7 +132,7 @@
         {% endfor %}
       </div>
       <div class="flex flex-col items-center space-y-3">
-        <div class="w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl border border-lottina-primary/15 bg-white">
+        <div class="w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl border border-lottina-primary/15 ">
           <img src="{{ url_for('static', filename='ueber_uns_team.jpg') }}" alt="Team lottina" class="w-full h-auto object-cover" loading="lazy">
         </div>
         <p class="text-xs text-lottina-primary/60 text-center">
@@ -142,7 +142,7 @@
     </div>
   </section>
 
-  <section class="py-16 text-lottina-primary bg-gradient-to-b from-[#eefbf4] via-lottina-background to-[#f6fef9]">
+  <section class="py-16 text-lottina-primary  from-[#eefbf4] via-lottina-background to-[#f6fef9]">
     <div class="max-w-6xl mx-auto px-6 lg:px-10 space-y-10">
       <div class="flex flex-wrap items-baseline justify-between gap-4">
         <div>
@@ -151,13 +151,13 @@
             lottina verbindet Kommunen, Verlage und Vereine – immer mit dem Ziel, Familien neue Freizeit-Impulse zu geben.
           </p>
         </div>
-        <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold hover:bg-lottina-highlight/30 transition" data-contact-trigger>
+        <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/15 text-sm font-semibold  transition" data-contact-trigger>
           Kontakt aufnehmen
         </a>
       </div>
       <div class="grid md:grid-cols-3 gap-6">
         <article class="feature-card">
-          <div class="feature-icon bg-lottina-accent/25 text-lottina-primary">
+          <div class="feature-icon  text-lottina-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v18m9-9H3"/>
             </svg>
@@ -190,17 +190,17 @@
     </div>
   </section>
 
-<section class="bg-white py-16">
+<section class=" py-16">
     <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center space-y-6">
       <h2 class="text-3xl font-bold text-lottina-primary">Lass uns Deutschlands Freizeit sichtbar machen</h2>
     <p class="text-base text-lottina-primary/75 max-w-2xl mx-auto">
       Wir suchen Kommunen, Förderpartner, Vereine und Menschen, die Freizeit für Familien zugänglich machen wollen.
     </p>
     <div class="flex flex-wrap justify-center gap-3">
-      <a href="/kontakt" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-lottina-accent text-lottina-primary font-semibold shadow-xl hover:bg-lottina-highlight/80 transition" data-contact-trigger>
+      <a href="/kontakt" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl  text-lottina-primary font-semibold shadow-xl  transition" data-contact-trigger>
         Kontakt aufnehmen
       </a>
-      <a href="{{ url_for('preise') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-lottina-primary/15 text-lottina-primary font-semibold hover:bg-lottina-highlight/30 transition">
+      <a href="{{ url_for('preise') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-lottina-primary/15 text-lottina-primary font-semibold  transition">
         Leistungen &amp; Preise
       </a>
     </div>

@@ -2,7 +2,7 @@
 {% block title %}Neues Formular – {{ organisation.name }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+<div class="min-h-screen  from-[#071c17] via-[#134334] to-[#7be751] text-white">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-8">
     <a href="{{ url_for('organisations.organisation_forms', slug=organisation.slug) }}"
        class="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white">← Zurück</a>
@@ -13,7 +13,7 @@
         <p class="text-sm text-white/80">Bestimme Titel, Beschreibung, Teilnehmerlimit und Felder.</p>
       </div>
       {% if errors %}
-        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+        <div class="rounded-3xl border border-red-200  px-4 py-3 text-sm text-red-900 space-y-1">
           <p class="font-semibold">Bitte prüfe deine Eingaben:</p>
           <ul class="list-disc list-inside space-y-1">
             {% for error in errors %}
@@ -52,7 +52,7 @@
           </div>
           <div id="fieldsContainer" class="space-y-4">
             {% for row in field_rows %}
-              <div class="rounded-[28px] border border-white/15 bg-white/5 p-4 space-y-3 field-row">
+              <div class="rounded-[28px] border border-white/15  p-4 space-y-3 field-row">
                 <div class="grid gap-3 md:grid-cols-3">
                   <label class="wizard-label text-white">
                     Label
@@ -60,7 +60,7 @@
                   </label>
                   <label class="wizard-label text-white">
                     Typ
-                    <select name="field_type[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+                    <select name="field_type[]" class="wizard-input  text-[#0f2f2c]">
                       {% set field_type = row.type %}
                       <option value="text" {% if field_type == 'text' %}selected{% endif %}>Text</option>
                       <option value="email" {% if field_type == 'email' %}selected{% endif %}>E-Mail</option>
@@ -70,7 +70,7 @@
                   </label>
                   <label class="wizard-label text-white">
                     Pflichtfeld?
-                    <select name="field_required[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+                    <select name="field_required[]" class="wizard-input  text-[#0f2f2c]">
                       <option value="1" {% if row.required == '1' %}selected{% endif %}>Ja</option>
                       <option value="" {% if not row.required %}selected{% endif %}>Nein</option>
                     </select>
@@ -93,7 +93,7 @@
 </div>
 
 <template id="fieldTemplate">
-  <div class="rounded-[28px] border border-white/15 bg-white/5 p-4 space-y-3 field-row">
+  <div class="rounded-[28px] border border-white/15  p-4 space-y-3 field-row">
     <div class="grid gap-3 md:grid-cols-3">
       <label class="wizard-label text-white">
         Label
@@ -101,7 +101,7 @@
       </label>
       <label class="wizard-label text-white">
         Typ
-        <select name="field_type[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+        <select name="field_type[]" class="wizard-input  text-[#0f2f2c]">
           <option value="text">Text</option>
           <option value="email">E-Mail</option>
           <option value="textarea">Mehrzeilig</option>
@@ -110,7 +110,7 @@
       </label>
       <label class="wizard-label text-white">
         Pflichtfeld?
-        <select name="field_required[]" class="wizard-input bg-white/90 text-[#0f2f2c]">
+        <select name="field_required[]" class="wizard-input  text-[#0f2f2c]">
           <option value="1">Ja</option>
           <option value="">Nein</option>
         </select>

@@ -2,9 +2,9 @@
 {% block title %}Event bearbeiten – {{ event.title or "Event" }}{% endblock %}
 
 {% block content %}
-<div class="bg-[#f6fbf8] min-h-screen text-lottina-primary">
-  <section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#16503f] to-[#78d33d] text-white">
-    <div class="absolute inset-0 opacity-25 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
+<div class=" min-h-screen text-lottina-primary">
+  <section class="relative overflow-hidden  from-[#0f2f2c] via-[#16503f] to-[#78d33d] text-white">
+    <div class="absolute inset-0 opacity-25 pointer-events-none "></div>
     <div class="relative z-10 max-w-5xl mx-auto pt-28 pb-16 px-6 space-y-6">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -12,7 +12,7 @@
           <h1 class="text-3xl font-lottina font-bold leading-tight drop-shadow">{{ event.title or "Event bearbeiten" }}</h1>
         </div>
         <a href="{{ url_for('event_detail', event_id=event.id) }}"
-           class="inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-white/10 transition">
+           class="inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white  transition">
           Event ansehen
         </a>
       </div>
@@ -26,7 +26,7 @@
   <section class="py-10">
     <div class="max-w-5xl mx-auto px-6 space-y-8">
       {% if errors %}
-        <div class="rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 space-y-2">
+        <div class="rounded-2xl border border-red-200  text-red-800 p-4 space-y-2">
           <p class="font-semibold">Bitte prüfe deine Eingaben:</p>
           <ul class="text-sm list-disc list-inside space-y-1">
             {% for err in errors %}
@@ -54,7 +54,7 @@
                data-base-type="{{ form_type_value }}"
                data-non-permanent="{{ form_type_non_permanent }}">
         {% if has_existing_recurrence %}
-          <div class="rounded-3xl border border-lottina-primary/10 bg-lottina-primary/5 shadow p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-lottina-primary">
+          <div class="rounded-3xl border border-lottina-primary/10  shadow p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-lottina-primary">
             <div>
               <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/50">Serie</p>
               {% if recurrence_scope_prefill == 'series' %}
@@ -66,13 +66,13 @@
               {% endif %}
             </div>
             {% if recurrence_scope_prefill in ['single','series'] %}
-              <span class="inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] {% if recurrence_scope_prefill == 'series' %}bg-lottina-primary text-white{% else %}bg-white text-lottina-primary{% endif %}">
+              <span class="inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] {% if recurrence_scope_prefill == 'series' %}text-white{% else %}text-lottina-primary{% endif %}">
                 {{ 'Serie' if recurrence_scope_prefill == 'series' else 'Einzeln' }}
               </span>
             {% endif %}
           </div>
         {% endif %}
-        <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
+        <div class="rounded-3xl border border-lottina-primary/10  shadow p-6 space-y-6">
           <div>
             <h2 class="text-lg font-semibold text-lottina-primary">Basis</h2>
             <p class="text-sm text-lottina-primary/70">Titel, Texte und Medien.</p>
@@ -126,7 +126,7 @@
                   <p class="text-xs text-lottina-primary/60">Aktuelles Bild bleibt erhalten, solange du es nicht zurücksetzt.</p>
                 </div>
               {% else %}
-                <label class="inline-flex items-center gap-2 rounded-2xl border border-dashed border-lottina-primary/30 bg-lottina-primary/5 px-4 py-3 cursor-pointer hover:border-lottina-primary/50 transition">
+                <label class="inline-flex items-center gap-2 rounded-2xl border border-dashed border-lottina-primary/30  px-4 py-3 cursor-pointer hover:border-lottina-primary/50 transition">
                   <input type="file"
                          name="image_file"
                          accept="image/png,image/jpeg,image/webp"
@@ -183,7 +183,7 @@
           </div>
         </div>
 
-        <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
+        <div class="rounded-3xl border border-lottina-primary/10  shadow p-6 space-y-6">
           <div>
             <h2 class="text-lg font-semibold text-lottina-primary">Zeit & Preis</h2>
             <p class="text-sm text-lottina-primary/70">Termine, Altersangaben und Preisfelder.</p>
@@ -266,7 +266,7 @@
           </div>
         </div>
 
-        <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-4">
+        <div class="rounded-3xl border border-lottina-primary/10  shadow p-6 space-y-4">
           <h2 class="text-lg font-semibold text-lottina-primary">Flags</h2>
           <div class="grid gap-3 md:grid-cols-3">
             {% set flag_labels = {
@@ -295,7 +295,7 @@
           </div>
         </div>
 
-        <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
+        <div class="rounded-3xl border border-lottina-primary/10  shadow p-6 space-y-6">
           <div>
             <h2 class="text-lg font-semibold text-lottina-primary">Ort & Adresse</h2>
             <p class="text-sm text-lottina-primary/70">Fülle diese Felder aus, um die Karte mit Koordinaten zu versorgen.</p>
@@ -344,7 +344,7 @@
           </div>
         </div>
 
-        <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
+        <div class="rounded-3xl border border-lottina-primary/10  shadow p-6 space-y-6">
           <div>
             <h2 class="text-lg font-semibold text-lottina-primary">Kategorien & Zeiten</h2>
             <p class="text-sm text-lottina-primary/70">
@@ -356,7 +356,7 @@
               <span>Kategorien auswählen</span>
               <span class="text-xs font-normal text-lottina-primary/60" data-category-count></span>
             </div>
-            <div class="rounded-2xl border border-lottina-primary/15 bg-white/60 p-4 space-y-3" data-category-picker>
+            <div class="rounded-2xl border border-lottina-primary/15  p-4 space-y-3" data-category-picker>
               <input type="hidden" name="categories" value="{{ prefill.categories }}" data-category-input>
               <select class="form-select" data-category-select>
                 <option value="">Kategorie hinzufügen …</option>
@@ -388,7 +388,7 @@
               <h3 class="text-base font-semibold text-lottina-primary">Wiederholungen</h3>
               <p class="text-sm text-lottina-primary/70">Lege fest, in welchem Rhythmus und zu welchen Zeiten sich das Event wiederholt.</p>
             </div>
-            <div class="rounded-2xl border border-lottina-primary/15 bg-white/60 p-3 flex flex-wrap items-center gap-3">
+            <div class="rounded-2xl border border-lottina-primary/15  p-3 flex flex-wrap items-center gap-3">
               <label class="inline-flex items-center gap-2 text-sm font-semibold text-lottina-primary">
                 <input type="checkbox"
                        name="flag_permanent"
@@ -413,7 +413,7 @@
               </label>
               <div class="space-y-3" data-recurrence-slots-wrapper>
                 {% for slot in recurrence_slots %}
-                  <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
+                  <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10  p-4"
                        data-recurrence-slot>
                     <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
                       <span data-recurrence-weekday-label>Wochentag</span>
@@ -434,7 +434,7 @@
                       <input type="time" name="recurrence_end[]" value="{{ slot.end }}" class="form-input" data-recurrence-end>
                     </label>
                     <button type="button"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 "
                             data-recurrence-remove
                             title="Eintrag entfernen">
                       &times;
@@ -469,7 +469,7 @@
               <div class="flex flex-wrap items-center gap-3">
                 <button type="button"
                         data-recurrence-add
-                        class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5">
+                        class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/20 px-4 py-2 text-sm font-semibold text-lottina-primary ">
                   Weiteren Wochentag hinzufügen
                 </button>
                 <p class="text-xs text-lottina-primary/60">
@@ -479,7 +479,7 @@
             </div>
           </div>
           <template id="recurrence-slot-template">
-            <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4"
+            <div class="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,1fr))_auto] items-end rounded-2xl border border-lottina-primary/10  p-4"
                  data-recurrence-slot>
               <label class="flex flex-col gap-1 text-sm font-semibold" data-recurrence-weekday-wrapper>
                 <span data-recurrence-weekday-label>Wochentag</span>
@@ -500,7 +500,7 @@
                 <input type="time" name="recurrence_end[]" class="form-input" data-recurrence-end>
               </label>
               <button type="button"
-                      class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 hover:bg-red-50"
+                      class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-100 text-red-600 "
                       data-recurrence-remove
                       title="Eintrag entfernen">
                 &times;
@@ -514,7 +514,7 @@
           {% set holiday_populated = prefill.holiday_hours_json %}
         </div>
 
-        <div class="rounded-3xl border border-lottina-primary/10 bg-white shadow p-6 space-y-6">
+        <div class="rounded-3xl border border-lottina-primary/10  shadow p-6 space-y-6">
           <div>
             <h2 class="text-lg font-semibold text-lottina-primary">Öffnungszeiten & Sondertage</h2>
             <p class="text-sm text-lottina-primary/70">Pflege hier die JSON-Struktur für reguläre und abweichende Öffnungszeiten.</p>
@@ -544,13 +544,13 @@
         </div>
 
         <div class="flex items-center justify-end gap-4">
-          <a href="{{ url_for('event_detail', event_id=event.id) }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
+          <a href="{{ url_for('event_detail', event_id=event.id) }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm text-gray-600 ">
             Abbrechen
           </a>
-          <button type="submit" name="publish_now" value="1" class="inline-flex items-center gap-2 rounded-2xl bg-lottina-accent px-5 py-3 text-sm font-semibold text-lottina-primary shadow hover:bg-[#b8ff7a]">
+          <button type="submit" name="publish_now" value="1" class="inline-flex items-center gap-2 rounded-2xl  px-5 py-3 text-sm font-semibold text-lottina-primary shadow ">
             Aktualisieren &amp; veröffentlichen
           </button>
-          <button type="submit" class="inline-flex items-center gap-2 rounded-2xl bg-lottina-primary px-6 py-3 text-sm font-semibold text-white shadow hover:bg-[#0c4a40]">
+          <button type="submit" class="inline-flex items-center gap-2 rounded-2xl  px-6 py-3 text-sm font-semibold text-white shadow ">
             Aktualisieren
           </button>
         </div>
@@ -560,11 +560,11 @@
 </div>
 
 {% if has_existing_recurrence %}
-<div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4"
+<div class="fixed inset-0 z-50 hidden items-center justify-center  p-4"
      data-recurrence-modal
      aria-hidden="true">
   <div class="absolute inset-0" data-recurrence-modal-cancel></div>
-  <div class="relative z-10 w-full max-w-md space-y-5 rounded-3xl bg-white p-6 text-lottina-primary shadow-2xl">
+  <div class="relative z-10 w-full max-w-md space-y-5 rounded-3xl  p-6 text-lottina-primary shadow-2xl">
     <div class="space-y-2">
       <p class="text-sm font-semibold text-lottina-primary/70 uppercase tracking-[0.3em]">Wiederholungen</p>
       <h3 class="text-2xl font-bold">Nur dieses Event oder ganze Serie?</h3>
@@ -575,12 +575,12 @@
     </div>
     <div class="grid gap-3 sm:grid-cols-2">
       <button type="button"
-              class="rounded-2xl border border-lottina-primary/20 px-4 py-3 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/5"
+              class="rounded-2xl border border-lottina-primary/20 px-4 py-3 text-sm font-semibold text-lottina-primary "
               data-recurrence-choice="single">
         Nur dieses Event
       </button>
       <button type="button"
-              class="rounded-2xl bg-lottina-primary px-4 py-3 text-sm font-semibold text-white shadow hover:bg-[#0c4a40]"
+              class="rounded-2xl  px-4 py-3 text-sm font-semibold text-white shadow "
               data-recurrence-choice="series">
         Alle Events der Serie
       </button>

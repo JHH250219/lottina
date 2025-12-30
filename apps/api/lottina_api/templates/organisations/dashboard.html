@@ -5,13 +5,13 @@
 {% set events_list = events if events is not none else [] %}
 {% set sorted_events = events_list|sort(attribute='dt_start') %}
 {% set upcoming_events = sorted_events[:3] %}
-<div class="min-h-screen relative isolate overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
-  <div class="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full bg-white/10 blur-[140px]"></div>
-  <div class="pointer-events-none absolute bottom-0 left-4 h-72 w-72 rounded-full bg-[#ffffff]/10 blur-[120px]"></div>
+<div class="min-h-screen relative isolate overflow-hidden  from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full  blur-[140px]"></div>
+  <div class="pointer-events-none absolute bottom-0 left-4 h-72 w-72 rounded-full /10 blur-[120px]"></div>
 
   <div class="relative mx-auto max-w-6xl px-4 sm:px-8 lg:px-12 pt-32 pb-20 space-y-10">
     <header class="space-y-4 text-center">
-      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] shadow">
+      <p class="inline-flex items-center gap-2 rounded-full  px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] shadow">
         Organisation
       </p>
       <h1 class="text-3xl sm:text-4xl font-lottina font-bold drop-shadow-lg">
@@ -34,7 +34,7 @@
           <p class="text-sm text-white/75">Die nächsten drei Aktivitäten deiner Organisation.</p>
         </div>
         <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
-           class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8be84f] to-[#1f6d5c] px-6 py-3 text-sm font-semibold text-[#0f2f2c] shadow-lg hover:-translate-y-0.5 transition">
+           class="inline-flex items-center gap-2 rounded-full  from-[#8be84f] to-[#1f6d5c] px-6 py-3 text-sm font-semibold text-[#0f2f2c] shadow-lg hover:-translate-y-0.5 transition">
           Neues Event
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/>
@@ -45,7 +45,7 @@
       {% if upcoming_events %}
         <div class="grid gap-4 md:grid-cols-3">
           {% for event in upcoming_events %}
-            <article class="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg flex flex-col gap-3">
+            <article class="rounded-3xl border border-white/10  p-5 shadow-lg flex flex-col gap-3">
               <div class="text-xs uppercase tracking-[0.4em] text-white/60">
                 {{ event.dt_start.strftime('%d.%m.%Y') if event.dt_start else 'Ohne Datum' }}
               </div>
@@ -68,7 +68,7 @@
           {% endfor %}
         </div>
       {% else %}
-        <div class="rounded-3xl border border-dashed border-white/30 bg-white/5 px-6 py-10 text-center text-sm text-white/70">
+        <div class="rounded-3xl border border-dashed border-white/30  px-6 py-10 text-center text-sm text-white/70">
           Noch keine Termine geplant. Lege jetzt euer erstes Event an.
         </div>
       {% endif %}
@@ -85,7 +85,7 @@
         </div>
         <p class="text-sm text-white/75">Überblick über alle geplanten und vergangenen Events.</p>
         <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug) }}"
-           class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 transition">
+           class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white  transition">
           Zu den Events
         </a>
       </article>
@@ -100,7 +100,7 @@
         </div>
         <p class="text-sm text-white/75">Alle Abteilungen, Teams oder Angebote eurer Organisation.</p>
         <a href="{{ url_for('organisations.organisation_groups', slug=organisation.slug) }}"
-           class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 transition">
+           class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white  transition">
           Gruppen öffnen
         </a>
       </article>

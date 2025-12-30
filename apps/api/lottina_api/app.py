@@ -63,7 +63,7 @@ from .utils import (
     extract_fields,
 )
 from .utils.geo import haversine
-from .ocr_client import run_ocr
+
 
 # ---------------------------------------------------------------------------
 # Konfiguration
@@ -3198,35 +3198,6 @@ def create_event():
         mode = MODE_MANUAL
     form_data["form_mode"] = mode
 
-    if f.get("perform_ocr") == "1":
-        form_data["form_mode"] = MODE_OCR
-        if not poster_file or not poster_file.filename:
-            return _render_event_form(form_data, ocr_error="Bitte wähle eine Bilddatei aus.")
-        if not allowed(poster_file.filename):
-            return _render_event_form(form_data, ocr_error="Unterstützt werden JPG, JPEG, PNG oder WEBP.")
-        saved = save_upload(poster_file, IMAGE_FOLDER)
-        form_data["image_url"] = f"/uploads/images/{saved.name}"
-        try:
-            text = run_ocr(str(saved))
-            extracted = extract_fields(text) or {}
-        except Exception as exc:  # noqa: BLE001
-            app.logger.warning("Remote OCR prefill failed: %s", exc)
-            return _render_event_form(form_data, ocr_error="Texterkennung konnte nicht durchgeführt werden.")
-        filled_labels: list[str] = []
-        if extracted:
-            filled_keys: list[str] = []
-            for key in OCR_FORM_FIELDS:
-                value = extracted.get(key)
-                if value:
-                    form_data[key] = value
-                    filled_keys.append(key)
-            if not filled_keys and text:
-                form_data["description"] = text
-            filled_labels = [OCR_FIELD_LABELS.get(key, key.title()) for key in filled_keys]
-        else:
-            if text:
-                form_data["description"] = text
-        return _render_event_form(form_data, ocr_text=text, ocr_filled=filled_labels)
 
     def _to_bool(v):
         return True if v == "true" else False if v == "false" else None
@@ -3264,13 +3235,7 @@ def create_event():
             return redirect(url_for("event_erstellen")), 400
         saved = save_upload(poster_file, IMAGE_FOLDER)
         image_url = f"/uploads/images/{saved.name}"
-        if allow_ocr_processing:
-            try:
-                ocr_text = run_ocr(str(saved))
-                flash("Texterkennung erfolgreich – Beschreibung wurde vorausgefüllt.", "info")
-            except Exception as exc:  # noqa: BLE001
-                app.logger.warning("Remote OCR failed during event save: %s", exc)
-                flash("Bild gespeichert, Texterkennung nicht möglich.", "warning")
+        
 
     description_text = (f.get("description") or "").strip()
     if not description_text and ocr_text:

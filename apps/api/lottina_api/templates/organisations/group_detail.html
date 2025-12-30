@@ -2,7 +2,7 @@
 {% block title %}{{ group.name }} – {{ organisation.name }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+<div class="min-h-screen  from-[#071c17] via-[#134334] to-[#7be751] text-white">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-8">
     <a href="{{ url_for('organisations.organisation_groups', slug=organisation.slug) }}"
        class="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white">
@@ -11,7 +11,7 @@
     <section class="dashboard-card p-6 sm:p-8 space-y-6">
       {% include "organisations/_tabs.html" %}
       {% if errors %}
-        <div class="rounded-3xl border border-red-200 bg-red-50/95 px-4 py-3 text-sm text-red-900 space-y-1">
+        <div class="rounded-3xl border border-red-200  px-4 py-3 text-sm text-red-900 space-y-1">
           <p class="font-semibold">Aktion fehlgeschlagen:</p>
           <ul class="list-disc list-inside space-y-1">
             {% for error in errors %}
@@ -20,7 +20,7 @@
           </ul>
         </div>
       {% endif %}
-      <div class="rounded-[34px] border border-white/15 bg-white/5 p-5 space-y-4">
+      <div class="rounded-[34px] border border-white/15  p-5 space-y-4">
         <form method="post" class="grid gap-4 md:grid-cols-2">
           <input type="hidden" name="action" value="update_meta">
           <label class="wizard-label text-white">
@@ -48,7 +48,7 @@
         {% if available_members %}
           <form method="post" class="flex flex-wrap items-center gap-2">
             <input type="hidden" name="action" value="add_member">
-            <select name="user_id" class="wizard-input bg-white/90 text-[#0f2f2c]" required>
+            <select name="user_id" class="wizard-input  text-[#0f2f2c]" required>
               <option value="">Mitglied auswählen</option>
               {% for member in available_members %}
                 <option value="{{ member.id }}">{{ member.username }}{% if member.firstname %} – {{ member.firstname }}{% endif %}</option>
@@ -61,7 +61,7 @@
       {% if group_members %}
         <div class="space-y-3">
           {% for member in group_members %}
-            <div class="flex flex-wrap items-center justify-between rounded-[28px] border border-white/15 bg-white/5 px-4 py-3">
+            <div class="flex flex-wrap items-center justify-between rounded-[28px] border border-white/15  px-4 py-3">
               <div>
                 <p class="font-semibold">{{ member.firstname or member.username }} {{ member.lastname }}</p>
                 <p class="text-xs text-white/70">{{ member.email }}</p>
@@ -69,7 +69,7 @@
               <form method="post">
                 <input type="hidden" name="action" value="remove_member">
                 <input type="hidden" name="user_id" value="{{ member.id }}">
-                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold hover:bg-white/10">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold ">
                   Entfernen
                 </button>
               </form>
@@ -90,7 +90,7 @@
         {% if available_events %}
           <form method="post" class="flex flex-wrap items-center gap-2">
             <input type="hidden" name="action" value="add_event">
-            <select name="event_id" class="wizard-input bg-white/90 text-[#0f2f2c]" required>
+            <select name="event_id" class="wizard-input  text-[#0f2f2c]" required>
               <option value="">Event auswählen</option>
               {% for event in available_events %}
                 <option value="{{ event.id }}">{{ event.title }} – {% if event.dt_start %}{{ event.dt_start|smartdate }}{% else %}Termin folgt{% endif %}</option>
@@ -103,7 +103,7 @@
       {% if group_events %}
         <div class="space-y-3">
           {% for event in group_events %}
-            <div class="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-white/15 bg-white/5 px-4 py-3">
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-white/15  px-4 py-3">
               <div>
                 <p class="font-semibold">{{ event.title }}</p>
                 <p class="text-xs text-white/70">
@@ -116,13 +116,13 @@
               </div>
               <div class="flex items-center gap-2">
                 <a href="{{ url_for('organisations.organisation_event_detail', slug=organisation.slug, event_id=event.id) }}"
-                   class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold hover:bg-white/10">
+                   class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold ">
                   Details
                 </a>
                 <form method="post">
                   <input type="hidden" name="action" value="remove_event">
                   <input type="hidden" name="event_id" value="{{ event.id }}">
-                  <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold hover:bg-white/10">
+                  <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-1 text-xs font-semibold ">
                     Entfernen
                   </button>
                 </form>

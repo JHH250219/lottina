@@ -73,6 +73,8 @@ class BaseCrawler:
         created = 0
         updated = 0
         for payload in self.fetch():
+            if not self._within_supported_date_range(payload):
+                continue
             status = self._persist_event(payload)
             if status == "created":
                 created += 1
@@ -125,6 +127,13 @@ class BaseCrawler:
 
         db.session.flush()
         return "created" if created else "updated"
+
+    def _within_supported_date_range(self, payload: EventPayload) -> bool:
+        """Ensure events do not exceed the end of 2026."""
+        if not payload.dt_start:
+            return True
+        cutoff = datetime(2026, 12, 31, 23, 59, 59, tzinfo=payload.dt_start.tzinfo)
+        return payload.dt_start <= cutoff
 
     def _compose_external_id(self, raw_id: str | None) -> str:
         """Ensure external IDs always match the DB limit (VARCHAR(64))."""

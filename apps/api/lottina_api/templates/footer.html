@@ -1,30 +1,27 @@
-<footer class="mt-16 bg-gradient-to-br from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] text-white">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10 py-14">
-    <div class="grid gap-10 md:grid-cols-4">
-      <div class="space-y-4">
-        <a href="/" class="inline-flex items-center gap-2 text-2xl font-lottina tracking-wide">
-          <img src="{{ url_for('static', filename='img/lottina_logo.png') }}" alt="lottina Logo" class="h-10 w-auto">
+<footer class="section-shell border-t border-white/10 text-white bg-lottina-primary" role="contentinfo">
+  <div class="section-shell__inner">
+    <div class="grid gap-10 lg:gap-14 md:grid-cols-4">
+      <div class="flow-stack">
+        <a href="{{ url_for('index') }}" class="inline-flex items-center gap-3" aria-label="lottina Startseite">
+          <img src="{{ url_for('static', filename='img/lottina-svg/Logo-weiß.svg') }}"
+               alt="lottina Logo"
+               class="h-8 w-auto">
         </a>
-        <p class="text-sm text-white/70 leading-relaxed">
+        <p class="type-body text-white/70">
           Dein kuratierter Freizeit-Finder für Familien. Poster scannen, Events entdecken, Momente teilen.
         </p>
         <div class="flex gap-3">
-          {% set socials = [
-            ("https://www.instagram.com/lottina.de?igsh=MWNqbmRsN3Q5MzBibw==", "Instagram", "M12 2c2.7 0 3 .01 4.05.06 1.05.05 1.75.22 2.41.48a4.9 4.9 0 0 1 1.77 1.16 4.9 4.9 0 0 1 1.16 1.77c.26.66.43 1.36.48 2.41.05 1.05.06 1.35.06 4.05s-.01 3-.06 4.05c-.05 1.05-.22 1.75-.48 2.41a4.9 4.9 0 0 1-1.17 1.77 4.9 4.9 0 0 1-1.77 1.16c-.66.26-1.36.43-2.41.48-1.05.05-1.35.06-4.05.06s-3-.01-4.05-.06c-1.05-.05-1.75-.22-2.41-.48a4.9 4.9 0 0 1-1.77-1.16 4.9 4.9 0 0 1-1.16-1.77c-.26-.66-.43-1.36-.48-2.41C2.01 15 2 14.7 2 12c0-2.7.01-3 .06-4.05.05-1.05.22-1.75.48-2.41a4.9 4.9 0 0 1 1.16-1.77 4.9 4.9 0 0 1 1.77-1.16c.66-.26 1.36-.43 2.41-.48C9 2.01 9.3 2 12 2Z M12 7.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Zm6.3-.8a1.12 1.12 0 1 0 0-2.24 1.12 1.12 0 0 0 0 2.24Z"),
-          ] %}
-          {% for url, label, path in socials %}
-            <a href="{{ url }}" target="_blank" rel="noopener" class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 border border-white/20 text-white/80 hover:bg-white/20 hover:text-white transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path d="{{ path }}" fill="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span class="sr-only">{{ label }}</span>
-            </a>
-          {% endfor %}
+          <a href="https://www.instagram.com/lottina.de?igsh=MWNqbmRsN3Q5MzBibw==" target="_blank" rel="noopener"
+             class="social-link" aria-label="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path fill="currentColor" d="M12 2c2.7 0 3 .01 4.05.06 1.05.05 1.75.22 2.41.48a4.9 4.9 0 0 1 2.93 2.93c.26.66.43 1.36.48 2.41.05 1.05.06 1.35.06 4.05s-.01 3-.06 4.05c-.05 1.05-.22 1.75-.48 2.41a4.9 4.9 0 0 1-2.93 2.93c-.66.26-1.36.43-2.41.48-1.05.05-1.35.06-4.05.06s-3-.01-4.05-.06c-1.05-.05-1.75-.22-2.41-.48a4.9 4.9 0 0 1-2.93-2.93c-.26-.66-.43-1.36-.48-2.41C2.01 15 2 14.7 2 12c0-2.7.01-3 .06-4.05.05-1.05.22-1.75.48-2.41a4.9 4.9 0 0 1 2.93-2.93c.66-.26 1.36-.43 2.41-.48C9 2.01 9.3 2 12 2Zm0 5.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Zm6.3-.8a1.12 1.12 0 1 0 0-2.24 1.12 1.12 0 0 0 0 2.24Z"/>
+            </svg>
+          </a>
         </div>
       </div>
 
       <div class="space-y-3 text-sm">
-        <h3 class="text-white/80 font-semibold tracking-wide uppercase text-xs">Rechtliches</h3>
+        <h3 class="text-white/80 font-semibold tracking-[0.35em] uppercase text-[10px]">Rechtliches</h3>
         <ul class="space-y-2 text-white/70">
           <li><a href="/impressum" class="footer-link">Impressum</a></li>
           <li><a href="{{ url_for('datenschutz') }}" class="footer-link">Datenschutzerklärung</a></li>
@@ -33,17 +30,17 @@
       </div>
 
       <div class="space-y-3 text-sm">
-        <h3 class="text-white/80 font-semibold tracking-wide uppercase text-xs">Plattform</h3>
+        <h3 class="text-white/80 font-semibold tracking-[0.35em] uppercase text-[10px]">Plattform</h3>
         <ul class="space-y-2 text-white/70">
           <li><a href="{{ url_for('ueber_uns') }}" class="footer-link">Über uns</a></li>
-          <li><a href="{{ url_for('sichtbar_werden')}}" class="footer-link">Sichtbar werden</a></li>
+          <li><a href="{{ url_for('sichtbar_werden') }}" class="footer-link">Sichtbar werden</a></li>
           <li><a href="{{ url_for('feedback') }}" class="footer-link">Feedback</a></li>
           <li><a href="{{ url_for('vorgaben') }}" class="footer-link">Inhaltliche Vorgaben</a></li>
         </ul>
       </div>
 
       <div class="space-y-3 text-sm">
-        <h3 class="text-white/80 font-semibold tracking-wide uppercase text-xs">Entdecken</h3>
+        <h3 class="text-white/80 font-semibold tracking-[0.35em] uppercase text-[10px]">Entdecken</h3>
         <ul class="space-y-2 text-white/70">
           <li><a href="/results?free=1" class="footer-link">Kostenlose Events</a></li>
           <li><a href="/results?outdoor=1" class="footer-link">Outdoor-Tipps</a></li>
@@ -52,44 +49,10 @@
       </div>
     </div>
   </div>
-  <div class="border-t border-white/15">
-    <div class="max-w-6xl mx-auto px-6 lg:px-10 py-6 flex flex-col md:flex-row items-center gap-3 text-xs text-white/60">
+  <div class="border-t border-white/10">
+    <div class="section-shell__inner flex flex-col md:flex-row items-center gap-3 text-xs text-white/60">
       <span class="flex-1 text-center md:text-left">© {{ current_year | default("2025") }} lottina. Alle Rechte vorbehalten.</span>
       <span class="text-center md:text-right">Built in Germany · DSGVO-konform · Werbefrei</span>
     </div>
   </div>
 </footer>
-
-<style>
-  .footer-link {
-    position:relative;
-    display:inline-flex;
-    align-items:center;
-    gap:.4rem;
-    transition:color .2s ease, transform .2s ease;
-  }
-  .footer-link::before {
-    content:"—";
-    opacity:.3;
-    transition:opacity .2s ease, transform .2s ease;
-  }
-  .footer-link:hover {
-    color:#fff;
-    transform:translateX(3px);
-  }
-  .footer-link:hover::before {
-    opacity:.8;
-    transform:translateX(2px);
-  }
-  .sr-only {
-    position:absolute;
-    width:1px;
-    height:1px;
-    padding:0;
-    margin:-1px;
-    overflow:hidden;
-    clip:rect(0,0,0,0);
-    white-space:nowrap;
-    border:0;
-  }
-</style>

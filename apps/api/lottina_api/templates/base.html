@@ -3,30 +3,7 @@
 <head>
   {% include "seo.html" %}
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Icons/Helper -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <script src="https://unpkg.com/heroicons@2.0.16/dist/24/outline.js"></script>
-
-  <!-- Leaflet -->
-  <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-XQoYMqMTK8LvdlxU/3aQZbY0qEAt9nLk3cZg9ZkYfQo="
-        crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-o9N1j7kGmS+Jp3rgZj+Po+ozQdWpXdZ+1lzLk2g0kzU="
-          crossorigin=""></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-  <!-- Material Tailwind (optional) -->
-  <link href="https://unpkg.com/@material-tailwind/html@latest/styles/material-tailwind.css" rel="stylesheet" />
-  <script src="https://unpkg.com/@material-tailwind/html@latest/scripts/script.js"></script>
-
-  <!-- App CSS / Fonts -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+  <!-- Core meta + favicons required for the new CI -->
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/favicon_io/apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon_io/favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon_io/favicon-16x16.png') }}">
@@ -37,166 +14,108 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="color-scheme" content="dark light">
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    .flash-stack {
-      position: fixed;
-      top: 1.5rem;
-      right: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      z-index: 9999;
-      pointer-events: none;
-    }
-    .flash-message {
-      min-width: 240px;
-      max-width: 360px;
-      border-radius: 1rem;
-      padding: 0.95rem 1.2rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #fff;
-      backdrop-filter: blur(16px) saturate(140%);
-      background: linear-gradient(135deg, rgba(15, 47, 44, 0.85), rgba(15, 47, 44, 0.7));
-      box-shadow: 0 30px 60px rgba(7, 20, 17, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transform: translateX(120%);
-      opacity: 0;
-      animation: flash-slide-in 0.55s ease forwards, flash-slide-out 0.55s ease forwards 5s;
-    }
-    .flash-message::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      opacity: 0.3;
-      pointer-events: none;
-    }
-    .flash-message--success {
-      background: linear-gradient(135deg, rgba(5, 150, 105, 0.85), rgba(16, 185, 129, 0.65));
-    }
-    .flash-message--danger {
-      background: linear-gradient(135deg, rgba(220, 38, 38, 0.85), rgba(248, 113, 113, 0.65));
-    }
-    .flash-message--info {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.85), rgba(125, 211, 252, 0.65));
-    }
-    @keyframes flash-slide-in {
-      from {
-        transform: translateX(120%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    @keyframes flash-slide-out {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(120%);
-        opacity: 0;
-      }
-    }
-    @media (max-width: 640px) {
-      .flash-stack {
-        left: 0;
-        right: 0;
-        align-items: center;
-        top: 1rem;
-      }
-      .flash-message {
-        width: calc(100% - 2rem);
-        max-width: none;
-      }
-    }
-  </style>
-  
+
+  <!-- Fonts + gebuildetes Tailwind CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Bricolage+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+
+  {% block extra_head %}{% endblock %}
 </head>
 
-<body class="{% if request.endpoint == 'results' %}page-enter{% endif %} min-h-screen flex flex-col font-lottina text-lottina-primary antialiased">
-  {% include "header.html" %}
+<body>
+  <!-- Layout-Shell: Header + Seiteninhalt + Footer -->
+  <div class="flex min-h-screen flex-col">
+    {% include "header.html" %}
+
+    <main class="flex-1">
+      {% block content %}{% endblock %}
+    </main>
+
+    {% include "footer.html" %}
+  </div>
+
+  <!-- Globale Flash-Nachrichten -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      <div class="flash-stack" aria-live="polite">
+      <div class="pointer-events-none fixed top-6 right-4 z-50 flex w-full max-w-sm flex-col gap-3 sm:right-8 sm:top-8" aria-live="polite">
         {% for category, message in messages %}
           {% if category == 'success' %}
-            {% set variant = 'success' %}
+            {% set flash_classes = 'text-lottina-black border-white/30' %}
             {% set emoji = '✨' %}
           {% elif category == 'danger' %}
-            {% set variant = 'danger' %}
+            {% set flash_classes = 'text-white border-white/15' %}
             {% set emoji = '⚠️' %}
           {% elif category == 'info' %}
-            {% set variant = 'info' %}
+            {% set flash_classes = 'text-white border-white/15' %}
             {% set emoji = '💬' %}
           {% else %}
-            {% set variant = 'info' %}
+            {% set flash_classes = 'text-white border-white/15' %}
             {% set emoji = '💡' %}
           {% endif %}
-          <div class="flash-message flash-message--{{ variant }}" data-flash-message>
-            <span role="img" aria-label="Status">{{ emoji }}</span>
-            <span>{{ message }}</span>
+          <div class="pointer-events-auto rounded-brand border px-4 py-3 shadow-card-soft backdrop-blur-xl {{ flash_classes }}" data-flash>
+            <div class="flex items-center gap-3">
+              <span aria-hidden="true" class="text-lg">{{ emoji }}</span>
+              <p class="text-sm font-semibold leading-snug text-current">{{ message }}</p>
+            </div>
           </div>
         {% endfor %}
       </div>
     {% endif %}
   {% endwith %}
 
-  <!-- Einheitlicher, breiter Container für Seiteninhalte -->
-  <main class="flex-grow">
-    {% block content %}{% endblock %}
-  </main>
-
-  {% include "footer.html" %}
-
-  <div id="contact-modal" class="contact-modal" hidden>
-    <div class="contact-modal__backdrop" data-contact-close></div>
-    <div class="contact-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
-      <div class="contact-modal__header">
-        <div>
-          <h2 id="contact-modal-title" class="contact-modal__title">Direkt mit lottina sprechen</h2>
-          <p class="text-sm text-white/80 leading-relaxed mt-2">
-            Wir freuen uns über kommunale Projekte, Vereinsanfragen und Partner, die Freizeit sichtbar machen wollen.
-          </p>
+  <!-- Shared Kontaktmodal -->
+  <div id="contact-modal" class="fixed inset-0 z-40 hidden" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title" hidden>
+    <div class="absolute inset-0  backdrop-blur-sm" data-contact-close></div>
+    <div class="relative mx-auto flex min-h-full max-w-xl items-center justify-center px-4 py-10">
+      <div class="surface surface--frosted w-full rounded-brand p-8 text-white">
+        <div class="flex items-start justify-between gap-6">
+          <div>
+            <p class="chip text-[10px]">Kontakt</p>
+            <h2 id="contact-modal-title" class="brand-card__title text-2xl text-white">Direkt mit lottina sprechen</h2>
+            <p class="mt-2 text-sm text-white/80">
+              Wir freuen uns über kommunale Projekte, Vereinsanfragen und Partner, die Freizeit sichtbar machen wollen.
+            </p>
+          </div>
+          <button type="button" class="btn-ghost px-3 py-2 text-sm" data-contact-close aria-label="Schließen">×</button>
         </div>
-        <button type="button" class="contact-modal__close" data-contact-close aria-label="Schließen">
-          ×
-        </button>
-      </div>
-      <div class="contact-modal__body">
-        <p>
+
+        <p class="mt-6 text-sm text-white/80">
           Lass uns wissen, wie wir helfen können. Wir melden uns schnellstmöglich – versprochen.
         </p>
-        <div class="contact-modal__fields">
-          <div>
-            <label for="contact-name">Name</label>
-            <input id="contact-name" type="text" placeholder="Vor- und Nachname">
-          </div>
-          <div>
-            <label for="contact-email">E-Mail</label>
-            <input id="contact-email" type="email" placeholder="deine@mail.de">
-          </div>
-          <div>
-            <label for="contact-message">Nachricht</label>
-            <textarea id="contact-message" rows="4" placeholder="Worum geht es?"></textarea>
-          </div>
+
+        <div class="mt-6 space-y-4">
+          <label class="flex flex-col gap-2 text-sm text-white/70">
+            Name
+            <input id="contact-name" type="text" placeholder="Vor- und Nachname"
+                   class="rounded-soft border border-white/15  px-4 py-3 text-sm text-white placeholder:text-white/50 focus:border-lottina-secondary focus:outline-none">
+          </label>
+          <label class="flex flex-col gap-2 text-sm text-white/70">
+            E-Mail
+            <input id="contact-email" type="email" placeholder="deine@mail.de"
+                   class="rounded-soft border border-white/15  px-4 py-3 text-sm text-white placeholder:text-white/50 focus:border-lottina-secondary focus:outline-none">
+          </label>
+          <label class="flex flex-col gap-2 text-sm text-white/70">
+            Nachricht
+            <textarea id="contact-message" rows="4" placeholder="Worum geht es?"
+                      class="rounded-soft border border-white/15  px-4 py-3 text-sm text-white placeholder:text-white/50 focus:border-lottina-secondary focus:outline-none"></textarea>
+          </label>
         </div>
-        <div class="contact-modal__actions">
-          <a href="mailto:hello@lottina.de" class="contact-modal__primary" data-contact-mail>
+
+        <div class="mt-6 flex flex-col gap-3 text-sm text-white/70">
+          <a href="mailto:hello@lottina.de" class="btn-primary w-full justify-center" data-contact-mail>
             Schnell Abschicken
           </a>
-          <span class="contact-modal__hint">
-            oder schreib direkt an <a href="mailto:hello@lottina.de" class="underline text-white">hello@lottina.de</a>
+          <span class="text-center">
+            oder schreib direkt an <a href="mailto:hello@lottina.de" class="font-semibold text-white underline">hello@lottina.de</a>
           </span>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Modal-Handling -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const modal = document.getElementById("contact-modal");
@@ -238,25 +157,21 @@
       };
 
       const openModal = () => {
-        if (!modal) return;
         lastFocused = document.activeElement;
         modal.hidden = false;
         toggleScrollLock(true);
-        const firstInput = inputs.name;
         window.requestAnimationFrame(() => {
-          (firstInput || modal.querySelector(focusableSelectors))?.focus();
+          (inputs.name || modal.querySelector(focusableSelectors))?.focus();
         });
         document.addEventListener("keydown", onKeyDown);
       };
 
       const closeModal = () => {
-        if (!modal || modal.hidden) return;
+        if (modal.hidden) return;
         modal.hidden = true;
         toggleScrollLock(false);
         document.removeEventListener("keydown", onKeyDown);
-        if (lastFocused && typeof lastFocused.focus === "function") {
-          lastFocused.focus();
-        }
+        lastFocused?.focus?.();
       };
 
       const onKeyDown = (event) => {
@@ -299,9 +214,15 @@
       });
     });
   </script>
+  <!-- Flash-Animationen -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll("[data-flash-message]").forEach((el) => {
+      document.querySelectorAll("[data-flash]").forEach((el) => {
+        el.classList.add("animate-flash-in");
+        setTimeout(() => {
+          el.classList.remove("animate-flash-in");
+          el.classList.add("animate-flash-out");
+        }, 4500);
         el.addEventListener("animationend", (event) => {
           if (event.animationName === "flash-slide-out") {
             el.remove();

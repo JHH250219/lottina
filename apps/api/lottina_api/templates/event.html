@@ -46,8 +46,8 @@ Info: {{ event.description | striptags }}
 {% endset %}
 {% set calendar_description = calendar_description.strip() %}
 
-<section class="relative overflow-hidden bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white pt-32 pb-16">
-  <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_rgba(0,0,0,0))]"></div>
+<section class="relative overflow-hidden  from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white pt-32 pb-16">
+  <div class="absolute inset-0 opacity-20 pointer-events-none "></div>
   <div class="relative z-10 max-w-5xl mx-auto px-6 lg:px-10 space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <a href="{{ url_for('suchergebnisse') }}" class="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white">
@@ -55,13 +55,13 @@ Info: {{ event.description | striptags }}
       </a>
       {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="{{ url_for('edit_event', event_id=event.id) }}"
-           class="inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-white/10 transition">
+           class="inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white  transition">
           Event bearbeiten
         </a>
       {% endif %}
     </div>
     <div class="space-y-4">
-      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs uppercase tracking-[0.3em] font-semibold">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs uppercase tracking-[0.3em] font-semibold">
         Familien-Event
       </span>
       <h1 class="text-3xl md:text-4xl font-lottina font-bold leading-tight drop-shadow">
@@ -69,7 +69,7 @@ Info: {{ event.description | striptags }}
       </h1>
       <div class="flex flex-wrap gap-3 text-sm text-white/85">
         {% if is_permanent %}
-          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30 bg-white/10 text-white uppercase tracking-[0.2em]">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30  text-white uppercase tracking-[0.2em]">
             Immer für dich da
           </span>
         {% elif event.dt_start %}
@@ -92,7 +92,7 @@ Info: {{ event.description | striptags }}
           </span>
         {% endif %}
         {% if event.source_url %}
-          <a href="{{ event.source_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30 hover:bg-white/10 transition text-white">
+          <a href="{{ event.source_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1 rounded-2xl border border-white/30  transition text-white">
             Zur Veranstalterseite
           </a>
         {% endif %}
@@ -115,10 +115,10 @@ Info: {{ event.description | striptags }}
   </div>
 </section>
 
-<section class="bg-[#f6fbf8]">
+<section class="">
   <div class="max-w-6xl mx-auto px-6 lg:px-10 py-12 grid gap-8 lg:grid-cols-[minmax(0,2fr)_1fr]">
     <aside class="order-1 lg:order-2 space-y-5">
-      <div class="rounded-3xl border border-lottina-primary/10 bg-white p-5 shadow space-y-4 text-sm text-lottina-primary">
+      <div class="rounded-3xl border border-lottina-primary/10  p-5 shadow space-y-4 text-sm text-lottina-primary">
         <h2 class="text-lg font-semibold text-lottina-primary">Kurzinfo</h2>
         <dl class="space-y-3">
           {% if is_permanent %}
@@ -178,16 +178,16 @@ Info: {{ event.description | striptags }}
         <div class="pt-3">
           <div class="relative inline-block w-full">
             <button type="button"
-                    class="inline-flex w-full items-center justify-between rounded-2xl border border-transparent bg-gradient-to-r from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95 transition"
+                    class="inline-flex w-full items-center justify-between rounded-2xl border border-transparent  from-[#0f2f2c] via-[#1f6d5c] to-[#8be84f] px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95 transition"
                     data-event-calendar-toggle>
               Zum Kalender hinzufügen
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 9l6 6 6-6"/>
               </svg>
             </button>
-            <div class="calendar-dropdown hidden absolute z-10 mt-2 w-full rounded-2xl border border-lottina-primary/10 bg-white shadow-xl">
+            <div class="calendar-dropdown hidden absolute z-10 mt-2 w-full rounded-2xl border border-lottina-primary/10  shadow-xl">
               <div class="py-2 text-sm text-lottina-primary/80">
-                <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
+                <a href="#" class="calendar-link block px-4 py-2 "
                    data-calendar-provider="google"
                    data-title="{{ event.title }}"
                    data-location="{{ calendar_location or '' }}"
@@ -198,7 +198,7 @@ Info: {{ event.description | striptags }}
                    data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
                   Google Kalender
                 </a>
-                <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
+                <a href="#" class="calendar-link block px-4 py-2 "
                    data-calendar-provider="apple"
                    data-title="{{ event.title }}"
                    data-location="{{ calendar_location or '' }}"
@@ -209,7 +209,7 @@ Info: {{ event.description | striptags }}
                    data-url="{{ url_for('event_detail', event_id=event.id, _external=True) }}">
                   Apple Kalender
                 </a>
-                <a href="#" class="calendar-link block px-4 py-2 hover:bg-lottina-primary/5"
+                <a href="#" class="calendar-link block px-4 py-2 "
                    data-calendar-provider="ics"
                    data-title="{{ event.title }}"
                    data-location="{{ calendar_location or '' }}"
@@ -229,7 +229,7 @@ Info: {{ event.description | striptags }}
 
     <div class="order-2 lg:order-1 space-y-6">
       {% if event.image or event.description %}
-        <div class="event-detail-card event-detail-card--landscape rounded-3xl border border-lottina-primary/10 bg-white shadow overflow-hidden" data-event-card>
+        <div class="event-detail-card event-detail-card--landscape rounded-3xl border border-lottina-primary/10  shadow overflow-hidden" data-event-card>
           {% if event.image %}
             <div class="event-detail-card__media relative">
               <img src="{{ event.image }}"
@@ -242,7 +242,7 @@ Info: {{ event.description | striptags }}
             {% if categories %}
               <div class="flex flex-wrap gap-2 text-xs text-lottina-primary">
                 {% for cat in categories %}
-                  <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lottina-primary/5 border border-lottina-primary/15">
+                  <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  border border-lottina-primary/15">
                     {{ cat.name }}
                   </span>
                 {% endfor %}
@@ -264,7 +264,7 @@ Info: {{ event.description | striptags }}
 {% set has_location_coords = location and location.lat and location.lon %}
 {% set has_map_embed = event.maps_url or location_text %}
 {% if has_location_coords or has_map_embed %}
-<section class="bg-white border-t border-lottina-primary/10">
+<section class=" border-t border-lottina-primary/10">
   <div class="max-w-5xl mx-auto px-6 lg:px-10 py-12 space-y-4">
     <div class="space-y-2 text-center lg:text-left">
       <p class="text-xs font-semibold uppercase tracking-[0.3em] text-lottina-primary/60">Anfahrt</p>

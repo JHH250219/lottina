@@ -2,10 +2,10 @@
 {% block title %}{{ organisation.name }} – Events{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+<div class="min-h-screen  from-[#071c17] via-[#134334] to-[#7be751] text-white">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 pt-32 pb-16 space-y-10">
     <header class="space-y-3 text-center">
-      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+      <p class="inline-flex items-center gap-2 rounded-full  px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
         Termine
       </p>
       <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Events verwalten</h1>
@@ -15,11 +15,11 @@
     <section class="dashboard-card p-6 sm:p-8 space-y-5">
       {% include "organisations/_tabs.html" %}
       <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
-        <div class="flex items-center gap-2 rounded-full bg-white/5 p-1">
+        <div class="flex items-center gap-2 rounded-full  p-1">
           {% set view_modes = [('list', 'Liste'), ('calendar', 'Kalender')] %}
           {% for mode, label in view_modes %}
             <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug, view=mode, visibility=filter_visibility) }}"
-               class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold {{ 'bg-white text-lottina-primary shadow' if view_mode == mode else 'text-white/70' }}">
+              class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold {{ 'text-lottina-primary shadow' if view_mode == mode else 'text-white/70' }}">
               {{ label }}
             </a>
           {% endfor %}
@@ -28,7 +28,7 @@
           {% set filters = [('all','Alle'), ('public','Öffentlich'), ('internal','Intern')] %}
           {% for value, label in filters %}
             <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug, view=view_mode, visibility=value) }}"
-               class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold {{ 'border-white bg-white/15' if filter_visibility == value else 'border-white/30 text-white/70 hover:bg-white/10' }}">
+               class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold {{ 'border-white  if filter_visibility == value else 'border-white/30 text-white/70  }}">
               {{ label }}
             </a>
           {% endfor %}
@@ -44,12 +44,12 @@
             <h2 class="text-2xl font-semibold">Monatsübersicht</h2>
           </div>
           <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
-             class="inline-flex items-center gap-2 rounded-full bg-white text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+             class="inline-flex items-center gap-2 rounded-full  text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
             Neues Event
           </a>
         </div>
         <div id="orgCalendar"
-             class="rounded-[32px] border border-white/15 bg-white/5 p-5 text-white shadow-lg space-y-4">
+             class="rounded-[32px] border border-white/15  p-5 text-white shadow-lg space-y-4">
           <div class="flex items-center justify-between">
             <button type="button" class="calendar-nav" data-calendar-prev aria-label="Vorheriger Monat">‹</button>
             <div class="text-lg font-semibold" data-calendar-month>–</div>
@@ -69,14 +69,14 @@
             <h2 class="text-2xl font-semibold">Alle Termine</h2>
           </div>
           <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
-             class="inline-flex items-center gap-2 rounded-full bg-white text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+             class="inline-flex items-center gap-2 rounded-full  text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
             Neues Event
           </a>
         </div>
         {% if events %}
           <div class="space-y-4">
             {% for event in events %}
-              <article class="rounded-[32px] border border-white/15 bg-white/5 p-5 shadow flex flex-col gap-4">
+              <article class="rounded-[32px] border border-white/15  p-5 shadow flex flex-col gap-4">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h3 class="text-lg font-semibold text-white">{{ event.title }}</h3>
@@ -120,11 +120,11 @@
                   </div>
                   <div class="flex items-center gap-3">
                     <a href="{{ url_for('organisations.organisation_event_detail', slug=organisation.slug, event_id=event.id) }}"
-                       class="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                       class="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold ">
                       Details
                     </a>
                     <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
-                       class="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold hover:bg-white/10">
+                       class="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold ">
                       Serie ergänzen
                     </a>
                   </div>
@@ -133,7 +133,7 @@
             {% endfor %}
           </div>
         {% else %}
-          <div class="rounded-3xl border border-dashed border-white/30 bg-white/5 px-6 py-10 text-center text-sm text-white/70">
+          <div class="rounded-3xl border border-dashed border-white/30  px-6 py-10 text-center text-sm text-white/70">
             Noch keine Events vorhanden. Starte mit einem neuen Termin.
           </div>
         {% endif %}
@@ -205,7 +205,7 @@
         const date = new Date(year, month, day);
         const key = date.toISOString().slice(0, 10);
         const cell = document.createElement("div");
-        cell.className = "rounded-2xl border border-white/15 bg-white/5 p-2 flex flex-col gap-1 min-h-[90px]";
+        cell.className = "rounded-2xl border border-white/15  p-2 flex flex-col gap-1 min-h-[90px]";
         const label = document.createElement("div");
         label.className = "text-xs font-semibold text-white/90";
         label.textContent = day;
@@ -215,7 +215,7 @@
         dayEvents.slice(0, 3).forEach((event) => {
           const badge = document.createElement("a");
           badge.href = event.url || "#";
-          badge.className = "text-[11px] rounded-full bg-white/10 px-2 py-1 text-white/90 hover:bg-white/20";
+          badge.className = "text-[11px] rounded-full  px-2 py-1 text-white/90 ";
           badge.textContent = event.title;
           cell.appendChild(badge);
         });

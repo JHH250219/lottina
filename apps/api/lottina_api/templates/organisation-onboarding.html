@@ -2,10 +2,10 @@
 {% block title %}Organisation anmelden – lottina Familiennetzwerk{% endblock %}
 
 {% block content %}
-<section class="relative overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
-  <div class="absolute inset-0 opacity-30 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_rgba(0,0,0,0))]"></div>
+<section class="relative overflow-hidden  from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="absolute inset-0 opacity-30 pointer-events-none "></div>
   <div class="relative z-10 max-w-5xl mx-auto px-5 sm:px-10 pt-36 pb-24 space-y-10 text-center">
-    <p class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.3em] mx-auto">
+    <p class="inline-flex items-center gap-2 px-4 py-1 rounded-full  text-xs font-semibold uppercase tracking-[0.3em] mx-auto">
       Organisationen
     </p>
     <h1 class="text-4xl sm:text-5xl font-lottina font-bold leading-tight drop-shadow-xl">
@@ -15,7 +15,7 @@
       In wenigen Schritten legst du deine Organisation an, bündelst Gruppen, lädst dein Team ein und bist bereit für das neue lottina Dashboard.
     </p>
     {% if submission_errors %}
-      <div class="mx-auto max-w-2xl rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-900 text-left space-y-1">
+      <div class="mx-auto max-w-2xl rounded-2xl border border-red-200  px-4 py-3 text-sm text-red-900 text-left space-y-1">
         <p class="font-semibold">Bitte prüfe folgende Angaben:</p>
         <ul class="list-disc list-inside space-y-1">
           {% for error in submission_errors %}
@@ -25,17 +25,17 @@
       </div>
     {% endif %}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 pt-4 text-left">
-      <article class="rounded-3xl border border-white/15 bg-white/5 p-5 shadow-lg">
+      <article class="rounded-3xl border border-white/15  p-5 shadow-lg">
         <p class="text-xs uppercase tracking-[0.45em] text-white/60">Schritt 1</p>
         <h2 class="mt-2 text-xl font-semibold">Typ wählen</h2>
         <p class="text-sm text-white/80">Verein, Kirche, Kommune oder Initiative – entscheide dich für deine Basis.</p>
       </article>
-      <article class="rounded-3xl border border-white/15 bg-white/5 p-5 shadow-lg">
+      <article class="rounded-3xl border border-white/15  p-5 shadow-lg">
         <p class="text-xs uppercase tracking-[0.45em] text-white/60">Schritt 2</p>
         <h2 class="mt-2 text-xl font-semibold">Details angeben</h2>
         <p class="text-sm text-white/80">Name, Beschreibung, Adresse & Logo – alles an einem Ort.</p>
       </article>
-      <article class="rounded-3xl border border-white/15 bg-white/5 p-5 shadow-lg">
+      <article class="rounded-3xl border border-white/15  p-5 shadow-lg">
         <p class="text-xs uppercase tracking-[0.45em] text-white/60">Schritt 3–5</p>
         <h2 class="mt-2 text-xl font-semibold">Gruppen, Team & Abschluss</h2>
         <p class="text-sm text-white/80">Gruppen strukturieren, Mitglieder einladen und bestätigen.</p>
@@ -43,14 +43,14 @@
     </div>
     <div class="pt-6">
       <button type="button"
-              class="choice-card bg-white text-lottina-primary inline-flex flex-col gap-3 items-center mx-auto px-8 py-5"
+              class="choice-card  text-lottina-primary inline-flex flex-col gap-3 items-center mx-auto px-8 py-5"
               data-open-org-wizard>
         <div class="flex items-center gap-4">
           <img src="{{ url_for('static', filename='img/typing.png') }}"
                alt="Organisation starten"
                class="hidden sm:block h-20 w-20 object-contain drop-shadow-[0_25px_45px_rgba(8,20,18,0.35)]">
           <div class="text-left">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs font-semibold uppercase tracking-wide text-emerald-700">
               Wizard starten
             </span>
             <h2 class="text-2xl font-semibold leading-tight">Organisation erstellen</h2>

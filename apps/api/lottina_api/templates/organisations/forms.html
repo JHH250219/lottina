@@ -2,10 +2,10 @@
 {% block title %}{{ organisation.name }} – Formulare{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+<div class="min-h-screen  from-[#071c17] via-[#134334] to-[#7be751] text-white">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-10">
     <header class="space-y-3 text-center">
-      <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
+      <p class="inline-flex items-center gap-2 rounded-full  px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]">
         Formulare
       </p>
       <h1 class="text-3xl sm:text-4xl font-lottina font-bold">Anmeldungen & Feedback</h1>
@@ -20,14 +20,14 @@
           <h2 class="text-2xl font-semibold">Deine Formulare</h2>
         </div>
         <a href="{{ url_for('organisations.organisation_forms_new', slug=organisation.slug) }}"
-           class="inline-flex items-center gap-2 rounded-full bg-white text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+           class="inline-flex items-center gap-2 rounded-full  text-lottina-primary px-5 py-2.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
           Neues Formular
         </a>
       </div>
       {% if forms %}
         <div class="space-y-4">
           {% for form in forms %}
-            <article class="rounded-[32px] border border-white/15 bg-white/5 p-5 flex flex-col gap-4">
+            <article class="rounded-[32px] border border-white/15  p-5 flex flex-col gap-4">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 class="text-lg font-semibold">{{ form.title }}</h3>
@@ -39,7 +39,7 @@
                   </p>
                 </div>
                 <a href="{{ url_for('organisations.organisation_form_detail', slug=organisation.slug, form_slug=form.slug) }}"
-                   class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold hover:bg-white/10">
+                   class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold ">
                   Öffnen
                 </a>
               </div>

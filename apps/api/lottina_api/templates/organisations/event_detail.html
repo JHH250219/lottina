@@ -2,7 +2,7 @@
 {% block title %}{{ event.title }} – {{ organisation.name }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
+<div class="min-h-screen  from-[#071c17] via-[#134334] to-[#7be751] text-white">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 pb-16 space-y-8">
     <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug) }}"
        class="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white">
@@ -32,7 +32,7 @@
           </div>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
-          <div class="rounded-3xl border border-white/15 bg-white/5 p-4">
+          <div class="rounded-3xl border border-white/15  p-4">
             <p class="text-xs uppercase tracking-[0.4em] text-white/60">Datum</p>
             <p class="text-sm text-white/80 mt-2">
               {% if event.dt_start %}
@@ -45,7 +45,7 @@
               <p class="text-xs text-white/60 mt-1">bis {{ event.dt_end|smartdate }}</p>
             {% endif %}
           </div>
-          <div class="rounded-3xl border border-white/15 bg-white/5 p-4">
+          <div class="rounded-3xl border border-white/15  p-4">
             <p class="text-xs uppercase tracking-[0.4em] text-white/60">Ort</p>
             <p class="text-sm text-white/80 mt-2">
               {% if event.location %}
@@ -61,7 +61,7 @@
               </a>
             {% endif %}
           </div>
-          <div class="rounded-3xl border border-white/15 bg-white/5 p-4">
+          <div class="rounded-3xl border border-white/15  p-4">
             <p class="text-xs uppercase tracking-[0.4em] text-white/60">Preis</p>
             <p class="text-sm text-white/80 mt-2">
               {% if event.is_free %}
@@ -73,7 +73,7 @@
               {% endif %}
             </p>
           </div>
-          <div class="rounded-3xl border border-white/15 bg-white/5 p-4">
+          <div class="rounded-3xl border border-white/15  p-4">
             <p class="text-xs uppercase tracking-[0.4em] text-white/60">Kontakt</p>
             <p class="text-sm text-white/80 mt-2">
               {{ event.source_name or organisation.email or '—' }}
@@ -89,11 +89,11 @@
         </div>
         <div class="flex flex-wrap items-center gap-3 pt-2">
           <a href="{{ url_for('organisations.organisation_events_new', slug=organisation.slug) }}"
-             class="inline-flex items-center gap-2 rounded-full bg-white text-lottina-primary px-5 py-2 text-sm font-semibold shadow">
+             class="inline-flex items-center gap-2 rounded-full  text-lottina-primary px-5 py-2 text-sm font-semibold shadow">
             Neues Event
           </a>
           <a href="{{ url_for('organisations.organisation_events', slug=organisation.slug) }}"
-             class="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
+             class="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-2 text-sm font-semibold text-white ">
             Zur Liste
           </a>
         </div>

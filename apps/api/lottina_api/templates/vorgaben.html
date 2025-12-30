@@ -2,11 +2,11 @@
 {% block title %}Inhaltliche Vorgaben – lottina{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-lottina-background text-lottina-primary">
+<div class="min-h-screen  text-lottina-primary">
   <div class="max-w-6xl mx-auto pt-40 px-4 sm:px-8 lg:px-12 py-16 space-y-12">
 
     <header class="pt-6 space-y-4 text-center">
-      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-[0.3em]">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full  text-xs font-semibold uppercase tracking-[0.3em]">
         Guidelines
       </span>
       <h1 class="text-3xl sm:text-4xl font-lottina font-bold leading-tight drop-shadow-lg">
@@ -43,8 +43,8 @@
       ] %}
 
       {% for item in guidelines %}
-      <article class="rounded-3xl bg-lottina-highlight/25 border border-lottina-primary/12 backdrop-blur-sm px-6 py-6 space-y-4 shadow-lg">
-        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-lottina-accent/30 text-lottina-primary">
+      <article class="rounded-3xl  border border-lottina-primary/12 backdrop-blur-sm px-6 py-6 space-y-4 shadow-lg">
+        <div class="flex h-11 w-11 items-center justify-center rounded-2xl  text-lottina-primary">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="{{ item.icon }}" />
           </svg>
@@ -55,7 +55,7 @@
       {% endfor %}
     </section>
 
-    <section class="rounded-3xl bg-white text-lottina-primary shadow-2xl border border-lottina-primary/15 px-6 sm:px-8 py-10 space-y-6">
+    <section class="rounded-3xl  text-lottina-primary shadow-2xl border border-lottina-primary/15 px-6 sm:px-8 py-10 space-y-6">
       <h2 class="text-2xl font-semibold">Was wir ablehnen</h2>
       <ul class="space-y-2 text-sm text-lottina-primary/75 leading-relaxed">
         <li>• Inhalte mit diskriminierender, extremistischer oder jugendgefährdender Tendenz</li>
@@ -68,7 +68,7 @@
       </p>
     </section>
 
-    <section class="rounded-3xl bg-lottina-highlight/25 border border-lottina-primary/10 backdrop-blur-sm px-6 sm:px-8 py-10 space-y-5">
+    <section class="rounded-3xl  border border-lottina-primary/10 backdrop-blur-sm px-6 sm:px-8 py-10 space-y-5">
       <h2 class="text-xl font-semibold">So prüfst du dein Event vor dem Upload</h2>
       <ol class="space-y-3 text-sm text-lottina-primary/80 leading-relaxed">
         <li><strong>Poster bereit?</strong> Foto oder PDF mit gut lesbarem Text.</li>
@@ -78,11 +78,11 @@
       </ol>
       <div class="flex flex-wrap gap-3">
         <a href="{{ url_for('event_erstellen') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-lottina-accent text-lottina-primary font-semibold shadow hover:bg-[#76d64a] transition">
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl  text-lottina-primary font-semibold shadow  transition">
           Erlebnis einreichen
         </a>
         <a href="{{ url_for('register') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/20 text-sm font-semibold text-lottina-primary hover:bg-lottina-highlight/25 transition">
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-lottina-primary/20 text-sm font-semibold text-lottina-primary  transition">
           Zum Anbieter-Login
         </a>
       </div>

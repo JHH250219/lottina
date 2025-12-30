@@ -1,7 +1,7 @@
 <!-- Cookie Consent Banner (Tailwind + Oma) -->
 <div id="cookie-banner" role="dialog" aria-modal="true" aria-labelledby="cookie-title"
-     class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4 py-10">
-  <div class="bg-lottina-background max-w-md w-full rounded-2xl shadow-2xl p-6 relative text-center">
+     class="fixed inset-0 z-50  flex items-center justify-center px-4 py-10">
+  <div class=" max-w-md w-full rounded-2xl shadow-2xl p-6 relative text-center">
     
     <!-- Oma-Bild -->
     <img src="{{ url_for('static', filename='img/oma-cookies.png') }}"
@@ -18,11 +18,11 @@
     <!-- Buttons -->
     <div class="flex flex-col sm:flex-row justify-center gap-3 mt-4">
       <button onclick="acceptCookies()"
-              class="bg-lottina-accent hover:bg-lottina-highlight text-lottina-primary font-semibold px-4 py-2 rounded-lg shadow">
+              class="  text-lottina-primary font-semibold px-4 py-2 rounded-lg shadow">
         Ja, her damit!
       </button>
       <button onclick="declineCookies()"
-              class="bg-lottina-highlight hover:bg-lottina-accent text-lottina-primary font-semibold px-4 py-2 rounded-lg shadow">
+              class="  text-lottina-primary font-semibold px-4 py-2 rounded-lg shadow">
         Nur das Nötigste
       </button>
     </div>

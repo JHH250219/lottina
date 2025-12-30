@@ -3,14 +3,14 @@
 
 {% block content %}
 {% set is_premium = current_user.premium_active %}
-<div class="min-h-screen relative isolate overflow-hidden bg-gradient-to-br from-[#071c17] via-[#134334] to-[#7be751] text-white">
-  <div class="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full bg-white/10 blur-[140px]"></div>
-  <div class="pointer-events-none absolute bottom-0 left-4 h-72 w-72 rounded-full bg-[#ffffff]/10 blur-[120px]"></div>
+<div class="min-h-screen relative isolate overflow-hidden  from-[#071c17] via-[#134334] to-[#7be751] text-white">
+  <div class="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full  blur-[140px]"></div>
+  <div class="pointer-events-none absolute bottom-0 left-4 h-72 w-72 rounded-full /10 blur-[120px]"></div>
 
   <div class="relative mx-auto max-w-5xl px-4 sm:px-8 lg:px-12 pt-24 pb-20 space-y-10">
     {% if is_premium %}
       <section class="dashboard-hero text-center space-y-3" id="dashboard-hero">
-        <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] shadow">
+        <span class="inline-flex items-center gap-2 rounded-full  px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] shadow">
           Dein Bereich
         </span>
         <h1 class="text-3xl sm:text-4xl font-lottina font-bold drop-shadow-lg">
@@ -26,7 +26,7 @@
           <div class="space-y-3">
             {% for category, message in messages %}
               <div class="rounded-2xl px-4 py-3 text-sm font-medium
-                          {% if category == 'success' %}bg-emerald-100/80 text-emerald-900 border border-emerald-200{% elif category == 'danger' %}bg-red-100/80 text-red-900 border border-red-200{% elif category == 'info' %}bg-white/15 border border-white/25 text-white{% else %}bg-white/10 border border-white/20 text-white{% endif %}">
+                          {% if category == 'success' %}text-emerald-900 border border-emerald-200{% elif category == 'danger' %}text-red-900 border border-red-200{% elif category == 'info' %}border border-white/25 text-white{% else %}border border-white/20 text-white{% endif %}">
                 {{ message }}
               </div>
             {% endfor %}
@@ -109,7 +109,7 @@
                   <input type="text" name="postal_code" value="{{ current_user.postal_code or '' }}" class="dashboard-input" placeholder="z. B. 52070">
                 </label>
               <div class="flex flex-wrap gap-3 items-center">
-                <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white hover:bg-white/25 transition">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-full  px-4 py-2 text-xs font-semibold text-white  transition">
                   Änderungen speichern
                 </button>
                 <button type="button" class="text-xs text-white/70 hover:text-white" data-profile-modal-close>
@@ -172,7 +172,7 @@
         <div class="match-placeholder{% if kid_match_events or not (has_profile_location and has_child_interests) %} hidden{% endif %}"
              data-match-none>
           <p class="text-sm text-white/80">Hier entsteht dein persönliches Event-Carousell. Sobald passende Events vorliegen, kannst du sie durchklicken.</p>
-          <a href="{{ recommendations_href or url_for('results') }}" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition">
+          <a href="{{ recommendations_href or url_for('results') }}" class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold text-white  transition">
             Events entdecken
           </a>
         </div>
@@ -210,11 +210,11 @@
             <p class="text-sm text-white/75">Halte für jedes Mitglied max. drei Interessen fest – damit die Auswahl schnell passt.</p>
           </div>
           <div class="flex flex-col items-start gap-2 text-xs text-white/70">
-            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold">
+            <span class="inline-flex items-center gap-2 rounded-full  px-3 py-1 font-semibold">
               {{ child_profiles_count }} aktive Profile
             </span>
             <div class="flex flex-wrap gap-3 items-center">
-              <button id="familySaveBtn" type="button" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0f2f2c] to-[#1f6d5c] px-6 py-2.5 text-xs font-semibold text-white shadow-lg hover:opacity-90">
+              <button id="familySaveBtn" type="button" class="inline-flex items-center gap-2 rounded-full  from-[#0f2f2c] to-[#1f6d5c] px-6 py-2.5 text-xs font-semibold text-white shadow-lg hover:opacity-90">
                 Änderungen speichern
               </button>
               <button id="addFamilyMemberBtn" type="button" class="dashboard-link text-xs uppercase tracking-[0.3em] text-white/70 hover:text-white">
@@ -330,7 +330,7 @@
             {% if favorite_events %}
               <div class="space-y-3">
                 {% for event in favorite_events %}
-                  <article class="rounded-2xl border border-white/15 bg-white/10 p-4 space-y-2">
+                  <article class="rounded-2xl border border-white/15  p-4 space-y-2">
                     <p class="text-xs text-white/60">{{ event.date }} · {{ event.time }}</p>
                     <h5 class="text-white font-semibold">{{ event.title }}</h5>
                     <p class="text-xs text-white/65">📍 {{ event.location }}</p>
@@ -361,7 +361,7 @@
                 </p>
               </div>
               <a href="{{ url_for('organisations.organisation_dashboard', slug=first_org.slug) }}"
-                 class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8be84f] to-[#1f6d5c] px-6 py-3 text-sm font-semibold text-[#0f2f2c] shadow-lg hover:-translate-y-0.5 transition">
+                 class="inline-flex items-center gap-2 rounded-full  from-[#8be84f] to-[#1f6d5c] px-6 py-3 text-sm font-semibold text-[#0f2f2c] shadow-lg hover:-translate-y-0.5 transition">
                 Zum Dashboard
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
@@ -369,18 +369,18 @@
               </a>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-              <div class="rounded-[28px] border border-white/15 bg-white/10 p-5">
+              <div class="rounded-[28px] border border-white/15  p-5">
                 <p class="text-xs uppercase tracking-[0.35em] text-white/50">Events</p>
                 <p class="text-3xl font-semibold text-white">{{ first_org.managed_offers|length }}</p>
                 <p class="text-sm text-white/70">geplante Aktivitäten</p>
               </div>
-              <div class="rounded-[28px] border border-white/15 bg-white/10 p-5">
+              <div class="rounded-[28px] border border-white/15  p-5">
                 <p class="text-xs uppercase tracking-[0.35em] text-white/50">Team</p>
                 <p class="text-3xl font-semibold text-white">{{ first_org.members.count() }}</p>
                 <p class="text-sm text-white/70">Mitglieder mit Zugriff</p>
               </div>
             </div>
-            <div class="rounded-[26px] border border-dashed border-white/25 bg-white/5 p-5 text-sm text-white/75">
+            <div class="rounded-[26px] border border-dashed border-white/25  p-5 text-sm text-white/75">
               <p>
                 Adresse: {{ first_org.address or "–" }} · Kontakt: {{ first_org.email or "–" }}
               </p>
@@ -396,7 +396,7 @@
             <h3 class="text-2xl font-semibold">Was dürfen wir verbessern?</h3>
             <p class="text-sm text-white/75">Schreib uns, welche Funktionen dir noch fehlen oder wo wir unterstützen können.</p>
           </div>
-          <a href="mailto:hello@lottina.de" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2 text-sm font-semibold text-white hover:bg-white/20">
+          <a href="mailto:hello@lottina.de" class="inline-flex items-center gap-2 rounded-full  px-5 py-2 text-sm font-semibold text-white ">
             hello@lottina.de
           </a>
         </div>
@@ -415,7 +415,7 @@
           Favoriten speichern, Kinderprofile anlegen und Premium-Filter nutzen – alles für entspannte Familienplanung.
         </p>
         <a href="{{ url_for('preise') }}"
-           class="inline-flex items-center justify-center gap-3 rounded-full bg-white text-[#0f2f2c] text-lg font-bold px-8 py-4 tracking-[0.2em] shadow-xl hover:-translate-y-0.5 transition">
+           class="inline-flex items-center justify-center gap-3 rounded-full  text-[#0f2f2c] text-lg font-bold px-8 py-4 tracking-[0.2em] shadow-xl hover:-translate-y-0.5 transition">
           Jetzt Mitglied werden
         </a>
       </section>
@@ -1094,11 +1094,11 @@
       const showStatus = (message, variant = "info") => {
         if (!statusEl) return;
         statusEl.textContent = message;
-        statusEl.classList.remove("hidden", "border-emerald-200", "text-emerald-100", "bg-emerald-900/40", "border-red-200", "text-red-100", "bg-red-900/30", "border-white/30", "text-white");
+        statusEl.classList.remove("hidden", "border-emerald-200", "text-emerald-100", "", "border-red-200", "text-red-100", "", "border-white/30", "text-white");
         if (variant === "success") {
-          statusEl.classList.add("border-emerald-200", "text-emerald-100", "bg-emerald-900/40");
+          statusEl.classList.add("border-emerald-200", "text-emerald-100", "");
         } else if (variant === "error") {
-          statusEl.classList.add("border-red-200", "text-red-100", "bg-red-900/30");
+          statusEl.classList.add("border-red-200", "text-red-100", "");
         } else {
           statusEl.classList.add("border-white/30", "text-white");
         }

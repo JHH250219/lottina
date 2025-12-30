@@ -2,7 +2,7 @@
 {% block title %}Freigeben – Adminbereich | lottina{% endblock %}
 
 {% block content %}
-<div class="bg-lottina-background min-h-screen pt-40 pb-16 text-lottina-primary">
+<div class=" min-h-screen pt-40 pb-16 text-lottina-primary">
   <div class="max-w-6xl mx-auto px-4 sm:px-8 space-y-8">
     <header class="space-y-2 text-center">
       <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60 font-semibold">Admin-Bereich</p>
@@ -13,7 +13,7 @@
       <div class="space-y-5">
         <form method="get"
               action="{{ url_for('freigeben') }}"
-              class="space-y-3 rounded-2xl border border-lottina-primary/10 bg-white/80 px-4 py-3 text-sm text-lottina-primary shadow-sm">
+              class="space-y-3 rounded-2xl border border-lottina-primary/10  px-4 py-3 text-sm text-lottina-primary shadow-sm">
           <div class="flex flex-wrap items-center gap-3">
             <label class="inline-flex items-center gap-2 font-semibold">
               <input type="checkbox"
@@ -75,7 +75,7 @@
           <form id="bulk-publish-form"
                 method="post"
                 action="{{ url_for('freigeben_publish_bulk') }}"
-                class="rounded-2xl border border-lottina-primary/10 bg-white/95 px-4 py-3 shadow-sm flex flex-col gap-3 md:flex-row md:items-center md:justify-between sticky top-28 z-20"
+                class="rounded-2xl border border-lottina-primary/10  px-4 py-3 shadow-sm flex flex-col gap-3 md:flex-row md:items-center md:justify-between sticky top-28 z-20"
                 hidden
                 data-bulk-bar
                 data-remember-scroll>
@@ -87,7 +87,7 @@
                 Auswahl löschen
               </button>
               <button type="submit"
-                      class="inline-flex items-center gap-2 rounded-2xl bg-lottina-primary px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#0d3a32]"
+                      class="inline-flex items-center gap-2 rounded-2xl  px-5 py-2 text-sm font-semibold text-white shadow "
                       data-bulk-submit
                       disabled>
                 Ausgewählte freigeben
@@ -102,16 +102,16 @@
               </div>
               <div class="space-y-4">
                 {% for stack in stacked_offers %}
-                  <article class="rounded-[32px] border border-lottina-primary/10 bg-white shadow-sm p-6 space-y-4">
+                  <article class="rounded-[32px] border border-lottina-primary/10  shadow-sm p-6 space-y-4">
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
                       <div class="relative flex -space-x-4">
                         {% for preview in stack.preview_dates %}
-                          <div class="w-16 h-24 rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 shadow-sm flex items-center justify-center text-[11px] font-semibold text-lottina-primary/70">
+                          <div class="w-16 h-24 rounded-2xl border border-lottina-primary/10  shadow-sm flex items-center justify-center text-[11px] font-semibold text-lottina-primary/70">
                             {{ preview }}
                           </div>
                         {% endfor %}
                         {% if stack.count > stack.preview_dates|length %}
-                          <div class="w-16 h-24 rounded-2xl border border-dashed border-lottina-primary/20 bg-white/70 shadow-sm flex items-center justify-center text-xs font-semibold text-lottina-primary/60">
+                          <div class="w-16 h-24 rounded-2xl border border-dashed border-lottina-primary/20  shadow-sm flex items-center justify-center text-xs font-semibold text-lottina-primary/60">
                             +{{ stack.count - stack.preview_dates|length }}
                           </div>
                         {% endif %}
@@ -128,7 +128,7 @@
                         </div>
                         <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {% for offer in stack.offers %}
-                            <label class="flex items-center justify-between gap-3 rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 px-3 py-2 text-sm text-lottina-primary">
+                            <label class="flex items-center justify-between gap-3 rounded-2xl border border-lottina-primary/10  px-3 py-2 text-sm text-lottina-primary">
                               <div class="flex-1">
                                 <p class="font-semibold">{{ offer.dt_start.strftime("%d.%m.%Y %H:%M") if offer.dt_start else "Termin offen" }}</p>
                                 <p class="text-xs text-lottina-primary/60">
@@ -145,7 +145,7 @@
                           {% endfor %}
                         </div>
                         <button type="button"
-                                class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-lottina-primary/15 bg-lottina-primary/5 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/10 transition"
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-lottina-primary/15  px-4 py-2 text-sm font-semibold text-lottina-primary  transition"
                                 data-stack-toggle
                                 data-stack-payload='{{ stack.modal_payload | tojson }}'>
                           Stapel bearbeiten
@@ -161,7 +161,7 @@
           {% if single_offers %}
           <div class="grid gap-5 lg:grid-cols-1">
           {% for offer in single_offers %}
-            <article class="rounded-[32px] border border-lottina-primary/10 bg-white shadow-sm p-6 space-y-4">
+            <article class="rounded-[32px] border border-lottina-primary/10  shadow-sm p-6 space-y-4">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
                 <div class="freigeben-offer__image">
                   <img src="{{ offer.image or url_for('static', filename='img/oma-paper-512.png') }}"
@@ -214,18 +214,18 @@
               {% endif %}
               <div class="flex flex-wrap gap-3 justify-end">
                 <a href="{{ edit_url }}"
-                   class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/15 bg-lottina-primary/5 px-4 py-2 text-sm font-semibold text-lottina-primary hover:bg-lottina-primary/10 transition">
+                   class="inline-flex items-center gap-2 rounded-2xl border border-lottina-primary/15  px-4 py-2 text-sm font-semibold text-lottina-primary  transition">
                   Event bearbeiten
                 </a>
                 <form method="post" action="{{ url_for('freigeben_archive', offer_id=offer.id) }}">
                   <button type="submit"
-                          class="inline-flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
+                          class="inline-flex items-center gap-2 rounded-2xl border border-red-100  px-4 py-2 text-sm font-semibold text-red-700 ">
                     Ablehnen
                   </button>
                 </form>
                 <form method="post" action="{{ url_for('freigeben_publish', offer_id=offer.id) }}" data-remember-scroll>
                   <button type="submit"
-                          class="inline-flex items-center gap-2 rounded-2xl bg-lottina-primary px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#0d3a32]">
+                          class="inline-flex items-center gap-2 rounded-2xl  px-5 py-2 text-sm font-semibold text-white shadow ">
                     Freigeben
                   </button>
                 </form>
@@ -235,14 +235,14 @@
           </div>
           {% endif %}
         {% else %}
-          <div class="rounded-[32px] border border-dashed border-lottina-primary/20 bg-white px-6 py-10 text-center text-sm text-lottina-primary/70">
+          <div class="rounded-[32px] border border-dashed border-lottina-primary/20  px-6 py-10 text-center text-sm text-lottina-primary/70">
             Keine offenen Einreichungen. Du bist auf dem aktuellen Stand!
           </div>
         {% endif %}
       </div>
 
       <div class="space-y-6">
-        <section class="rounded-[32px] border border-lottina-primary/10 bg-white p-6 shadow-sm space-y-4">
+        <section class="rounded-[32px] border border-lottina-primary/10  p-6 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Community</p>
@@ -264,7 +264,7 @@
           {% endif %}
         </section>
 
-        <section class="rounded-[32px] border border-lottina-primary/10 bg-white p-6 shadow-sm space-y-4">
+        <section class="rounded-[32px] border border-lottina-primary/10  p-6 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-xs uppercase tracking-[0.3em] text-lottina-primary/60">Feedback</p>
@@ -275,7 +275,7 @@
           {% if feedback_entries %}
             <div class="space-y-3 max-h-[520px] overflow-y-auto pr-1">
               {% for entry in feedback_entries %}
-                <article class="rounded-2xl border border-lottina-primary/10 bg-lottina-primary/5 p-4 space-y-2 text-sm">
+                <article class="rounded-2xl border border-lottina-primary/10  p-4 space-y-2 text-sm">
                   <div class="flex items-center justify-between text-xs text-lottina-primary/60">
                     <span>{{ feedback_kind_labels.get(entry.kind, 'Feedback') }}</span>
                     <span>{{ entry.created_at.strftime("%d.%m.%Y %H:%M") if entry.created_at else '–' }}</span>
@@ -286,7 +286,7 @@
                   <p class="text-lottina-primary/80">{{ entry.message or 'Ohne Nachricht' }}</p>
                   <div class="flex flex-wrap gap-3 text-xs text-lottina-primary/60">
                     {% if entry.email %}<span>{{ entry.email }}</span>{% endif %}
-                    {% if entry.source %}<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/70 text-lottina-primary/70">{{ entry.source }}</span>{% endif %}
+                    {% if entry.source %}<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full  text-lottina-primary/70">{{ entry.source }}</span>{% endif %}
                   </div>
                 </article>
               {% endfor %}
@@ -300,8 +300,8 @@
   </div>
 </div>
 <div class="fixed inset-0 z-50 hidden items-center justify-center" data-stack-modal aria-hidden="true">
-  <div class="absolute inset-0 bg-black/60" data-stack-modal-close data-stack-overlay></div>
-  <div class="relative z-10 w-full max-w-xl rounded-[32px] bg-gradient-to-br from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white shadow-2xl p-6 space-y-5">
+  <div class="absolute inset-0 " data-stack-modal-close data-stack-overlay></div>
+  <div class="relative z-10 w-full max-w-xl rounded-[32px]  from-[#0f2f2c] via-[#155240] to-[#8be84f] text-white shadow-2xl p-6 space-y-5">
     <div class="flex items-center justify-between gap-3">
       <div>
         <p class="text-xs uppercase tracking-[0.3em] text-white/70">Serie</p>
@@ -309,14 +309,14 @@
         <p class="text-sm text-white/70" data-stack-count></p>
       </div>
       <button type="button"
-              class="rounded-full border border-white/30 px-3 py-1 text-lg font-semibold hover:bg-white/10"
+              class="rounded-full border border-white/30 px-3 py-1 text-lg font-semibold "
               data-stack-modal-close>
         &times;
       </button>
     </div>
     <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1" data-stack-events></div>
     <a href="#"
-       class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-4 py-3 text-sm font-semibold tracking-[0.2em] uppercase hover:bg-white/20 transition"
+       class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/30  px-4 py-3 text-sm font-semibold tracking-[0.2em] uppercase  transition"
        data-stack-series-link>
       Alle Events der Serie bearbeiten
     </a>
@@ -406,12 +406,12 @@
             const location = event.location || "";
             const editUrl = event.edit_single_url || "#";
             return `
-              <div class="rounded-2xl border border-white/20 bg-white/10 p-3 space-y-1 text-sm">
+              <div class="rounded-2xl border border-white/20  p-3 space-y-1 text-sm">
                 <p class="font-semibold">${title}</p>
                 <p class="text-xs text-white/70">${dateLabel}${location ? " · " + location : ""}</p>
                 <div class="flex justify-end">
                   <a href="${editUrl}"
-                     class="inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-white/20 transition">
+                     class="inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]  transition">
                     Nur dieses Event
                   </a>
                 </div>
