@@ -1,0 +1,311 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply font-lottina text-lottina-primary leading-[1.5] text-left antialiased min-h-screen flex flex-col bg-white;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-grotesk font-semibold text-lottina-white tracking-tight text-left;
+  }
+
+  h1 {
+    @apply text-4xl sm:text-5xl leading-[1.5];
+  }
+
+  h2 {
+    @apply text-3xl sm:text-4xl leading-snug;
+  }
+
+  h3 {
+    @apply text-2xl leading-snug;
+  }
+
+  h4 {
+    @apply text-xl leading-snug;
+  }
+
+  p {
+    @apply text-base text-white leading-[1.5] text-left;
+  }
+
+  a:not([class]) {
+    @apply font-semibold underline decoration-2 underline-offset-4 text-lottina-secondary transition-colors hover:text-white;
+  }
+
+  [class*="shadow"] {
+    box-shadow: none !important;
+  }
+
+  [class*="drop-shadow"] {
+    filter: none !important;
+  }
+}
+
+@layer components {
+  .header-logo--short {
+    @apply inline-flex h-6 w-auto;
+  }
+
+  .header-logo--full {
+    @apply hidden md:inline-flex h-6 w-auto;
+  }
+  .type-heading-primary {
+    @apply font-grotesk text-4xl sm:text-5xl font-bold leading-tight text-left;
+  }
+
+  .type-heading-secondary {
+    @apply font-grotesk text-2xl sm:text-3xl font-semibold leading-snug text-left;
+  }
+
+  .type-body {
+    @apply text-base font-normal leading-[1.5] text-left;
+  }
+
+  .link-inline {
+    @apply inline-flex items-center gap-2 font-semibold underline decoration-2 underline-offset-4 text-lottina-secondary transition-colors hover:text-white;
+  }
+
+  .btn-link {
+    @apply inline-flex items-center gap-1 font-semibold text-lottina-secondary underline decoration-2 underline-offset-4 hover:text-white;
+  }
+
+  .flow-stack > * + * {
+    @apply mt-4;
+  }
+
+  .flow-stack--hero > * + * {
+    @apply mt-20;
+  }
+
+  .section-shell {
+    @apply w-full 
+  }
+
+  .section-shell__inner {
+    @apply container py-section;
+  }
+
+  .section-viewport {
+    @apply min-h-[80vh];
+  }
+
+  .section-viewport--compact {
+    @apply min-h-[50vh];
+  }
+
+  .page-shell {
+    @apply relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-10;
+  }
+
+  .page-hero {
+    @apply section-shell section-viewport text-white relative overflow-hidden bg-lottina-primary;
+  }
+
+  .hero-image {
+    @apply drop-shadow-none max-w-6xl sm:max-w-6xl lg:max-w-6xl;
+  }
+
+  .hero-search-wrapper {
+    @apply relative;
+  }
+
+  .hero-search-wrapper::after {
+    content: "";
+    position: absolute;
+    top: -3rem;
+    right: -16rem;
+    width: 100%;
+    height: 100%;
+    background: url("../img/regenbogen_pdgg.png") no-repeat center / contain;
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
+
+  .hero-visual {
+    @apply relative;
+  }
+
+
+  .card-grid {
+    @apply grid gap-8 md:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .brand-card {
+    @apply rounded-brand p-card  text-white shadow-card-strong border border-white/10 transition-transform duration-200 hover:-translate-y-1 hover:border-white/25;
+  }
+
+  .brand-card--accent {
+    @apply  text-lottina-primary border-white/40 shadow-cta-glow;
+  }
+
+  .brand-card__title {
+    @apply text-xl font-bold mb-2;
+  }
+
+  .brand-card__copy {
+    @apply text-sm text-white/80;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-pill px-6 py-3 font-semibold text-base transition focus-visible:outline-2 focus-visible:outline-offset-2;
+  }
+  .control-lg {
+    @apply min-h-12;
+  }
+  .btn-primary {
+    @apply btn bg-lottina-primary text-white  focus-visible:outline-lottina-secondary;
+  }
+
+  .btn-secondary {
+    @apply btn bg-lottina-accent text-black  focus-visible:outline-white;
+  }
+
+  .btn-ghost {
+    @apply btn  text-white focus-visible:outline-white;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-pill border border-white/20  px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70;
+  }
+
+  .stat {
+    @apply flex flex-col gap-1 rounded-soft border border-white/10  p-5;
+  }
+
+  .stat__value {
+    @apply text-3xl font-bold text-white;
+  }
+
+  .stat__label {
+    @apply text-xs uppercase tracking-[0.2em] text-white/60;
+  }
+
+  .surface {
+    @apply rounded-brand border border-white/10  backdrop-blur-xl shadow-hero-depth;
+  }
+
+  .surface--frosted {
+    @apply  border-white/15;
+  }
+
+  .surface--glow {
+    @apply shadow-cta-glow border-white/20;
+  }
+
+  /* Search (re-usable) */
+  .search-form {
+    @apply surface surface--frosted flex flex-col sm:flex-row gap-3 px-5 py-4 w-full max-w-2xl mx-auto lg:mx-0 bg-white;
+    @apply focus-within:border-lottina-primary/40 focus-within:ring-4 focus-within:ring-lottina-accent/60;
+  }
+
+  .search-form__field {
+    @apply flex-1;
+  }
+
+  .search-input {
+    @apply w-full border-0 bg-transparent text-lg text-lottina-black placeholder:text-lottina-primary;
+    @apply focus:outline-none;
+    @apply control-lg;
+    @apply py-3;
+  }
+
+  .search-button {
+    @apply btn btn-primary w-full sm:w-auto;
+    @apply control-lg;
+  }
+
+  .nav-link {
+    @apply flex items-center justify-between px-6 py-3 text-base font-semibold text-lottina-primary/80 border-b border-lottina-primary/10 transition-colors;
+  }
+
+  .nav-link:hover {
+    @apply text-lottina-primary;
+  }
+
+  .nav-link--active {
+    @apply text-lottina-secondary;
+  }
+
+  .footer-link {
+    @apply inline-flex items-center gap-2 text-white/70 transition;
+    position: relative;
+    font-size: 0.9rem;
+  }
+
+  .footer-link::before {
+    content: "—";
+    opacity: 0.3;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .footer-link:hover {
+    @apply text-white;
+    transform: translateX(3px);
+  }
+
+  .footer-link:hover::before {
+    opacity: 0.8;
+    transform: translateX(2px);
+  }
+
+  .social-link {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-pill border border-white/20 text-white/80 transition;
+  }
+
+  .social-link:hover {
+    @apply text-white;
+  }
+
+  .overlay-backdrop {
+    background-color: transparent;
+  }
+
+  .menu-panel {
+    @apply absolute right-4 top-[110px] bg-white text-lottina-primary rounded-2xl shadow-card-soft border border-lottina-primary/10 overflow-hidden flex flex-col;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+    transform-origin: top right;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .menu-panel--open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .menu-panel__nav {
+    @apply flex flex-col bg-white;
+  }
+
+  .member-highlight {
+    @apply rounded-brand p-10 bg-lottina-accent text-black mx-20 lg:mx-0 max-w-6xl border border-lottina-primary/20;
+  }
+}
+
+
+
+@layer utilities {
+  .gradient-divider {
+    @apply w-24 h-1 rounded-pill  from-lottina-highlight via-lottina-secondary to-lottina-accent;
+  }
+
+  .grid-auto-fit {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .modal-open {
+    overflow: hidden;
+  }
+}
+
+  
